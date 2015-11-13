@@ -57,15 +57,16 @@ $Scenarioname = "default"
 $Scenario = 1
 $Host.UI.RawUI.WindowTitle = "$Buildname"
 
-
-
-if (!(Test-Path $Sourcedir))
+if ($Sourcedir)
     {
-    New-Item -ItemType Directory -Path $Sourcedir | out-null
-    }
-if (!(get-smbshare -name "Scripts" -erroraction SilentlyContinue ))
-    {
+    if (!(Test-Path $Sourcedir))
+        {
+        New-Item -ItemType Directory -Path $Sourcedir | out-null
+        }
+    if (!(get-smbshare -name "Scripts" -erroraction SilentlyContinue ))
+        {
     new-smbshare -name "Scripts" -path "$Builddir\Scripts"
+        }
     }
 ##
 $Latest_e16_cu = "final"
