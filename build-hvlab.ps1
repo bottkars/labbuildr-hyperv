@@ -51,12 +51,19 @@ param (
 
 )
 $Builddir = $PSScriptRoot
-$Sourcedir = "C:\Sources"
+# $Sourcedir = "C:\Sources"
+$Buildname = Split-Path -Leaf $Builddir
+$Scenarioname = "default"
+$Scenario = 1
+$Host.UI.RawUI.WindowTitle = "$Buildname"
+
+
+
 if (!(Test-Path $Sourcedir))
     {
     New-Item -ItemType Directory -Path $Sourcedir | out-null
     }
-if (!(get-smbshare -name "Scripts"))
+if (!(get-smbshare -name "Scripts" -erroraction SilentlyContinue ))
     {
     new-smbshare -name "Scripts" -path "$Builddir\Scripts"
     }
@@ -216,6 +223,23 @@ function Expand-LABZip
 	}
 }
 
+function CreateShortcut
+{
+	$wshell = New-Object -comObject WScript.Shell
+	$Deskpath = $wshell.SpecialFolders.Item('Desktop')
+	# $path2 = $wshell.SpecialFolders.Item('Programs')
+	# $path1, $path2 | ForEach-Object {
+	$link = $wshell.CreateShortcut("$Deskpath\$Buildname.lnk")
+	$link.TargetPath = "$psHome\powershell.exe"
+	$link.Arguments = "-noexit -command $Builddir\profile.ps1"
+	#  -command ". profile.ps1" '
+	$link.Description = "$Buildname"
+	$link.WorkingDirectory = "$Builddir"
+	$link.IconLocation = 'powershell.exe'
+	$link.Save()
+	# }
+	
+}
 ##
 function Extract-Zip
 {
@@ -432,8 +456,51 @@ if ($Exchange2016.IsPresent)
 
 switch ($PsCmdlet.ParameterSetName)
     {
+
+    
+    
+        "Shortcut"
+        {
+				status "Creating Desktop Shortcut for $Buildname"
+				createshortcut
+                return
+    }# end shortcut
+    "Version"
+        {
+				Status "labbuildr version $major-$verlabbuildr $Edition on $branch"
+                if ($Latest_labbuildr_git)
+                    {
+                    Status "Git Release $Latest_labbuildr_git"
+                    }
+                Status "vmxtoolkit version $major-$vervmxtoolkit $Edition"
+                if ($Latest_vmxtoolkit_git)
+                    {
+                    Status "Git Release $Latest_vmxtoolkit_git"
+                    }
+                Write-Output '   Copyright 2014 Karsten Bott
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.'
+                 
+				return
+			} #end Version
+    
+}
+
+
         "E16"
         {
         $EXnode1 = "HV01"
         }
-    }
+    
+    
+
