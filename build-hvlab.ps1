@@ -56,9 +56,9 @@ if (!(Test-Path $Sourcedir))
     {
     New-Item -ItemType Directory -Path $Sourcedir | out-null
     }
-if (!(get-smbshare -name "Sources"))
+if (!(get-smbshare -name "Scripts"))
     {
-    new-smbshare -name "Sources" -path $Sourcedir
+    new-smbshare -name "Scripts" -path "$Builddir\Scripts"
     }
 ##
 $Latest_e16_cu = "final"
