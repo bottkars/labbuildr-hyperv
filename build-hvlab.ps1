@@ -477,15 +477,15 @@ switch ($PsCmdlet.ParameterSetName)
     }# end shortcut
     "Version"
         {
-				Status "labbuildr version $major-$verlabbuildr $Edition on $branch"
+				Status "labbuildr version $major-$verlabbuildr_HyperV $Edition on $branch"
                 if ($Latest_labbuildr_git)
                     {
-                    Status "Git Release $Latest_labbuildr_git"
+                    Status "Git Release $Latest_labbuildr_hyperv_git"
                     }
-                Status "vmxtoolkit version $major-$vervmxtoolkit $Edition"
+                Status "scripts version $major-$verscipts $Edition"
                 if ($Latest_vmxtoolkit_git)
                     {
-                    Status "Git Release $Latest_vmxtoolkit_git"
+                    Status "Git Release $Latest_labbuildr_scripts_git"
                     }
                 Write-Output '   Copyright 2014 Karsten Bott
 
