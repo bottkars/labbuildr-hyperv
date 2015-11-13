@@ -231,7 +231,7 @@ function CreateShortcut
 	# $path1, $path2 | ForEach-Object {
 	$link = $wshell.CreateShortcut("$Deskpath\$Buildname.lnk")
 	$link.TargetPath = "$psHome\powershell.exe"
-	$link.Arguments = "-noexit -command $Builddir\profile.ps1"
+	$link.Arguments = "-noexit"
 	#  -command ". profile.ps1" '
 	$link.Description = "$Buildname"
 	$link.WorkingDirectory = "$Builddir"
