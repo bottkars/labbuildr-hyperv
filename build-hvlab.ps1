@@ -226,6 +226,12 @@ function Expand-LABZip
 		$destinationFolder.CopyHere($zipPackage.Items(), $copyFlag)
 	}
 }
+function status
+{
+	param ([string]$message)
+	write-host -ForegroundColor Yellow $message
+}
+
 
 function CreateShortcut
 {
