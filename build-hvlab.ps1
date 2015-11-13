@@ -134,7 +134,7 @@ function update-fromGit
                     }
                 else 
                     {
-                    Write-Warning "No update required for labbuildr-hyperv, already newest version "
+                    Write-Warning "No update required for $Repo, already newest version "
                     }
 
 }
@@ -306,8 +306,6 @@ switch ($PsCmdlet.ParameterSetName)
 {
     "update" 
         {
-
-
         $Repo = "labbuildr-hyperv"
         $RepoLocation = "bottkars"
         $Latest_local_git = $Latest_labbuildr_hyperv_git
