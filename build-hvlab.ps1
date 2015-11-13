@@ -478,12 +478,12 @@ switch ($PsCmdlet.ParameterSetName)
     "Version"
         {
 				Status "labbuildr HyperV version $major-$verlabbuildr_HyperV $Edition on $branch"
-                if ($Latest_labbuildr_git)
+                if ($Latest_labbuildr_hyperv_git)
                     {
                     Status "Git Release $Latest_labbuildr_hyperv_git"
                     }
                 Status "scripts version $major-$verscipts $Edition"
-                if ($Latest_vmxtoolkit_git)
+                if ($Latest_labbuildr_scripts_git)
                     {
                     Status "Git Release $Latest_labbuildr_scripts_git"
                     }
