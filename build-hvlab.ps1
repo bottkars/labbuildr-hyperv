@@ -505,6 +505,16 @@ switch ($PsCmdlet.ParameterSetName)
 }
 
 
+
+###### requirements check
+
+if (!(test-path $Builddir\bin\mkisofs.exe -ErrorAction SilentlyContinue))
+    {
+    Get-LABHttpFile -SourceURL "http://osspack32.googlecode.com/files/mkisofs.exe" -TarGetFile "$Builddir\bin\mkisofs.exe"
+    Unblock-File -Path "$Builddir\bin\mkisofs.exe"
+    }
+
+
         "E16"
         {
         $EXnode1 = "HV01"
