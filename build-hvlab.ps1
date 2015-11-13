@@ -27,6 +27,9 @@
     ConfirmImpact="Medium")]
 	[OutputType([psobject])]
 param (
+    <#run build-lab version    #>
+	[Parameter(ParameterSetName = "version",Mandatory = $false, HelpMessage = "this will display the current version")][switch]$version,
+
     <#run build-lab update    #>
 	[Parameter(ParameterSetName = "update",Mandatory = $false, HelpMessage = "this will update labbuildr from latest git commit")][switch]$Update,
     <#
