@@ -1042,10 +1042,14 @@ switch ($PsCmdlet.ParameterSetName)
         Set-Content "$Isodir\Scripts\start-customize.ps1" -Value $Content -Force
         make-iso -Nodename $NodeName -Builddir $Builddir  
         Invoke-Expression  ".\clone-node.ps1 -MasterVHD C:\labbuildr-hyperv\2012R2FallUpdate\2012R2FallUpdate.vhdx -Nodename $NodeName -vmnet $vmnet -vlanid $vlanID" 
-        # Enter-PSSession -ComputerName 192.168.7.10 -Credential  Administrator
         
+        $SecurePassword = $Adminpassword | ConvertTo-SecureString -AsPlainText -Force
+        $Credential = New-Object –TypeName System.Management.Automation.PSCredential –ArgumentList $DomainUser, $SecurePassword
+        Enter-PSSession -ComputerName 192.168.7.10 -Credential $Credential
+
+
+
         }
-        
         
      "E16"
         {
