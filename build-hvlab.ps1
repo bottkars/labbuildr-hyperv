@@ -380,6 +380,7 @@ function CreateShortcut
 	
 }
 ##
+function make-iso
 { 
 param ([string]$Nodename,
         [string]$Builddir)
@@ -435,6 +436,40 @@ switch ($PsCmdlet.ParameterSetName)
 
             return
     }# end Updatefromgit
+    "Shortcut"
+        {
+				status "Creating Desktop Shortcut for $Buildname"
+				createshortcut
+                return
+        }# end shortcut
+    "Version"
+        {
+				Status "labbuildr HyperV version $major-$verlabbuildr_HyperV $Edition on $branch"
+                if ($Latest_labbuildr_hyperv_git)
+                    {
+                    Status "Git Release $Latest_labbuildr_hyperv_git"
+                    }
+                Status "scripts version $major-$verscipts $Edition"
+                if ($Latest_labbuildr_scripts_git)
+                    {
+                    Status "Git Release $Latest_labbuildr_scripts_git"
+                    }
+                Write-Output '   Copyright 2014 Karsten Bott
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.'
+                 
+				return
+			} #end Version
 }
 
 if ($Exchange2016.IsPresent)
@@ -561,47 +596,6 @@ if ($Exchange2016.IsPresent)
 
 
 
-switch ($PsCmdlet.ParameterSetName)
-    {
-
-    
-    
-        "Shortcut"
-        {
-				status "Creating Desktop Shortcut for $Buildname"
-				createshortcut
-                return
-    }# end shortcut
-    "Version"
-        {
-				Status "labbuildr HyperV version $major-$verlabbuildr_HyperV $Edition on $branch"
-                if ($Latest_labbuildr_hyperv_git)
-                    {
-                    Status "Git Release $Latest_labbuildr_hyperv_git"
-                    }
-                Status "scripts version $major-$verscipts $Edition"
-                if ($Latest_labbuildr_scripts_git)
-                    {
-                    Status "Git Release $Latest_labbuildr_scripts_git"
-                    }
-                Write-Output '   Copyright 2014 Karsten Bott
-
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
-
-       http://www.apache.org/licenses/LICENSE-2.0
-
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.'
-                 
-				return
-			} #end Version
-    
-}
 
 #################### default Parameter Section Start
 write-verbose "Config pre defaults"
