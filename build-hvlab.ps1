@@ -37,7 +37,18 @@ param (
 	[Parameter(ParameterSetName = "update",Mandatory = $false, HelpMessage = "select a branch to update from")][ValidateSet('master','testing','develop')]$branch  = "develop",
     [Parameter(ParameterSetName = "update",Mandatory = $false, HelpMessage = "this will force update labbuildr")]
     [switch]$force,
+        <# 
+    create deskop shortcut
+    #>	
+    [Parameter(ParameterSetName = "shortcut", Mandatory = $false)][switch]$createshortcut,
+    <#
+    Installs only a Domain Controller. Domaincontroller normally is installed automatically durin a Scenario Setup
+    IP-Addresses: .10
+    #>	
+	[Parameter(ParameterSetName = "DConly")][switch][alias('dc')]$DConly,	
+
     <#Exchange 2016   #>
+
 	[Parameter(ParameterSetName = "E16",Mandatory = $true)][switch][alias('ex16')]$Exchange2016,
 
     <#
