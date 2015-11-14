@@ -53,12 +53,20 @@ param (
     [String]$Sourcedir
 
 )
+#requires -version 3.0
+#requires -module labtools 
+###################################################
+## COnstants to be moved to Params
+
+
+###################################################
+[string]$Myself = $MyInvocation.MyCommand
+#$AddressFamily = 'IPv4'
+$IPv4PrefixLength = '24'
+$myself = $Myself.TrimEnd(".ps1")
+$Starttime = Get-Date
 $Builddir = $PSScriptRoot
-# $Sourcedir = "C:\Sources"
-$Buildname = Split-Path -Leaf $Builddir
-$Scenarioname = "default"
-$Scenario = 1
-$Host.UI.RawUI.WindowTitle = "$Buildname"
+
 
 if ($Sourcedir)
     {
@@ -91,8 +99,68 @@ try
     [datetime]$Latest_labbuildr_scripts_git = "07/11/2015"
     }
 
+################## Statics
+$LogFile = "$Builddir\$(Get-Content env:computername).log"
+$WAIKVER = "WAIK"
+$domainsuffix = ".local"
+$AAGDB = "AWORKS"
+$major = "5.0"
+$Default_vmnet = "vmnet2"
+$Default_BuildDomain = "labbuildr"
+$Default_Subnet = "192.168.2.0"
+$Default_IPv6Prefix = "FD00::"
+$Default_IPv6PrefixLength = '8'
+$Default_AddressFamily = "IPv4"
+$latest_ScaleIOVer = '1.32-2451.4'
+$ScaleIO_OS = "Windows"
+$ScaleIO_Path = "ScaleIO_$($ScaleIO_OS)_SW_Download"
+$latest_nmm = 'nmm90.DA'
+$latest_nw = 'nw90.DA'
+$latest_e16_cu = 'final'
+$latest_ex_cu = 'cu10'
+$latest_sqlver  = 'SQL2014SP1slip'
+$latest_master = '2012R2FallUpdate'
+$latest_sql_2012 = 'SQL2012SP2'
+$SIOToolKit_Branch = "master"
+$NW85_requiredJava = "jre-7u61-windows-x64"
+# $latest_java8 = "jre-8u51-windows-x64.exe"
+$latest_java8uri = "http://javadl.sun.com/webapps/download/AutoDL?BundleId=107944"
+$SourceScriptDir = "$Builddir\Scripts\"
+$Adminuser = "Administrator"
+$Adminpassword = "Password123!"
+$GuestScriptdir = "\\vmware-host\Shared Folders\Scripts"
+$GuestSourcePath = "\\vmware-host\Shared Folders\Sources"
+$GuestLogDir = "C:\Scripts"
+$NodeScriptDir = "$GuestScriptdir\Node"
+$Dots = [char]58
+[string]$Commentline = "#######################################################################################################################"
+#$SCVMM_VER = "SCVMM2012R2"
+$WAIKVER = "WAIK"
+# $SCOMVER = "SC2012_R2_SCOM"
+#$SQLVER = "SQL2012SP1"
+$DCNODE = "DCNODE"
+$NWNODE = "NWSERVER"
+$SPver = "SP2013SP1fndtn"
+$SPPrefix = "SP2013"
+$Edition = "Piranha"
+$Sleep = 10
+[string]$Sources = "Sources"
+$Sourcedirdefault = "c:\Sources"
+$Script_dir = "Scripts"
+$Sourceslink = "https://my.syncplicity.com/share/wmju8cvjzfcg04i/sources"
+$Buildname = Split-Path -Leaf $Builddir
+$Scenarioname = "default"
+$Scenario = 1
+$AddonFeatures = ("RSAT-ADDS", "RSAT-ADDS-TOOLS", "AS-HTTP-Activation", "NET-Framework-45-Features")
+$Gatewayhost = "11" 
+$Host.UI.RawUI.WindowTitle = "$Buildname"
 
+##################
+###################################################
+# main function go here
+###################################################
 
+####
 ####
 function update-fromGit
 {
@@ -106,8 +174,6 @@ function update-fromGit
             [string]$Destination,
             [switch]$delete
             )
-
-
         Write-Verbose "Using update-fromgit function for $repo"
         $Uri = "https://api.github.com/repos/$RepoLocation/$repo/commits/$branch"
         $Zip = ("https://github.com/$RepoLocation/$repo/archive/$branch.zip").ToLower()
@@ -134,123 +200,12 @@ function update-fromGit
                     }
                 else 
                     {
-                    Write-Warning "No update required for $Repo, already newest version "
+                    Status "No update required for labbuildr, already newest version "
                     }
 
 }
 #####
-function Get-LABHttpFile
- {
-    [CmdletBinding(DefaultParametersetName = "1",
-    HelpUri = "https://github.com/bottkars/LABbuildr/wiki/LABtools#GET-LABHttpFile")]
-	param (
-	[Parameter(ParameterSetName = "1", Mandatory = $true,Position = 0)]$SourceURL,
-    [Parameter(ParameterSetName = "1", Mandatory = $false)]$TarGetFile,
-    [Parameter(ParameterSetName = "1", Mandatory = $false)][switch]$ignoresize
-    )
 
-
-begin
-{}
-process
-{
-if (!$TarGetFile)
-    {
-    $TarGetFile = Split-Path -Leaf $SourceURL
-    }
-try
-                    {
-                    $Request = Invoke-WebRequest $SourceURL -UseBasicParsing -Method Head
-                    }
-                catch [Exception] 
-                    {
-                    Write-Warning "Could not downlod $SourceURL"
-                    Write-Warning $_.Exception
-                    break
-                    }
-                
-                $Length = $request.Headers.'content-length'
-                try
-                    {
-                    # $Size = "{0:N2}" -f ($Length/1GB)
-                    # Write-Warning "
-                    # Trying to download $SourceURL 
-                    # The File size is $($size)GB, this might take a while....
-                    # Please do not interrupt the download"
-                    Invoke-WebRequest $SourceURL -OutFile $TarGetFile
-                    }
-                catch [Exception] 
-                    {
-                    Write-Warning "Could not downlod $SourceURL. please download manually"
-                    Write-Warning $_.Exception
-                    break
-                    }
-                if ( (Get-ChildItem  $TarGetFile).length -ne $Length -and !$ignoresize)
-                    {
-                    Write-Warning "File size does not match"
-                    Remove-Item $TarGetFile -Force
-                    break
-                    }                       
-
-
-}
-end
-{}
-}                 
-###
-function Expand-LABZip
-{
- [CmdletBinding(DefaultParameterSetName='Parameter Set 1',
-    HelpUri = "https://github.com/bottkars/LABbuildr/wiki/LABtools#Expand-LABZip")]
-	param (
-        [string]$zipfilename,
-        [string] $destination,
-        [String]$Folder)
-	$copyFlag = 16 # overwrite = yes
-	$Origin = $MyInvocation.MyCommand
-	if (test-path($zipfilename))
-	{
-    If ($Folder)
-        {
-        $zipfilename = Join-Path $zipfilename $Folder
-        }
-    		
-        Write-Verbose "extracting $zipfilename to $destination"
-        if (!(test-path  $destination))
-            {
-            New-Item -ItemType Directory -Force -Path $destination | Out-Null
-            }
-        $shellApplication = New-object -com shell.application
-		$zipPackage = $shellApplication.NameSpace($zipfilename)
-		$destinationFolder = $shellApplication.NameSpace("$destination")
-		$destinationFolder.CopyHere($zipPackage.Items(), $copyFlag)
-	}
-}
-function status
-{
-	param ([string]$message)
-	write-host -ForegroundColor Yellow $message
-}
-
-
-function CreateShortcut
-{
-	$wshell = New-Object -comObject WScript.Shell
-	$Deskpath = $wshell.SpecialFolders.Item('Desktop')
-	# $path2 = $wshell.SpecialFolders.Item('Programs')
-	# $path1, $path2 | ForEach-Object {
-	$link = $wshell.CreateShortcut("$Deskpath\$Buildname.lnk")
-	$link.TargetPath = "$psHome\powershell.exe"
-	$link.Arguments = "-noexit"
-	#  -command ". profile.ps1" '
-	$link.Description = "$Buildname"
-	$link.WorkingDirectory = "$Builddir"
-	$link.IconLocation = 'powershell.exe'
-	$link.Save()
-	# }
-	
-}
-##
 function Extract-Zip
 {
 	param ([string]$zipfilename, [string] $destination)
@@ -267,7 +222,6 @@ function Extract-Zip
 		$destinationFolder.CopyHere($zipPackage.Items(), $copyFlag)
 	}
 }
-####
 
 function get-prereq
 { 
@@ -300,7 +254,32 @@ if (!(Test-Path $Destination))
     }
     return $ReturnCode 
 }
-####
+
+function status
+{
+	param ([string]$message)
+	write-host -ForegroundColor Yellow $message
+}
+
+
+function CreateShortcut
+{
+	$wshell = New-Object -comObject WScript.Shell
+	$Deskpath = $wshell.SpecialFolders.Item('Desktop')
+	# $path2 = $wshell.SpecialFolders.Item('Programs')
+	# $path1, $path2 | ForEach-Object {
+	$link = $wshell.CreateShortcut("$Deskpath\$Buildname.lnk")
+	$link.TargetPath = "$psHome\powershell.exe"
+	$link.Arguments = "-noexit -command $Builddir\profile.ps1"
+	$link.Description = "$Buildname"
+	$link.WorkingDirectory = "$Builddir"
+	$link.IconLocation = 'powershell.exe'
+	$link.Save()
+	# }
+	
+}
+##
+
 
 switch ($PsCmdlet.ParameterSetName)
 {
@@ -504,6 +483,398 @@ switch ($PsCmdlet.ParameterSetName)
     
 }
 
+#################### default Parameter Section Start
+write-verbose "Config pre defaults"
+if ($PSCmdlet.MyInvocation.BoundParameters["verbose"].IsPresent)
+    {
+    write-output $PSCmdlet.MyInvocation.BoundParameters
+    }
+###################################################
+## do we want defaults ?
+if ($defaults.IsPresent)
+    {
+    if (Test-Path $Builddir\defaults.xml)
+        {
+        status "Loading defaults from $Builddir\defaults.xml"
+        $Default = Get-LABDefaults
+        }
+        $DefaultGateway = $Default.DefaultGateway
+        if (!$nmm_ver)
+            {
+            try
+                {
+                $nmm_ver = $Default.nmm_ver
+                }
+            catch
+            [System.Management.Automation.ValidationMetadataException]
+                {
+                Write-Warning "defaulting NMM version to $latest_nmm"
+                 $nmm_ver = $latest_nmm
+                }
+            } 
+        $nmm_scvmm_ver = $nmm_ver -replace "nmm","scvmm"
+        if (!$nw_ver)
+            {
+            try
+                {
+                $nw_ver = $Default.nw_ver
+                }
+            catch
+            [System.Management.Automation.ValidationMetadataException]
+                {
+                Write-Warning "defaulting nw version to $latest_nw"
+                 $nw_ver = $latest_nw
+                }
+            } 
+        if (!$Masterpath)
+            {
+            try
+                {
+                $Masterpath = $Default.Masterpath
+                }
+            catch
+                {
+                Write-Warning "No Masterpath specified, trying default"
+                $Masterpath = $Builddir
+                }
+            }
+       
+        if (!$Sourcedir)
+            {
+            try
+                {
+                $Sourcedir = $Default.Sourcedir
+                }
+            catch [System.Management.Automation.ParameterBindingException]
+                {
+                Write-Warning "No sources specified, trying default"
+                $Sourcedir = $Sourcedirdefault
+                }
+            }
+
+        if (!$Master) 
+            {
+            try
+                {
+                $master = $Default.master
+                }
+            catch 
+                {
+                Write-Warning "No Master specified, trying default"
+                $Master = $latest_master
+                }
+            }
+        if (!$SQLVER)
+            {   
+            try
+                {
+                $sqlver = $Default.sqlver
+                }
+            catch 
+                {
+                Write-Warning "No sqlver specified, trying default"
+                $sqlver = $latest_sqlver
+                }
+            }
+        if (!$ex_cu) 
+            {
+            try
+                {
+                $ex_cu = $Default.ex_cu
+                }
+            catch 
+                {
+                Write-Warning "No Master specified, trying default"
+                $ex_cu = $latest_ex_cu
+                }
+            }
+        if (!$e16_cu) 
+            {
+            try
+                {
+                $e16_cu = $Default.e16_cu
+                }
+            catch 
+                {
+                Write-Warning "No e16_cu specified, trying default"
+                $e16_cu = $latest_e16_cu
+                }
+            }
+        if (!$ScaleIOVer) 
+            {
+            try
+                {
+                $ScaleIOVer = $Default.ScaleIOVer
+                }
+            catch 
+                {
+                Write-Warning "No ScaleIOVer specified, trying default"
+                $ScaleIOVer = $latest_ScaleIOVer
+                }
+            }
+        if (!$vmnet) 
+            {
+            try
+                {
+                $vmnet = $Default.vmnet
+                }
+            catch 
+                {
+                Write-Warning "No vmnet specified, trying default"
+                $vmnet = $Default_vmnet
+                }
+            }
+        if (!$BuildDomain) 
+            {
+            try
+                {
+                $BuildDomain = $Default.BuildDomain
+                }
+            catch 
+                {
+                Write-Warning "No BuildDomain specified, trying default"
+                $BuildDomain = $Default_BuildDomain
+                }
+            } 
+        if  (!$MySubnet) 
+            {
+            try
+                {
+                $MySubnet = $Default.mysubnet
+                }
+            catch 
+                {
+                Write-Warning "No mysubnet specified, trying default"
+                $MySubnet = $Default_Subnet
+                }
+            }
+       if (!$vmnet) 
+            {
+            try
+                {
+                $vmnet = $Default.vmnet
+                }
+            catch 
+                {
+                Write-Warning "No vmnet specified, trying default"
+                $vmnet = $Default_vmnet
+                }
+            }
+       if (!$AddressFamily) 
+            {
+            try
+                {
+                $AddressFamily = $Default.AddressFamily
+                }
+            catch 
+                {
+                Write-Warning "No AddressFamily specified, trying default"
+                $AddressFamily = $Default_AddressFamily
+                }
+            }
+       if (!$IPv6Prefix) 
+            {
+            try
+                {
+                $IPv6Prefix = $Default.IPv6Prefix
+                }
+            catch 
+                {
+                Write-Warning "No IPv6Prefix specified, trying default"
+                $IPv6Prefix = $Default_IPv6Prefix
+                }
+            }
+       if (!$IPv6PrefixLength) 
+            {
+            try
+                {
+                $IPv6PrefixLength = $Default.IPv6PrefixLength
+                }
+            catch 
+                {
+                Write-Warning "No IPv6PrefixLength specified, trying default"
+                $IPv6PrefixLength = $Default_IPv6PrefixLength
+                }
+            }
+        if (!($MyInvocation.BoundParameters.Keys.Contains("Gateway")))
+            {
+            if ($Default.Gateway -eq "true")
+                {
+                $Gateway = $true
+                [switch]$NW = $True
+                $DefaultGateway = "$IPv4Subnet.$Gatewayhost"
+                }
+            }
+        if (!($MyInvocation.BoundParameters.Keys.Contains("NoDomainCheck")))
+            {
+            if ($Default.NoDomainCheck -eq "true")
+                {
+                [switch]$NoDomainCheck = $true
+                }
+            }
+        if (!($MyInvocation.BoundParameters.Keys.Contains("NMM")))
+            {
+            if ($Default.NMM -eq "true")
+                {
+                $nmm = $true
+                $nw = $true
+                }
+            }
+        
+    }
+
+if (!$MySubnet) {$MySubnet = "192.168.2.0"}
+$IPv4Subnet = convert-iptosubnet $MySubnet
+if (!$BuildDomain) { $BuildDomain = $Default_BuildDomain }
+if (!$ScaleIOVer) {$ScaleIOVer = $latest_ScaleIOVer}
+if (!$SQLVER) {$SQLVER = $latest_sqlver}
+if (!$ex_cu) {$ex_cu = $latest_ex_cu}
+if (!$e16_cu) {$e16_cu = $latest_e16_cu}
+if (!$Master) {$Master = $latest_master}
+if (!$vmnet) {$vmnet = $Default_vmnet}
+if (!$IPv6PrefixLength){$IPv6PrefixLength = $Default_IPv6PrefixLength}
+if (!$Default.DNS1)
+    {
+    $DNS1 = "$IPv4Subnet.10"
+    } 
+else 
+    {
+    $DNS1 = $Default.DNS1
+    }
+write-verbose "After defaults !!!! "
+Write-Verbose "Sourcedir : $Sourcedir"
+Write-Verbose "NWVER : $nw_ver"
+Write-Verbose "Gateway : $($Gateway.IsPresent)"
+Write-Verbose "NMM : $($nmm.IsPresent)"
+Write-Verbose "MySubnet : $MySubnet"
+Write-Verbose "ScaleIOVer : $ScaleIOVer"
+Write-Verbose "Masterpath : $Masterpath"
+Write-Verbose "Master : $Master"
+Write-Verbose "Defaults before Safe:"
+
+If ($DefaultGateway -match "$IPv4Subnet.$Gatewayhost")
+    {
+    $gateway = $true
+    }
+If ($Gateway.IsPresent)
+            {
+            $DefaultGateway = "$IPv4Subnet.$Gatewayhost"
+            }
+if ($PSCmdlet.MyInvocation.BoundParameters["verbose"].IsPresent)
+    {
+    if (Test-Path $Builddir\defaults.xml)
+        {
+        Get-Content $Builddir\defaults.xml | Write-Host -ForegroundColor Gray
+        }
+    }
+
+#### do we have unset parameters ?
+if (!$AddressFamily){$AddressFamily = "IPv4" }
+
+###################################################
+
+if ($savedefaults.IsPresent)
+{
+$defaultsfile = New-Item -ItemType file $Builddir\defaults.xml -Force
+Status "saving defaults to $Builddir\defaults.xml"
+$config =@()
+$config += ("<config>")
+$config += ("<nmm_ver>$nmm_ver</nmm_ver>")
+$config += ("<nw_ver>$nw_ver</nw_ver>")
+$config += ("<master>$Master</master>")
+$config += ("<sqlver>$SQLVER</sqlver>")
+$config += ("<ex_cu>$ex_cu</ex_cu>")
+$config += ("<e16_cu>$e16_cu</e16_cu>")
+$config += ("<vmnet>$VMnet</vmnet>")
+$config += ("<BuildDomain>$BuildDomain</BuildDomain>")
+$config += ("<MySubnet>$MySubnet</MySubnet>")
+$config += ("<AddressFamily>$AddressFamily</AddressFamily>")
+$config += ("<IPV6Prefix>$IPV6Prefix</IPV6Prefix>")
+$config += ("<IPv6PrefixLength>$IPv6PrefixLength</IPv6PrefixLength>")
+$config += ("<Gateway>$($Gateway.IsPresent)</Gateway>")
+$config += ("<DefaultGateway>$($DefaultGateway)</DefaultGateway>")
+$config += ("<Sourcedir>$($Sourcedir)</Sourcedir>")
+$config += ("<ScaleIOVer>$($ScaleIOVer)</ScaleIOVer>")
+$config += ("<DNS1>$($DNS1)</DNS1>")
+$config += ("<NMM>$($NMM.IsPresent)</NMM>")
+$config += ("<Masterpath>$Masterpath</Masterpath>")
+$config += ("<NoDomainCheck>$NoDomainCheck</NoDomainCheck>")
+$config += ("<Puppet>$($Default.Puppet)</Puppet>")
+$config += ("<PuppetMaster>$($Default.PuppetMaster)</PuppetMaster>")
+$config += ("<Hostkey>$($Default.HostKey)</Hostkey>")
+$config += ("</config>")
+$config | Set-Content $defaultsfile
+}
+if ($PSCmdlet.MyInvocation.BoundParameters["verbose"].IsPresent -and $savedefaults.IsPresent )
+    {
+    Write-Verbose  "Defaults after Save"
+    Get-Content $Builddir\defaults.xml | Write-Host -ForegroundColor Magenta
+    }
+####### Master Check
+if (!$Sourcedir)
+    {
+    Write-Warning "no Sourcedir specified, will exit now"
+    exit
+    }
+else
+    {
+    try
+        {
+        Get-Item -Path $Sourcedir -ErrorAction Stop | Out-Null 
+        }
+        catch
+        [System.Management.Automation.DriveNotFoundException] 
+        {
+        Write-Warning "Drive not found, make sure to have your Source Stick connected"
+        exit
+        }
+        catch [System.Management.Automation.ItemNotFoundException]
+        {
+        write-warning "no sources directory found named $Sourcedir"
+        exit
+        }
+
+
+     }
+if (!$Master)
+
+    {
+    Write-Warning "No Master was specified. See get-help .\labbuildr.ps1 -Parameter Master !!"
+    Write-Warning "Load masters from $UpdateUri"
+    break
+    } # end Master
+
+    Try
+    {
+    $MyMaster = get-childitem -path "$Masterpath\$Master\$Master.vhdx"
+    }
+    catch [Exception] 
+    {
+    Write-Warning "Could not find $Masterpath\$Master\$Master.vhdx"
+    Write-Warning "Please download a Master from https://github.com/bottkars/labbuildr-hyperv/wiki/Master"
+    Write-Warning "And extract to $Masterpath"
+    # write-verbose $_.Exception
+    break
+    }
+if (!$MyMaster)
+    {
+    Write-Warning "Could not find $Masterpath\$Master"
+    Write-Warning "Please download a Master from https://github.com/bottkars/labbuildr-hyperv/wiki/Master"
+    Write-Warning "And extract to $Masterpath"
+    # write-verbose $_.Exception
+    break
+    }
+else
+    {
+   $MasterVHDX = $MyMaster.Dullname		
+   Write-Verbose "We got master $MasterVHDX"
+   }
+
+write-verbose "After Masterconfig !!!! "
+
+########
+
+########
 
 
 ###### requirements check
