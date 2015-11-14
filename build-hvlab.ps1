@@ -316,7 +316,7 @@ function update-fromGit
                     }
                 else 
                     {
-                    Status "No update required for labbuildr, already newest version "
+                    Status "No update required for $repo on $branch, already newest version "                    
                     }
 
 }
