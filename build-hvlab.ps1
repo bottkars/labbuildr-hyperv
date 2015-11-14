@@ -127,7 +127,20 @@ param (
     [Parameter(ParameterSetName = "SCOM", Mandatory = $false)]
     [Parameter(ParameterSetName = "Sharepoint", Mandatory = $false)]
 	[switch]$savedefaults,
+	[Parameter(ParameterSetName = "Hyperv", Mandatory = $false)]    [Parameter(ParameterSetName = "Sharepoint",Mandatory = $false)]
 	[Parameter(ParameterSetName = "Hyperv", Mandatory = $false)]
+	[Parameter(ParameterSetName = "AAG", Mandatory = $false)]
+	[Parameter(ParameterSetName = "E15", Mandatory = $false)]
+    [Parameter(ParameterSetName = "E16", Mandatory = $false)]
+	[Parameter(ParameterSetName = "Blanknodes", Mandatory = $false)]
+	[Parameter(ParameterSetName = "SQL", Mandatory = $false)]
+    [Parameter(ParameterSetName = "DConly", Mandatory = $false)]
+    [Parameter(ParameterSetName = "NWserver", Mandatory = $false)]
+    [Parameter(ParameterSetName = "SOFS", Mandatory = $false)]
+    [Parameter(ParameterSetName = "Panorama", Mandatory = $false)]
+    [Parameter(ParameterSetName = "SCOM", Mandatory = $false)]
+    [Parameter(ParameterSetName = "SRM", Mandatory = $false)]
+    [ValidateSet('2016TP3','2012R2FallUpdate')]$Master,
 	[Parameter(ParameterSetName = "AAG", Mandatory = $false)]
 	[Parameter(ParameterSetName = "E15", Mandatory = $false)]
     [Parameter(ParameterSetName = "E16", Mandatory = $false)]
@@ -140,6 +153,21 @@ param (
     [Parameter(ParameterSetName = "SCOM", Mandatory = $false)]
     [Parameter(ParameterSetName = "Sharepoint", Mandatory = $false)]
     [ValidateScript({ Test-Path -Path $_ })]$Masterpath,
+
+    [Parameter(ParameterSetName = "Sharepoint",Mandatory = $false)]
+	[Parameter(ParameterSetName = "Hyperv", Mandatory = $false)]
+	[Parameter(ParameterSetName = "AAG", Mandatory = $false)]
+	[Parameter(ParameterSetName = "E15", Mandatory = $false)]
+    [Parameter(ParameterSetName = "E16", Mandatory = $false)]
+	[Parameter(ParameterSetName = "Blanknodes", Mandatory = $false)]
+	[Parameter(ParameterSetName = "SQL", Mandatory = $false)]
+    [Parameter(ParameterSetName = "DConly", Mandatory = $false)]
+    [Parameter(ParameterSetName = "NWserver", Mandatory = $false)]
+    [Parameter(ParameterSetName = "SOFS", Mandatory = $false)]
+    [Parameter(ParameterSetName = "Panorama", Mandatory = $false)]
+    [Parameter(ParameterSetName = "SCOM", Mandatory = $false)]
+    [Parameter(ParameterSetName = "SRM", Mandatory = $false)]
+    [ValidateRange(1,4096)]$vlanID=0,
 
     [String]$Sourcedir
 
