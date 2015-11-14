@@ -1015,15 +1015,16 @@ switch ($PsCmdlet.ParameterSetName)
 	    #
 	    ###################################################
         $DCName =  $BuildDomain+"DC"
+        $NodeName = "DCNODE"
         ####prepare iso
         Remove-Item -Path $Isodir -Force -Recurse 
         New-Item -ItemType Directory "$Isodir\scripts" -Force
         Copy-Item "$GuestScriptdir\dcnode\new-dc.ps1" "$Isodir\scripts" 
-        $Content = "new-dc.ps1 -dcname $DCName -Domain $BuildDomain -IPv4subnet $IPv4subnet -IPv4Prefixlength $IPv4PrefixLength -IPv6PrefixLength $IPv6PrefixLength -IPv6Prefix $IPv6Prefix -AddressFamily $AddressFamily"
+        $Content = "new-dc.ps1 -dcname $DCName -Domain $BuildDomain -IPv4subnet $IPv4subnet -IPv4Prefixlength $IPv4PrefixLength -IPv6PrefixLength $IPv6PrefixLength -IPv6Prefix $IPv6Prefix -AddressFamily $AddressFamily -setwsman"
         Set-Content "$Isodir\Scripts\start-customize.ps1" -Value $Content
             
-        
-        
+        Invoke-Expression  ".\clone-node.ps1 -MasterVHD C:\labbuildr-hyperv\2012R2FallUpdate\2012R2FallUpdate.vhdx -Nodename $NodeName -vmnet $vmnet -vlanid $vlanID" 
+        # Enter-PSSession -ComputerName 192.168.7.10 -Credential  Administrator
         
         }
         
