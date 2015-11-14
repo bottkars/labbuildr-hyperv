@@ -219,6 +219,15 @@ $Host.UI.RawUI.WindowTitle = "$Buildname"
 
 ####
 ####
+function convert-iptosubnet
+{
+	param ($Subnet)
+	$subnet = [System.Version][String]([System.Net.IPAddress]$Subnet)
+	$Subnet = $Subnet.major.ToString() + "." + $Subnet.Minor + "." + $Subnet.Build
+	return, $Subnet
+} #enc convert iptosubnet
+
+
 function update-fromGit
 {
 
