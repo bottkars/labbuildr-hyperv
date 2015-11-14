@@ -60,7 +60,53 @@ param (
     #>
 	[Parameter(ParameterSetName = "E16", Mandatory = $false)]
     [ValidateSet('final')]$e16_cu,
-    
+        ######################### common Parameters start here in Order
+    <# reads the Default Config from defaults.xml
+    <config>
+    <nmm_ver>nmm82</nmm_ver>
+    <nw_ver>nw82</nw_ver>
+    <master>2012R2UEFIMASTER</master>
+    <sqlver>SQL2014</sqlver>
+    <ex_cu>cu6</ex_cu>
+    <vmnet>2</vmnet>
+    <BuildDomain>labbuildr</BuildDomain>
+    <MySubnet>10.10.0.0</MySubnet>
+    <AddressFamily>IPv4</AddressFamily>
+    <IPV6Prefix>FD00::</IPV6Prefix>
+    <IPv6PrefixLength>8</IPv6PrefixLength>
+    <NoAutomount>False</NoAutomount>
+    </config>
+#>
+	[Parameter(ParameterSetName = "Hyperv", Mandatory = $false)]
+	[Parameter(ParameterSetName = "AAG", Mandatory = $false)]
+	[Parameter(ParameterSetName = "E15", Mandatory = $false)]
+    [Parameter(ParameterSetName = "E16", Mandatory = $false)]
+	[Parameter(ParameterSetName = "Blanknodes", Mandatory = $false)]
+	[Parameter(ParameterSetName = "NWserver", Mandatory = $false)]
+    [Parameter(ParameterSetName = "DConly", Mandatory = $false)]
+	[Parameter(ParameterSetName = "SQL", Mandatory = $false)]
+   	[Parameter(ParameterSetName = "Isilon")]
+    [Parameter(ParameterSetName = "SOFS", Mandatory = $false)]
+    [Parameter(ParameterSetName = "Panorama", Mandatory = $false)]
+    [Parameter(ParameterSetName = "SRM", Mandatory = $false)]
+    [Parameter(ParameterSetName = "Sharepoint", Mandatory = $false)]
+    [Parameter(ParameterSetName = "SCOM", Mandatory = $false)]
+	[switch]$defaults,
+    <# This stores the defaul config in defaults.xml#>
+	[Parameter(ParameterSetName = "Hyperv", Mandatory = $false)]
+	[Parameter(ParameterSetName = "AAG", Mandatory = $false)]
+	[Parameter(ParameterSetName = "E15", Mandatory = $false)]
+    [Parameter(ParameterSetName = "E16", Mandatory = $false)]
+	[Parameter(ParameterSetName = "Blanknodes", Mandatory = $false)]
+	[Parameter(ParameterSetName = "NWserver", Mandatory = $false)]
+    [Parameter(ParameterSetName = "DConly", Mandatory = $false)]
+	[Parameter(ParameterSetName = "SQL", Mandatory = $false)]
+    [Parameter(ParameterSetName = "Panorama", Mandatory = $false)]
+    [Parameter(ParameterSetName = "SRM", Mandatory = $false)]
+    [Parameter(ParameterSetName = "SCOM", Mandatory = $false)]
+    [Parameter(ParameterSetName = "Sharepoint", Mandatory = $false)]
+	[switch]$savedefaults,
+
     [String]$Sourcedir
 
 )
