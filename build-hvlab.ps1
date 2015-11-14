@@ -1007,7 +1007,7 @@ switch ($PsCmdlet.ParameterSetName)
 
     {
     
-    "DCNODE"
+    "DCOnly"
         {        
 	    ###################################################
 	    #
