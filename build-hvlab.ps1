@@ -60,6 +60,27 @@ param (
     #>
 	[Parameter(ParameterSetName = "E16", Mandatory = $false)]
     [ValidateSet('final')]$e16_cu,
+
+
+
+        <# Wich version of OS Master should be installed
+    '2012R2FallUpdate','2016TP3'
+    #>
+    [Parameter(ParameterSetName = "Sharepoint",Mandatory = $false)]
+	[Parameter(ParameterSetName = "Hyperv", Mandatory = $false)]
+	[Parameter(ParameterSetName = "AAG", Mandatory = $false)]
+	[Parameter(ParameterSetName = "E15", Mandatory = $false)]
+    [Parameter(ParameterSetName = "E16", Mandatory = $false)]
+	[Parameter(ParameterSetName = "Blanknodes", Mandatory = $false)]
+	[Parameter(ParameterSetName = "SQL", Mandatory = $false)]
+    [Parameter(ParameterSetName = "DConly", Mandatory = $false)]
+    [Parameter(ParameterSetName = "NWserver", Mandatory = $false)]
+    [Parameter(ParameterSetName = "SOFS", Mandatory = $false)]
+    [Parameter(ParameterSetName = "Panorama", Mandatory = $false)]
+    [Parameter(ParameterSetName = "SCOM", Mandatory = $false)]
+    [Parameter(ParameterSetName = "SRM", Mandatory = $false)]
+    [ValidateSet('2016TP3','2012R2FallUpdate')]$Master,
+
         ######################### common Parameters start here in Order
     <# reads the Default Config from defaults.xml
     <config>
