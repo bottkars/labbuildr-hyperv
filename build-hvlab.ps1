@@ -223,6 +223,7 @@ $GuestScriptdir = "\\vmware-host\Shared Folders\Scripts"
 $GuestSourcePath = "\\vmware-host\Shared Folders\Sources"
 $GuestLogDir = "C:\Scripts"
 $NodeScriptDir = "$GuestScriptdir\Node"
+$Isodir = "$Builddir\iso"
 $Dots = [char]58
 [string]$Commentline = "#######################################################################################################################"
 #$SCVMM_VER = "SCVMM2012R2"
@@ -379,8 +380,27 @@ function CreateShortcut
 	
 }
 ##
+{ 
+param ([string]$Nodename,
+        [string]$Builddir)
+    IF (!(Test-Path $Builddir\bin\mkisofs.exe))
+        {
+        Write-Warning "mkisofs tool not found, exiting"
+        }
 
-
+        Write-Verbose "Building iso  =  $($NodeClone.Path)"
+    .$Builddir\bin\mkisofs.exe -J -V build -o "$Builddir\$Nodename\build.iso"  "$Builddir\iso" #  | Out-Null
+    $LASTEXITCODE
+    switch ($LASTEXITCODE)
+        {
+            2
+                {
+                Write-Warning "could not create CD"
+                Break
+                }
+        }
+}
+############################### End Function
 switch ($PsCmdlet.ParameterSetName)
 {
     "update" 
@@ -989,10 +1009,35 @@ if (!(test-path $Builddir\bin\mkisofs.exe -ErrorAction SilentlyContinue))
     Unblock-File -Path "$Builddir\bin\mkisofs.exe"
     }
 
-        "E16"
+switch ($PsCmdlet.ParameterSetName)
+
+    {
+    
+    "DCNODE"
+        {        
+	    ###################################################
+	    #
+	    # DC Setup
+	    #
+	    ###################################################
+        $DCName =  $BuildDomain+"DC"
+        ####prepare iso
+        Remove-Item -Path $Isodir -Force -Recurse 
+        New-Item -ItemType Directory "$Isodir\scripts" -Force
+        Copy-Item "$GuestScriptdir\dcnode\new-dc.ps1" "$Isodir\scripts" 
+        $Content = "new-dc.ps1 -dcname $DCName -Domain $BuildDomain -IPv4subnet $IPv4subnet -IPv4Prefixlength $IPv4PrefixLength -IPv6PrefixLength $IPv6PrefixLength -IPv6Prefix $IPv6Prefix -AddressFamily $AddressFamily"
+        Set-Content "$Isodir\Scripts\start-customize.ps1" -Value $Content
+            
+        
+        
+        
+        }
+        
+        
+     "E16"
         {
         $EXnode1 = "HV01"
         }
     
     
-
+}
