@@ -925,7 +925,7 @@ if (!$Master)
 
     Try
     {
-    $MyMaster = get-childitem -path "$Masterpath\$Master\$Master.vhdx"
+    $MyMaster = get-childitem -path "$Masterpath\$Master\$Master.vhdx" -ErrorAction SilentlyContinue
     }
     catch [Exception] 
     {
