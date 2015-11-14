@@ -16,7 +16,7 @@ clear-host
 import-module .\labtools -Force
 $Defaults = Get-labdefaults
 
-.\Build-lab.ps1
+.\Build-hvlab.ps1
 if (!(Test-Connection community.emc.com -Quiet -Count 2 -ErrorAction SilentlyContinue))
     {
     Write-Warning "no Internet Connection detected, Download of Sources may not work"
