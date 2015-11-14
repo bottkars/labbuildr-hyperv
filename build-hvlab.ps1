@@ -862,6 +862,8 @@ if (!$e16_cu) {$e16_cu = $latest_e16_cu}
 if (!$Master) {$Master = $latest_master}
 if (!$vmnet) {$vmnet = $Default_vmnet}
 if (!$IPv6PrefixLength){$IPv6PrefixLength = $Default_IPv6PrefixLength}
+if (!$IPv6Prefix){$IPv6Prefix = $Default_IPv6Prefix}
+
 if (!$Default.DNS1)
     {
     $DNS1 = "$IPv4Subnet.10"
