@@ -127,20 +127,7 @@ param (
     [Parameter(ParameterSetName = "SCOM", Mandatory = $false)]
     [Parameter(ParameterSetName = "Sharepoint", Mandatory = $false)]
 	[switch]$savedefaults,
-	[Parameter(ParameterSetName = "Hyperv", Mandatory = $false)]    [Parameter(ParameterSetName = "Sharepoint",Mandatory = $false)]
-	[Parameter(ParameterSetName = "Hyperv", Mandatory = $false)]
-	[Parameter(ParameterSetName = "AAG", Mandatory = $false)]
-	[Parameter(ParameterSetName = "E15", Mandatory = $false)]
-    [Parameter(ParameterSetName = "E16", Mandatory = $false)]
-	[Parameter(ParameterSetName = "Blanknodes", Mandatory = $false)]
-	[Parameter(ParameterSetName = "SQL", Mandatory = $false)]
-    [Parameter(ParameterSetName = "DConly", Mandatory = $false)]
-    [Parameter(ParameterSetName = "NWserver", Mandatory = $false)]
-    [Parameter(ParameterSetName = "SOFS", Mandatory = $false)]
-    [Parameter(ParameterSetName = "Panorama", Mandatory = $false)]
-    [Parameter(ParameterSetName = "SCOM", Mandatory = $false)]
-    [Parameter(ParameterSetName = "SRM", Mandatory = $false)]
-    [ValidateSet('2016TP3','2012R2FallUpdate')]$Master,
+
 	[Parameter(ParameterSetName = "AAG", Mandatory = $false)]
 	[Parameter(ParameterSetName = "E15", Mandatory = $false)]
     [Parameter(ParameterSetName = "E16", Mandatory = $false)]
@@ -1047,7 +1034,7 @@ switch ($PsCmdlet.ParameterSetName)
         ####prepare iso
         Remove-Item -Path $Isodir -Force -Recurse 
         New-Item -ItemType Directory "$Isodir\scripts" -Force
-        Copy-Item "$GuestScriptdir\dcnode\new-dc.ps1" "$Isodir\scripts" 
+        Copy-Item "$Builddir\Scripts\dcnode\new-dc.ps1" "$Isodir\scripts" 
         $Content = "new-dc.ps1 -dcname $DCName -Domain $BuildDomain -IPv4subnet $IPv4subnet -IPv4Prefixlength $IPv4PrefixLength -IPv6PrefixLength $IPv6PrefixLength -IPv6Prefix $IPv6Prefix -AddressFamily $AddressFamily -setwsman"
         Set-Content "$Isodir\Scripts\start-customize.ps1" -Value $Content
             
