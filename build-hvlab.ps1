@@ -404,7 +404,7 @@ param ([string]$Nodename,
         Write-Warning "mkisofs tool not found, exiting"
         }
 
-        Write-Verbose "Building iso  =  $($NodeClone.Path)"
+        Write-Verbose "Building iso"
     .$Builddir\bin\mkisofs.exe -J -V build -o "$Builddir\$Nodename\build.iso"  "$Builddir\iso" #  | Out-Null
     $LASTEXITCODE
     switch ($LASTEXITCODE)
@@ -1034,7 +1034,8 @@ switch ($PsCmdlet.ParameterSetName)
         ####prepare iso
         Remove-Item -Path $Isodir -Force -Recurse 
         New-Item -ItemType Directory "$Isodir\scripts" -Force
-        Copy-Item "$Builddir\Scripts\dcnode\new-dc.ps1" "$Isodir\scripts" 
+        Copy-Item "$Builddir\Scripts\dcnode\new-dc.ps1" "$Isodir\scripts"
+        make-iso -Nodename $NodeName -Builddir $Builddir  
         $Content = "new-dc.ps1 -dcname $DCName -Domain $BuildDomain -IPv4subnet $IPv4subnet -IPv4Prefixlength $IPv4PrefixLength -IPv6PrefixLength $IPv6PrefixLength -IPv6Prefix $IPv6Prefix -AddressFamily $AddressFamily -setwsman"
         Set-Content "$Isodir\Scripts\start-customize.ps1" -Value $Content
             
