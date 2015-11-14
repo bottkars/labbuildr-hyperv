@@ -923,7 +923,7 @@ if (!$MyMaster)
     }
 else
     {
-   $MasterVHDX = $MyMaster.Dullname		
+   $MasterVHDX = $MyMaster.Fullname		
    Write-Verbose "We got master $MasterVHDX"
    }
 
