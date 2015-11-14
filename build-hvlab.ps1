@@ -981,7 +981,11 @@ write-verbose "After Masterconfig !!!! "
 
 if (!(test-path $Builddir\bin\mkisofs.exe -ErrorAction SilentlyContinue))
     {
-    Get-LABHttpFile -SourceURL "https://osspack32.googlecode.com/files/mkisofs.exe" -TarGetFile "$Builddir\bin\mkisofs.exe"
+    if (!(test-path $Builddir\bin\ -ErrorAction SilentlyContinue))
+        {
+        New-Item -ItemType Directory -Path $Builddir\bin\ 
+        }
+    Get-LABHttpFile -SourceURL "https://osspack32.googlecode.com/files/mkisofs.exe" -TarGetFile "$Builddir\bin\mkisofs.exe "
     Unblock-File -Path "$Builddir\bin\mkisofs.exe"
     }
 
