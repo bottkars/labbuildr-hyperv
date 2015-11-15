@@ -203,6 +203,15 @@ try
     {
     [datetime]$Latest_labbuildr_scripts_git = "07/11/2015"
     }
+try
+    {
+    [datetime]$Latest_labtools_git = Get-Content  ($Builddir + "\labtools-$branch.gitver") -ErrorAction Stop
+    }
+    catch
+    {
+    [datetime]$Latest_labtools_git = "07/11/2015"
+    }
+
 
 ################## Statics
 $LogFile = "$Builddir\$(Get-Content env:computername).log"
@@ -526,13 +535,20 @@ switch ($PsCmdlet.ParameterSetName)
             {
             Write-Host "No Deletions required"
             }
+        ####
         $Repo = "labbuildr-scripts"
         $RepoLocation = "bottkars"
         $Latest_local_git = $Latest_labbuildr_scripts_git
         $Destination = "$Builddir\Scripts"
         update-fromGit -Repo $Repo -RepoLocation $RepoLocation -branch $branch -latest_local_Git $Latest_local_git -Destination $Destination -delete
+        ####
+        $Repo = "labtools"
+        $RepoLocation = "bottkars"
+        $Latest_local_git = $Latest_labtools_git
+        $Destination = "$Builddir\Scripts"
+        update-fromGit -Repo $Repo -RepoLocation $RepoLocation -branch $branch -latest_local_Git $Latest_local_git -Destination $Destination -delete
 
-            return
+        return
     }# end Updatefromgit
     "Shortcut"
         {
