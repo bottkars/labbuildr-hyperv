@@ -220,6 +220,7 @@ $domainsuffix = ".local"
 $AAGDB = "AWORKS"
 $major = "5.0"
 $Default_vmnet = "vmnet2"
+$Default_vlanid = 0
 $Default_BuildDomain = "labbuildr"
 $Default_Subnet = "192.168.2.0"
 $Default_IPv6Prefix = "FD00::"
@@ -766,7 +767,6 @@ if ($defaults.IsPresent)
                 $Masterpath = $Builddir
                 }
             }
-       
         if (!$Sourcedir)
             {
             try
@@ -779,7 +779,6 @@ if ($defaults.IsPresent)
                 $Sourcedir = $Sourcedirdefault
                 }
             }
-
         if (!$Master) 
             {
             try
@@ -888,6 +887,21 @@ if ($defaults.IsPresent)
                 $vmnet = $Default_vmnet
                 }
             }
+
+       if (!$vlanID) 
+            {
+            try
+                {
+                $vlanID = $Default.vlanID
+                }
+            catch 
+                {
+                Write-Warning "No VLanIDt specified, trying default"
+                $vlanID = $Default_vlanid
+                }
+            }
+
+
        if (!$AddressFamily) 
             {
             try
@@ -948,7 +962,16 @@ if ($defaults.IsPresent)
                 $nw = $true
                 }
             }
-        
+    
+    if (Test-Path "$Builddir\Switchdefaults.xml")
+        {
+        status "Loading Switchdefaults from $Builddir\Switchdefaults.xml"
+        $SwitchDefault = Get-LABSwitchDefaults
+
+        }
+    $HVSwitch = $SwitchDefault.$($Vmnet)
+    write-verbose $HVswitch
+    pause
     }
 
 if (!$MySubnet) {$MySubnet = "192.168.2.0"}
@@ -980,6 +1003,9 @@ Write-Verbose "MySubnet : $MySubnet"
 Write-Verbose "ScaleIOVer : $ScaleIOVer"
 Write-Verbose "Masterpath : $Masterpath"
 Write-Verbose "Master : $Master"
+Write-Verbose "VLanID : $vlanID"
+Write-Verbose "Switch : $switch"
+
 Write-Verbose "Defaults before Safe:"
 
 If ($DefaultGateway -match "$IPv4Subnet.$Gatewayhost")
@@ -1016,6 +1042,7 @@ $config += ("<sqlver>$SQLVER</sqlver>")
 $config += ("<ex_cu>$ex_cu</ex_cu>")
 $config += ("<e16_cu>$e16_cu</e16_cu>")
 $config += ("<vmnet>$VMnet</vmnet>")
+$config += ("<vlanID>$vlanID</vlanID>")
 $config += ("<BuildDomain>$BuildDomain</BuildDomain>")
 $config += ("<MySubnet>$MySubnet</MySubnet>")
 $config += ("<AddressFamily>$AddressFamily</AddressFamily>")
@@ -1140,7 +1167,7 @@ switch ($PsCmdlet.ParameterSetName)
         $Content = "d:\scripts\new-dc.ps1 -dcname $DCName -Domain $BuildDomain -IPv4subnet $IPv4subnet -IPv4Prefixlength $IPv4PrefixLength -IPv6PrefixLength $IPv6PrefixLength -IPv6Prefix $IPv6Prefix -AddressFamily $AddressFamily -setwsman"
         Set-Content "$Isodir\Scripts\start-customize.ps1" -Value $Content -Force
         make-iso -Nodename $NodeName -Builddir $Builddir  
-        Invoke-Expression  "$Builddir\clone-node.ps1 -MasterVHD C:\labbuildr-hyperv\2012R2FallUpdate\2012R2FallUpdate.vhdx -Nodename $NodeName -vmnet $vmnet -vlanid $vlanID"
+        Invoke-Expression  "$Builddir\clone-node.ps1 -MasterVHD C:\labbuildr-hyperv\2012R2FallUpdate\2012R2FallUpdate.vhdx -Nodename $NodeName -HVSwitch $HVSwitch -vlanid $vlanID"
         $SecurePassword = $Adminpassword | ConvertTo-SecureString -AsPlainText -Force
         $Credential = New-Object –TypeName System.Management.Automation.PSCredential –ArgumentList $Adminuser, $SecurePassword
         #

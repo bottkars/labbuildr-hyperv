@@ -6,7 +6,7 @@ Param(
 [Parameter(Mandatory=$false)][string]$Domainname,
 [Parameter(Mandatory=$true)][string]$Nodename,
 [Parameter(Mandatory=$false)][string]$CloneVMPath = "$Builddir\$Nodename\",
-[Parameter(Mandatory=$false)][string]$vmnet ="vmnet2",
+[Parameter(Mandatory=$false)][string]$HVSwitch,
 [Parameter(Mandatory=$false)][switch]$Isilon,
 [Parameter(Mandatory=$false)][string]$scenarioname = "Default",
 [Parameter(Mandatory=$false)][int]$Scenario = 1,
@@ -33,7 +33,7 @@ $Sourcedir
 
 
 New-VHD –Path “$Builddir\$Nodename\$Nodename.vhdx” –ParentPath “$MasterVHD” 
-$CloneVM = New-VM -Name $Nodename -Path "$Builddir" -Memory 512MB  -VHDPath "$Builddir\$Nodename\$Nodename.vhdx” -SwitchName $VMnet -Generation 2
+$CloneVM = New-VM -Name $Nodename -Path "$Builddir" -Memory 512MB  -VHDPath "$Builddir\$Nodename\$Nodename.vhdx” -SwitchName $HVSwitch -Generation 2
 $CloneVM | Set-VMMemory -DynamicMemoryEnabled $true -MinimumBytes 128MB -StartupBytes 1024MB -MaximumBytes 2GB -Priority 80 -Buffer 25
 $CloneVM | Add-VMDvdDrive -Path "$Builddir\$Nodename\build.iso"
 $CloneVM | Set-VMProcessor -Count 2
