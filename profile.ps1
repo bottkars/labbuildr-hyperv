@@ -1,4 +1,6 @@
-﻿$Userinterface = (Get-Host).UI.RawUI
+﻿set-location $PSScriptRoot
+
+$Userinterface = (Get-Host).UI.RawUI
 
 $Userinterface.BackgroundColor = "Black"
 

@@ -173,7 +173,6 @@ $myself = $Myself.TrimEnd(".ps1")
 $Starttime = Get-Date
 $Builddir = $PSScriptRoot
 
-
 if ($Sourcedir)
     {
     if (!(Test-Path $Sourcedir))
@@ -378,7 +377,7 @@ function status
 }
 
 
-function CreateShortcut
+<#function CreateShortcut
 {
 	$wshell = New-Object -comObject WScript.Shell
 	$Deskpath = $wshell.SpecialFolders.Item('Desktop')
@@ -386,14 +385,98 @@ function CreateShortcut
 	# $path1, $path2 | ForEach-Object {
 	$link = $wshell.CreateShortcut("$Deskpath\$Buildname.lnk")
 	$link.TargetPath = "$psHome\powershell.exe"
-	$link.Arguments = "-noexit -command $Builddir\profile.ps1"
+	$link.Arguments = "-noexit -command $Builddir\profile.ps1 -verb 'RunAs'"
 	$link.Description = "$Buildname"
 	$link.WorkingDirectory = "$Builddir"
-	$link.IconLocation = 'powershell.exe'
+	$link.IconLocation = 'powershell.exe,1'
 	$link.Save()
 	# }
+#>
+Function CreateShortcut
+{
+    [CmdletBinding()]
+    param (	
+	    [parameter(Mandatory=$true)]
+	    [ValidateScript( {[IO.File]::Exists($_)} )]
+	    [System.IO.FileInfo] $Target,
 	
+	    [ValidateScript( {[IO.Directory]::Exists($_)} )]
+	    [System.IO.DirectoryInfo] $OutputDirectory,
+	
+	    [string] $Name,
+	    [string] $Description,
+	
+	    [string] $Arguments,
+	    [System.IO.DirectoryInfo] $WorkingDirectory,
+	
+	    [string] $HotKey,
+	    [int] $WindowStyle = 1,
+	    [string] $IconLocation,
+	    [switch] $Elevated
+    )
+
+    try {
+	    #region Create Shortcut
+	    if ($Name) {
+		    [System.IO.FileInfo] $LinkFileName = [System.IO.Path]::ChangeExtension($Name, "lnk")
+	    } else {
+		    [System.IO.FileInfo] $LinkFileName = [System.IO.Path]::ChangeExtension($Target.Name, "lnk")
+	    }
+	
+	    if ($OutputDirectory) {
+		    [System.IO.FileInfo] $LinkFile = [IO.Path]::Combine($OutputDirectory, $LinkFileName)
+	    } else {
+		    [System.IO.FileInfo] $LinkFile = [IO.Path]::Combine($Target.Directory, $LinkFileName)
+	    }
+
+       
+	    $wshshell = New-Object -ComObject WScript.Shell
+	    $shortCut = $wshShell.CreateShortCut($LinkFile) 
+	    $shortCut.TargetPath = $Target
+	    $shortCut.WindowStyle = $WindowStyle
+	    $shortCut.Description = $Description
+	    $shortCut.WorkingDirectory = $WorkingDirectory
+	    $shortCut.HotKey = $HotKey
+	    $shortCut.Arguments = $Arguments
+	    if ($IconLocation) {
+		    $shortCut.IconLocation = $IconLocation
+	    }
+	    $shortCut.Save()
+	    #endregion
+
+	    #region Elevation Flag
+	    if ($Elevated) {
+		    $tempFileName = [IO.Path]::GetRandomFileName()
+		    $tempFile = [IO.FileInfo][IO.Path]::Combine($LinkFile.Directory, $tempFileName)
+		
+		    $writer = new-object System.IO.FileStream $tempFile, ([System.IO.FileMode]::Create)
+		    $reader = $LinkFile.OpenRead()
+		
+		    while ($reader.Position -lt $reader.Length)
+		    {		
+			    $byte = $reader.ReadByte()
+			    if ($reader.Position -eq 22) {
+				    $byte = 34
+			    }
+			    $writer.WriteByte($byte)
+		    }
+		
+		    $reader.Close()
+		    $writer.Close()
+		
+		    $LinkFile.Delete()
+		
+		    Rename-Item -Path $tempFile -NewName $LinkFile.Name
+	    }
+	    #endregion
+    } catch {
+	    Write-Error "Failed to create shortcut. The error was '$_'."
+	    exit
+    }
+   #  return $LinkFile
 }
+
+
 ##
 function make-iso
 { 
@@ -454,7 +537,7 @@ switch ($PsCmdlet.ParameterSetName)
     "Shortcut"
         {
 				status "Creating Desktop Shortcut for $Buildname"
-				createshortcut
+				createshortcut -Target "$psHome\powershell.exe" -Arguments "-noexit -command $Builddir\profile.ps1"	-IconLocation "powershell.exe,1" -Elevated -OutputDirectory "$home\Desktop" -WorkingDirectory $Builddir -Name $Buildname -Description "Labbuildr Hyper-V" -Verbose
                 return
         }# end shortcut
     "Version"
@@ -1041,11 +1124,11 @@ switch ($PsCmdlet.ParameterSetName)
         $Content = "d:\scripts\new-dc.ps1 -dcname $DCName -Domain $BuildDomain -IPv4subnet $IPv4subnet -IPv4Prefixlength $IPv4PrefixLength -IPv6PrefixLength $IPv6PrefixLength -IPv6Prefix $IPv6Prefix -AddressFamily $AddressFamily -setwsman"
         Set-Content "$Isodir\Scripts\start-customize.ps1" -Value $Content -Force
         make-iso -Nodename $NodeName -Builddir $Builddir  
-        Invoke-Expression  ".\clone-node.ps1 -MasterVHD C:\labbuildr-hyperv\2012R2FallUpdate\2012R2FallUpdate.vhdx -Nodename $NodeName -vmnet $vmnet -vlanid $vlanID" 
-        
+        Invoke-Expression  "$Builddir\clone-node.ps1 -MasterVHD C:\labbuildr-hyperv\2012R2FallUpdate\2012R2FallUpdate.vhdx -Nodename $NodeName -vmnet $vmnet -vlanid $vlanID"
         $SecurePassword = $Adminpassword | ConvertTo-SecureString -AsPlainText -Force
-        $Credential = New-Object –TypeName System.Management.Automation.PSCredential –ArgumentList $DomainUser, $SecurePassword
-        Enter-PSSession -ComputerName 192.168.7.10 -Credential $Credential
+        $Credential = New-Object –TypeName System.Management.Automation.PSCredential –ArgumentList $Adminuser, $SecurePassword
+        #
+        # Enter-PSSession -ComputerName 192.168.7.10 -Credential $Credential
 
 
 
