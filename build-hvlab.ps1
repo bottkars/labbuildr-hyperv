@@ -154,7 +154,7 @@ param (
     [Parameter(ParameterSetName = "Panorama", Mandatory = $false)]
     [Parameter(ParameterSetName = "SCOM", Mandatory = $false)]
     [Parameter(ParameterSetName = "SRM", Mandatory = $false)]
-    [ValidateRange(1,4096)]$vlanID=0,
+    [ValidateRange(0,4096)]$vlanID=0,
 
     [String]$Sourcedir
 
@@ -485,8 +485,6 @@ Function CreateShortcut
     }
    #  return $LinkFile
 }
-
-
 ##
 function make-iso
 { 
@@ -498,16 +496,44 @@ param ([string]$Nodename,
         }
 
         Write-Verbose "Building iso"
-    .$Builddir\bin\mkisofs.exe -J -V build -o "$Builddir\$Nodename\build.iso"  "$Builddir\iso" #  | Out-Null
+    .$Builddir\bin\mkisofs.exe -J -V build -o "$Builddir\$Nodename\build.iso"  "$Builddir\iso" 2>&1| Out-Null
     $LASTEXITCODE
     switch ($LASTEXITCODE)
         {
+            0
+                {
+                Write-Verbose "Iso Created for $Builddir\$Nodename\build.iso "
+                }
+            1
+                {
+                Write-Warning "could not create CD"
+                Break
+                }
             2
                 {
                 Write-Warning "could not create CD"
                 Break
                 }
         }
+}
+
+###########Hyper-V Specific Funcions
+function get-vmpass
+{
+    param (	
+	    [parameter(Mandatory=$true)]$Node,
+        [parameter(Mandatory=$true)]$Pass
+        )
+    $vm = Get-WmiObject -Namespace 'root\virtualization\v2' -Class 'Msvm_ComputerSystem' -Filter "ElementName = '$Node'"
+    $Passed = $vm.GetRelated("Msvm_KvpExchangeComponent").GuestExchangeItems | ForEach-Object {
+        $GuestExchangeItemXml = ([XML]$_).SelectSingleNode("/INSTANCE/PROPERTY[@NAME='Name']/VALUE[child::text() = '$Pass']")
+        if ($GuestExchangeItemXml -ne $null) 
+            { 
+            $GuestExchangeItemXml.SelectSingleNode(` 
+            "/INSTANCE/PROPERTY[@NAME='Data']/VALUE/child::text()").Value 
+            } 
+    }
+    Return $Passed
 }
 ############################### End Function
 switch ($PsCmdlet.ParameterSetName)
@@ -586,6 +612,16 @@ switch ($PsCmdlet.ParameterSetName)
 				return
 			} #end Version
 }
+##########
+if ($PSCmdlet.MyInvocation.BoundParameters["verbose"].IsPresent)
+    {
+    $CommonParameter = ' -verbose'
+    }
+if ($PSCmdlet.MyInvocation.BoundParameters["debug"].IsPresent)
+    {
+    $CommonParameter = ' -debug'
+    }
+
 
 if ($Exchange2016.IsPresent)
 {
@@ -970,8 +1006,6 @@ if ($defaults.IsPresent)
 
         }
     $HVSwitch = $SwitchDefault.$($Vmnet)
-    write-verbose $HVswitch
-    pause
     }
 
 if (!$MySubnet) {$MySubnet = "192.168.2.0"}
@@ -1004,7 +1038,7 @@ Write-Verbose "ScaleIOVer : $ScaleIOVer"
 Write-Verbose "Masterpath : $Masterpath"
 Write-Verbose "Master : $Master"
 Write-Verbose "VLanID : $vlanID"
-Write-Verbose "Switch : $switch"
+Write-Verbose "Switch : $HVswitch"
 
 Write-Verbose "Defaults before Safe:"
 
@@ -1066,6 +1100,10 @@ if ($PSCmdlet.MyInvocation.BoundParameters["verbose"].IsPresent -and $savedefaul
     {
     Write-Verbose  "Defaults after Save"
     Get-Content $Builddir\defaults.xml | Write-Host -ForegroundColor Magenta
+    }
+if ($vlanID -eq 0)
+    {
+    $vlanID = ""
     }
 ####### Master Check
 if (!$Sourcedir)
@@ -1159,19 +1197,48 @@ switch ($PsCmdlet.ParameterSetName)
 	    ###################################################
         $DCName =  $BuildDomain+"DC"
         $NodeName = "DCNODE"
+        $NodeIP = "$IPv4Subnet.10"
         ####prepare iso
         Remove-Item -Path $Isodir -Force -Recurse 
         New-Item -ItemType Directory "$Isodir\scripts" -Force
         New-Item -ItemType Directory "$NodeName" -Force
         Copy-Item "$Builddir\Scripts\dcnode\new-dc.ps1" "$Isodir\scripts"
-        $Content = "d:\scripts\new-dc.ps1 -dcname $DCName -Domain $BuildDomain -IPv4subnet $IPv4subnet -IPv4Prefixlength $IPv4PrefixLength -IPv6PrefixLength $IPv6PrefixLength -IPv6Prefix $IPv6Prefix -AddressFamily $AddressFamily -setwsman"
+        $Content = @()
+        $Content = "
+`$regPath = 'HKLM:\SOFTWARE\Microsoft\Virtual Machine\Guest'
+New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name 'Pass1' -Value `"`$PSHOME\powershell.exe -Command {Set-ItemProperty -Path `$regPath -Name 'Status' -Value 'Pass1' -Type String}`"
+d:\scripts\new-dc.ps1 -dcname $DCName -Domain $BuildDomain -IPv4subnet $IPv4subnet -IPv4Prefixlength $IPv4PrefixLength -IPv6PrefixLength $IPv6PrefixLength -IPv6Prefix $IPv6Prefix -AddressFamily $AddressFamily -setwsman $CommonParameter
+"
+Write-Verbose $Content
         Set-Content "$Isodir\Scripts\start-customize.ps1" -Value $Content -Force
-        make-iso -Nodename $NodeName -Builddir $Builddir  
-        Invoke-Expression  "$Builddir\clone-node.ps1 -MasterVHD C:\labbuildr-hyperv\2012R2FallUpdate\2012R2FallUpdate.vhdx -Nodename $NodeName -HVSwitch $HVSwitch -vlanid $vlanID"
+        $Isocreatio = make-iso -Nodename $NodeName -Builddir $Builddir 
+        if ($PSCmdlet.MyInvocation.BoundParameters["verbose"].IsPresent)
+            {
+            Write-Verbose "Press any Key to continue to Cloning"
+            pause
+            }
+        If ($vlanID)
+            {
+            Invoke-Expression  "$Builddir\clone-node.ps1 -MasterVHD C:\labbuildr-hyperv\2012R2FallUpdate\2012R2FallUpdate.vhdx -Nodename $NodeName -HVSwitch $HVSwitch -vlanid $vlanID $CommonParameter"
+            }
+        else
+            {
+            Invoke-Expression  "$Builddir\clone-node.ps1 -MasterVHD C:\labbuildr-hyperv\2012R2FallUpdate\2012R2FallUpdate.vhdx -Nodename $NodeName -HVSwitch $HVSwitch $CommonParameter"
+            }
         $SecurePassword = $Adminpassword | ConvertTo-SecureString -AsPlainText -Force
         $Credential = New-Object –TypeName System.Management.Automation.PSCredential –ArgumentList $Adminuser, $SecurePassword
+        Write-Host -NoNewline "Testing Connection"
+        do
+            {
+            Write-Host -NoNewline "."
+            $Connection = Test-Connection $NodeIP -Verbose -ErrorAction SilentlyContinue -Count 1 
+            }
+        until ($Connection)
+        Test-WSMan -ComputerName $NodeIP -Credential $Credential -Verbose -Authentication Default
+        Enter-PSSession -ComputerName $NodeIP -Credential $Credential
         #
-        # Enter-PSSession -ComputerName 192.168.7.10 -Credential $Credential
+        # Enter-PSSession 
+        # New-PSDrive –Name “z” –PSProvider FileSystem –Root “\\192.168.7.3\Scripts” –Persist
 
 
 

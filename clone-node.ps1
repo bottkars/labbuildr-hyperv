@@ -15,7 +15,7 @@ Param(
 [Parameter(Mandatory=$false)][uint64]$Disksize = 200GB,
 [Parameter(Mandatory=$false)][ValidateRange(1, 6)][int]$Disks = 1,
 [Parameter(Mandatory=$false)][ValidateSet('XS','S','M','L','XL','TXL','XXL','XXXL')]$Size = "M",
-$vlanid = 2,
+$vlanid,
 [switch]$Exchange,
 [switch]$HyperV,
 [switch]$NW,
@@ -24,13 +24,6 @@ $vlanid = 2,
 [switch]$sql,
 $Sourcedir
 )
-
-##size eval
-
-###disks eval
-
-
-
 
 New-VHD –Path “$Builddir\$Nodename\$Nodename.vhdx” –ParentPath “$MasterVHD” 
 $CloneVM = New-VM -Name $Nodename -Path "$Builddir" -Memory 512MB  -VHDPath "$Builddir\$Nodename\$Nodename.vhdx” -SwitchName $HVSwitch -Generation 2
