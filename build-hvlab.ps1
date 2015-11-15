@@ -545,7 +545,7 @@ switch ($PsCmdlet.ParameterSetName)
         $Repo = "labtools"
         $RepoLocation = "bottkars"
         $Latest_local_git = $Latest_labtools_git
-        $Destination = "$Builddir\Scripts"
+        $Destination = "$Builddir\labtools"
         update-fromGit -Repo $Repo -RepoLocation $RepoLocation -branch $branch -latest_local_Git $Latest_local_git -Destination $Destination -delete
 
         return
