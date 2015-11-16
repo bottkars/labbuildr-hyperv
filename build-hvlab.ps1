@@ -1319,7 +1319,6 @@ Write-Verbose $Content
             
             try
                 {
-
                 Invoke-Command -ComputerName $NodeIP -Credential $Credential -EnableNetworkAccess -Authentication Default -ScriptBlock {
                     Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Force
                     New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name "$using:task" -Value "$PSHOME\powershell.exe -Command `". d:\node\set-vmguesttask.ps1 -Task $using:task -Status finished`""
@@ -1366,7 +1365,7 @@ Write-Verbose $Content
             }
         until ($retryok)
         $task = "postsection"
-        invoke-postsection -Reboot -wait
+        invoke-postsection -Reboot
         }
         
      "E16"
