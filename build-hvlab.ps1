@@ -1332,6 +1332,10 @@ Write-Verbose $Content
                 sleep $Sleep
                 $retryOK = $false
                 }
+            if (!$?)
+                {
+                $retryOK = $false
+                }
             }
         until ($retryok)        
         do
