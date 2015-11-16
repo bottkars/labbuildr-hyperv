@@ -1334,6 +1334,7 @@ Write-Verbose $Content
                 }
             }
         until ($retryok)        
+        Write-Host "waiting for taks $task to be finished"
         do
             {
             Write-Host -NoNewline "."
@@ -1349,10 +1350,10 @@ Write-Verbose $Content
             Invoke-Command -ComputerName $NodeIP -Credential $Credential -EnableNetworkAccess -ScriptBlock  {
                 Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Force
                 New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name "$using:task" -Value "$PSHOME\powershell.exe -Command `". d:\node\set-vmguesttask.ps1 -Task $using:task -Status finished`""
-                ."$Using:ScenarioScriptdir\dns.ps1 -IPv4subnet $using:IPv4Subnet -IPv4Prefixlength $using:IPV4PrefixLength -IPv6PrefixLength $using:IPv6PrefixLength -AddressFamily $using:AddressFamily  -IPV6Prefix $using:IPV6Prefix"
+                ."$Using:ScenarioScriptdir\dns.ps1" -IPv4subnet $using:IPv4Subnet -IPv4Prefixlength $using:IPV4PrefixLength -IPv6PrefixLength $using:IPv6PrefixLength -AddressFamily $using:AddressFamily  -IPV6Prefix $using:IPV6Prefix
                 ."$Using:ScenarioScriptdir\add-serviceuser.ps1"
                 ."$Using:ScenarioScriptdir\pwpolicy.ps1" 
-                ."$Using:NodeScriptDir\set-winrm.ps1 -Scriptdir $Using:GuestScriptdir"
+                ."$Using:NodeScriptDir\set-winrm.ps1" -Scriptdir $Using:GuestScriptdir
                 }
             }
         catch
