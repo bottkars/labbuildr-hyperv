@@ -531,7 +531,7 @@ function invoke-postsection
     #>
     $SecurePassword = $Adminpassword | ConvertTo-SecureString -AsPlainText -Force
     $Credential = New-Object –TypeName System.Management.Automation.PSCredential –ArgumentList "$BuildDomain\$Adminuser", $SecurePassword
-    Invoke-Command -ComputerName $NodeIP -Credential $Credential -EnableNetworkAccess -ScriptBlock  {
+    Invoke-Command -ComputerName $NodeIP -Credential $Credential -ScriptBlock  {
         Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Force
         New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name "$using:task" -Value "$PSHOME\powershell.exe -Command `". $Using:NodeScriptDir\set-vmguesttask.ps1 -Task postsection -Status finished`""
         ."$Using:NodeScriptDir\powerconf.ps1" -Scriptdir $Using:GuestScriptdir
@@ -746,8 +746,6 @@ if ($Exchange2016.IsPresent)
                 exit
                 }
             }
-
-        
         }
 
     write-verbose "Testing $Sourcedir/$EX_Version$e16_cu/setup.exe"
@@ -797,10 +795,6 @@ if ($Exchange2016.IsPresent)
 	        }
 
 }
-
-
-
-
 #################### default Parameter Section Start
 write-verbose "Config pre defaults"
 if ($PSCmdlet.MyInvocation.BoundParameters["verbose"].IsPresent)
@@ -1092,7 +1086,6 @@ Write-Verbose "Masterpath : $Masterpath"
 Write-Verbose "Master : $Master"
 Write-Verbose "VLanID : $vlanID"
 Write-Verbose "Switch : $HVswitch"
-
 Write-Verbose "Defaults before Safe:"
 
 If ($DefaultGateway -match "$IPv4Subnet.$Gatewayhost")
@@ -1181,8 +1174,6 @@ else
         write-warning "no sources directory found named $Sourcedir"
         exit
         }
-
-
      }
 if (!$Master)
 
@@ -1254,7 +1245,7 @@ switch ($PsCmdlet.ParameterSetName)
         $ScenarioScriptdir = "$GuestScriptdir\$NodePrefix"
         $NodeIP = "$IPv4Subnet.10"
         ####prepare iso
-        Remove-Item -Path "$Builddir\scripts\runtime" -Force -Recurse 
+        Remove-Item -Path "$Builddir\scripts\runtime" -Force -Recurse -ErrorAction SilentlyContinue | Out-Null
         New-Item -ItemType Directory "$Builddir\scripts\runtime" -Force | Out-Null
         New-Item -ItemType Directory "$Isodir\scripts" -Force | Out-Null
         New-Item -ItemType Directory "$Builddir\$NodePrefix" -Force | Out-Null
@@ -1309,7 +1300,7 @@ Write-Verbose $Content
         Invoke-Command -ComputerName $NodeIP -Credential $Credential -EnableNetworkAccess -ScriptBlock  {
             Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Force
             New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name "$using:task" -Value "$PSHOME\powershell.exe -Command `". d:\node\set-vmguesttask.ps1 -Task $using:task -Status finished`""
-            ."D:\$using:nodeprefix\finish-domain.ps1" -domain $using:BuildDomain -domainsuffix $using:domainsuffix
+            ."$using:ScenarioScriptdir\finish-domain.ps1" -domain $using:BuildDomain -domainsuffix $using:domainsuffix
             }
         do
             {
@@ -1324,13 +1315,14 @@ Write-Verbose $Content
             New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name "$using:task" -Value "$PSHOME\powershell.exe -Command `". d:\node\set-vmguesttask.ps1 -Task $using:task -Status finished`""
             ."$Using:ScenarioScriptdir\dns.ps1" -IPv4subnet $using:IPv4Subnet -IPv4Prefixlength $using:IPV4PrefixLength -IPv6PrefixLength $using:IPv6PrefixLength -AddressFamily $using:AddressFamily  -IPV6Prefix $using:IPV6Prefix
             ."$Using:ScenarioScriptdir\add-serviceuser.ps1"
-            ."$Using:ScenarioScriptdir\pwpolicy.ps1"
-            ."$Using:NodeScriptDir\set-winrm.ps1"
+            ."$Using:ScenarioScriptdir\pwpolicy.ps1" 
+            ."$Using:NodeScriptDir\set-winrm.ps1" -Scriptdir $Using:GuestScriptdir
             }
 
         $task = "postsection"
-        Write-Host "Checking for task $Task finished"
         invoke-postsection -wait
+
+        Write-Host "Checking for task $Task finished"
         do
             {
             Write-Host -NoNewline "."
