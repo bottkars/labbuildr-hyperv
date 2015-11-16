@@ -1313,15 +1313,14 @@ Write-Verbose $Content
         until ((get-vmguesttask -Task $task -Node $nodename) -match "finished")
 
         Test-WSMan -ComputerName $NodeIP -Credential $Credential -Verbose -Authentication Default
-        
         $task = "finish-dc"
         $retryok = $true
-        Write-Host "Starting $task"
         do {
+            
             try
                 {
 
-                Invoke-Command -ComputerName $NodeIP -Credential $Credential -ScriptBlock  {
+                Invoke-Command -ComputerName $NodeIP -Credential $Credential -EnableNetworkAccess -Authentication Default -ScriptBlock {
                     Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Force
                     New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name "$using:task" -Value "$PSHOME\powershell.exe -Command `". d:\node\set-vmguesttask.ps1 -Task $using:task -Status finished`""
                     ."$using:ScenarioScriptdir\finish-domain.ps1" -domain $using:BuildDomain -domainsuffix $using:domainsuffix
@@ -1331,10 +1330,6 @@ Write-Verbose $Content
                 {
                 Write-Warning "Catched $_ , retrying command"
                 sleep $Sleep
-                $retryOK = $false
-                }
-            if (!$?)
-                {
                 $retryOK = $false
                 }
             }
