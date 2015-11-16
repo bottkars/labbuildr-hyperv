@@ -46,11 +46,13 @@ param (
     IP-Addresses: .10
     #>	
 	[Parameter(ParameterSetName = "DConly")][switch][alias('dc')]$DConly,	
-
+    <#
+    Selects the Blank Nodes Scenario
+    IP-Addresses: .180 - .189
+    #>
+	[Parameter(ParameterSetName = "Blanknodes")][switch][alias('bn')]$Blanknode,
     <#Exchange 2016   #>
-
 	[Parameter(ParameterSetName = "E16",Mandatory = $true)][switch][alias('ex16')]$Exchange2016,
-
     <#
     Determines Exchange CU Version to be Installed
     Valid Versions are:
@@ -1286,11 +1288,11 @@ Write-Verbose $Content
             }
         If ($vlanID)
             {
-            Invoke-Expression  "$Builddir\clone-node.ps1 -MasterVHD C:\labbuildr-hyperv\2012R2FallUpdate\2012R2FallUpdate.vhdx -Nodename $NodeName -HVSwitch $HVSwitch -vlanid $vlanID $CommonParameter"
+            Invoke-Expression  "$Builddir\clone-node.ps1 -MasterVHD $MasterVHDX -Nodename $NodeName -HVSwitch $HVSwitch -vlanid $vlanID $CommonParameter"
             }
         else
             {
-            Invoke-Expression  "$Builddir\clone-node.ps1 -MasterVHD C:\labbuildr-hyperv\2012R2FallUpdate\2012R2FallUpdate.vhdx -Nodename $NodeName -HVSwitch $HVSwitch $CommonParameter"
+            Invoke-Expression  "$Builddir\clone-node.ps1 -MasterVHD $MasterVHDX -Nodename $NodeName -HVSwitch $HVSwitch $CommonParameter"
             }
         $SecurePassword = $Adminpassword | ConvertTo-SecureString -AsPlainText -Force
         $Credential = New-Object –TypeName System.Management.Automation.PSCredential –ArgumentList $Adminuser, $SecurePassword
@@ -1335,7 +1337,7 @@ Write-Verbose $Content
             }
 
         $task = "postsection"
-        invoke-postsection
+        invoke-postsection -Reboot -wait
 
 
 
@@ -1345,6 +1347,7 @@ Write-Verbose $Content
         {
         $EXnode1 = "HV01"
         }
+    
     
     
 }
