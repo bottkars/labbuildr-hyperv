@@ -1275,8 +1275,10 @@ switch ($PsCmdlet.ParameterSetName)
         $Content = "d:\node\set-vmguesttask.ps1 -Task $task -Status started
 New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name 'Pass1' -Value '$PSHOME\powershell.exe -Command `". $NodeScriptDir\set-vmguesttask.ps1 -Task $task -Status finished`"'
 New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name 'Share' -Value '$PSHOME\powershell.exe -Command `". $NodeScriptDir\set-vmguestshare -user $Labbuildr_share_User -password $Labbuildr_share_password`"'
-$ScenarioScriptdir\new-dc.ps1 -dcname $DCName -Domain $BuildDomain -IPv4subnet $IPv4subnet -IPv4Prefixlength $IPv4PrefixLength -IPv6PrefixLength $IPv6PrefixLength -IPv6Prefix $IPv6Prefix -AddressFamily $AddressFamily -setwsman $CommonParameter
+$ScenarioScriptdir\new-dc.ps1 -dcname $DCName -Domain $BuildDomain -IPv4subnet $IPv4subnet -IPv4Prefixlength $IPv4PrefixLength -IPv6PrefixLength $IPv6PrefixLength -IPv6Prefix $IPv6Prefix -AddressFamily $AddressFamily
 "
+# $ScenarioScriptdir\new-dc.ps1 -dcname $DCName -Domain $BuildDomain -IPv4subnet $IPv4subnet -IPv4Prefixlength $IPv4PrefixLength -IPv6PrefixLength $IPv6PrefixLength -IPv6Prefix $IPv6Prefix -AddressFamily $AddressFamily #-setwsman $CommonParameter
+
 Write-Verbose $Content
         Set-Content "$Isodir\Scripts\start-customize.ps1" -Value $Content -Force
         
