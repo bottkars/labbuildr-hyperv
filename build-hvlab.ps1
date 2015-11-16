@@ -185,7 +185,6 @@ if ($Sourcedir)
         }
     }
 ##
-$Latest_e16_cu = "final"
 
 try
     {
@@ -215,6 +214,8 @@ try
 
 ################## Statics
 $LogFile = "$Builddir\$(Get-Content env:computername).log"
+$Labbuildr_share_User = "_labbuildr_"
+$Labbuildr_share_password = "Password123!"
 $WAIKVER = "WAIK"
 $domainsuffix = ".local"
 $AAGDB = "AWORKS"
@@ -243,11 +244,11 @@ $latest_java8uri = "http://javadl.sun.com/webapps/download/AutoDL?BundleId=10794
 $SourceScriptDir = "$Builddir\Scripts\"
 $Adminuser = "Administrator"
 $Adminpassword = "Password123!"
-$GuestScriptdir = "\\vmware-host\Shared Folders\Scripts"
+$GuestScriptdir = "D:"
 $GuestSourcePath = "\\vmware-host\Shared Folders\Sources"
 $GuestLogDir = "C:\Scripts"
 $NodeScriptDir = "$GuestScriptdir\Node"
-$Isodir = "$Builddir\iso"
+$Isodir = "$Builddir\scripts"
 $Dots = [char]58
 [string]$Commentline = "#######################################################################################################################"
 #$SCVMM_VER = "SCVMM2012R2"
@@ -489,14 +490,15 @@ Function CreateShortcut
 function make-iso
 { 
 param ([string]$Nodename,
-        [string]$Builddir)
+        [string]$Builddir,
+        [string]$isodir)
     IF (!(Test-Path $Builddir\bin\mkisofs.exe))
         {
         Write-Warning "mkisofs tool not found, exiting"
         }
 
-        Write-Verbose "Building iso"
-    .$Builddir\bin\mkisofs.exe -J -V build -o "$Builddir\$Nodename\build.iso"  "$Builddir\iso" 2>&1| Out-Null
+        Write-Verbose "Building iso from $isodir"
+    .$Builddir\bin\mkisofs.exe -J -V build -o "$Builddir\$Nodename\build.iso"  "$Isodir"  2>&1| Out-Null
     $LASTEXITCODE
     switch ($LASTEXITCODE)
         {
@@ -516,24 +518,75 @@ param ([string]$Nodename,
                 }
         }
 }
+function invoke-postsection
+    {
+    param (
+    [switch]$wait
+    )
+    write-host "Setting Power Scheme"
+    <#
+	invoke-vmxpowershell -config $CloneVMX -Guestuser $Adminuser -Guestpassword $Adminpassword -ScriptPath "$NodeScriptDir" -Script powerconf.ps1 -interactive # $CommonParameter
+	write-verbose "Configuring UAC"
+    invoke-vmxpowershell -config $CloneVMX -Guestuser $Adminuser -Guestpassword $Adminpassword -ScriptPath "$NodeScriptDir" -Script set-uac.ps1 -interactive # $CommonParameter
+    #>
+    $SecurePassword = $Adminpassword | ConvertTo-SecureString -AsPlainText -Force
+    $Credential = New-Object –TypeName System.Management.Automation.PSCredential –ArgumentList "$BuildDomain\$Adminuser", $SecurePassword
+    Invoke-Command -ComputerName $NodeIP -Credential $Credential -EnableNetworkAccess -ScriptBlock  {
+        Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Force
+        New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name "$using:task" -Value "$PSHOME\powershell.exe -Command `". $Using:NodeScriptDir\set-vmguesttask.ps1 -Task postsection -Status finished`""
+        ."$Using:NodeScriptDir\powerconf.ps1" -Scriptdir $Using:GuestScriptdir
+        ."$Using:NodeScriptDir\set-uac.ps1" -Scriptdir $Using:GuestScriptdir
+        ."$Using:NodeScriptDir\set-winrm.ps1" -Scriptdir $Using:GuestScriptdir
+     }
+
+
+
+    <#
+    if ($Default.Puppet)
+        {
+        invoke-vmxpowershell -config $CloneVMX -Guestuser $Adminuser -Guestpassword $Adminpassword -ScriptPath "$GuestScriptDir\Node" -Script install-puppetagent.ps1 -Parameter "-Puppetmaster $Puppetmaster" -interactive # $CommonParameter
+        }
+    if ($wait.IsPresent)
+        {
+        checkpoint-progress -step UAC -reboot -Guestuser $Adminuser -Guestpassword $Adminpassword
+        }
+    else
+        {
+        checkpoint-progress step UAC -reboot -Nowait -Guestuser $Adminuser -Guestpassword $Adminpassword
+
+        }
+    #>
+    }
+
 
 ###########Hyper-V Specific Funcions
-function get-vmpass
+function get-vmguesttask
 {
-    param (	
+        param (	
 	    [parameter(Mandatory=$true)]$Node,
-        [parameter(Mandatory=$true)]$Pass
+        [parameter(Mandatory=$true)]$Task
         )
     $vm = Get-WmiObject -Namespace 'root\virtualization\v2' -Class 'Msvm_ComputerSystem' -Filter "ElementName = '$Node'"
-    $Passed = $vm.GetRelated("Msvm_KvpExchangeComponent").GuestExchangeItems | ForEach-Object {
-        $GuestExchangeItemXml = ([XML]$_).SelectSingleNode("/INSTANCE/PROPERTY[@NAME='Name']/VALUE[child::text() = '$Pass']")
-        if ($GuestExchangeItemXml -ne $null) 
-            { 
-            $GuestExchangeItemXml.SelectSingleNode(` 
-            "/INSTANCE/PROPERTY[@NAME='Data']/VALUE/child::text()").Value 
-            } 
-    }
-    Return $Passed
+    if ($vm)
+        {
+        $taskstatus = $vm.GetRelated("Msvm_KvpExchangeComponent").GuestExchangeItems | ForEach-Object {
+            try
+                {
+                $GuestExchangeItemXml = ([XML]$_).SelectSingleNode("/INSTANCE/PROPERTY[@NAME='Name']/VALUE[child::text() = '$Task']")
+                }
+            catch
+                {
+                Write-Verbose " Integration Services not running"
+                }
+            
+            if ($GuestExchangeItemXml -ne $null) 
+                { 
+                $GuestExchangeItemXml.SelectSingleNode(` 
+                "/INSTANCE/PROPERTY[@NAME='Data']/VALUE/child::text()").Value 
+                } 
+            }
+        }
+    Return $taskstatus
 }
 ############################### End Function
 switch ($PsCmdlet.ParameterSetName)
@@ -1197,21 +1250,29 @@ switch ($PsCmdlet.ParameterSetName)
 	    ###################################################
         $DCName =  $BuildDomain+"DC"
         $NodeName = "DCNODE"
+        $NodePrefix = "DCNode"
+        $ScenarioScriptdir = "$GuestScriptdir\$NodePrefix"
         $NodeIP = "$IPv4Subnet.10"
         ####prepare iso
-        Remove-Item -Path $Isodir -Force -Recurse 
-        New-Item -ItemType Directory "$Isodir\scripts" -Force
-        New-Item -ItemType Directory "$NodeName" -Force
-        Copy-Item "$Builddir\Scripts\dcnode\new-dc.ps1" "$Isodir\scripts"
+        Remove-Item -Path "$Builddir\scripts\runtime" -Force -Recurse 
+        New-Item -ItemType Directory "$Builddir\scripts\runtime" -Force | Out-Null
+        New-Item -ItemType Directory "$Isodir\scripts" -Force | Out-Null
+        New-Item -ItemType Directory "$Builddir\$NodePrefix" -Force | Out-Null
+        # New-Item -ItemType Directory "$NodeName" -Force | Out-Null
+        # Copy-Item "$SourceScriptDir\dcnode\new-dc.ps1" "$Isodir\scripts"
+        # Copy-Item "$SourceScriptDir\node\set-vmguesttask.ps1" "$Buiddir\scripts\runtime"
+        # Copy-Item "$SourceScriptDir\node\set-vmguestshare.ps1" "$Builddir\scripts\runtime"
+        $task = "new-dc"
         $Content = @()
-        $Content = "
-`$regPath = 'HKLM:\SOFTWARE\Microsoft\Virtual Machine\Guest'
-New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name 'Pass1' -Value `"`$PSHOME\powershell.exe -Command {Set-ItemProperty -Path `$regPath -Name 'Status' -Value 'Pass1' -Type String}`"
-d:\scripts\new-dc.ps1 -dcname $DCName -Domain $BuildDomain -IPv4subnet $IPv4subnet -IPv4Prefixlength $IPv4PrefixLength -IPv6PrefixLength $IPv6PrefixLength -IPv6Prefix $IPv6Prefix -AddressFamily $AddressFamily -setwsman $CommonParameter
+        $Content = "d:\node\set-vmguesttask.ps1 -Task $task -Status started
+New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name 'Pass1' -Value '$PSHOME\powershell.exe -Command `". $NodeScriptDir\set-vmguesttask.ps1 -Task $task -Status finished`"'
+New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name 'Share' -Value '$PSHOME\powershell.exe -Command `". $NodeScriptDir\set-vmguestshare -user $Labbuildr_share_User -password $Labbuildr_share_password`"'
+$ScenarioScriptdir\new-dc.ps1 -dcname $DCName -Domain $BuildDomain -IPv4subnet $IPv4subnet -IPv4Prefixlength $IPv4PrefixLength -IPv6PrefixLength $IPv6PrefixLength -IPv6Prefix $IPv6Prefix -AddressFamily $AddressFamily -setwsman $CommonParameter
 "
 Write-Verbose $Content
         Set-Content "$Isodir\Scripts\start-customize.ps1" -Value $Content -Force
-        $Isocreatio = make-iso -Nodename $NodeName -Builddir $Builddir 
+        
+        $Isocreatio = make-iso -Nodename $NodeName -Builddir $Builddir -isodir $Isodir
         if ($PSCmdlet.MyInvocation.BoundParameters["verbose"].IsPresent)
             {
             Write-Verbose "Press any Key to continue to Cloning"
@@ -1227,20 +1288,55 @@ Write-Verbose $Content
             }
         $SecurePassword = $Adminpassword | ConvertTo-SecureString -AsPlainText -Force
         $Credential = New-Object –TypeName System.Management.Automation.PSCredential –ArgumentList $Adminuser, $SecurePassword
-        Write-Host -NoNewline "Testing Connection"
+        Write-Host "Checking for task $Task started"
         do
             {
             Write-Host -NoNewline "."
-            $Connection = Test-Connection $NodeIP -Verbose -ErrorAction SilentlyContinue -Count 1 
+            Sleep $Sleep
             }
-        until ($Connection)
+        until ((get-vmguesttask -Task $task -Node $NodeName) -match "started")
+        Write-Host
+        Write-Host "Checking for task $Task finished"
+        do
+            {
+            Write-Host -NoNewline "."
+            Sleep $Sleep
+            }
+        until ((get-vmguesttask -Task $task -Node $nodename) -match "finished")
+
         Test-WSMan -ComputerName $NodeIP -Credential $Credential -Verbose -Authentication Default
-        Enter-PSSession -ComputerName $NodeIP -Credential $Credential
-        #
-        # Enter-PSSession 
-        # New-PSDrive –Name “z” –PSProvider FileSystem –Root “\\192.168.7.3\Scripts” –Persist
+        $task = "finish-dc"
+        Invoke-Command -ComputerName $NodeIP -Credential $Credential -EnableNetworkAccess -ScriptBlock  {
+            Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Force
+            New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name "$using:task" -Value "$PSHOME\powershell.exe -Command `". d:\node\set-vmguesttask.ps1 -Task $using:task -Status finished`""
+            ."D:\$using:nodeprefix\finish-domain.ps1" -domain $using:BuildDomain -domainsuffix $using:domainsuffix
+            }
+        do
+            {
+            Write-Host -NoNewline "."
+            Sleep $Sleep
+            }
+        until ((get-vmguesttask -Task $task -Node $nodename) -match "finished")
+        $SecurePassword = $Adminpassword | ConvertTo-SecureString -AsPlainText -Force
+        $Credential = New-Object –TypeName System.Management.Automation.PSCredential –ArgumentList "$BuildDomain\$Adminuser", $SecurePassword
+        Invoke-Command -ComputerName $NodeIP -Credential $Credential -EnableNetworkAccess -ScriptBlock  {
+            Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Force
+            New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name "$using:task" -Value "$PSHOME\powershell.exe -Command `". d:\node\set-vmguesttask.ps1 -Task $using:task -Status finished`""
+            ."$Using:ScenarioScriptdir\dns.ps1" -IPv4subnet $using:IPv4Subnet -IPv4Prefixlength $using:IPV4PrefixLength -IPv6PrefixLength $using:IPv6PrefixLength -AddressFamily $using:AddressFamily  -IPV6Prefix $using:IPV6Prefix
+            ."$Using:ScenarioScriptdir\add-serviceuser.ps1"
+            ."$Using:ScenarioScriptdir\pwpolicy.ps1"
+            ."$Using:NodeScriptDir\set-winrm.ps1"
+            }
 
-
+        $task = "postsection"
+        Write-Host "Checking for task $Task finished"
+        invoke-postsection -wait
+        do
+            {
+            Write-Host -NoNewline "."
+            Sleep $Sleep
+            }
+        until ((get-vmguesttask -Task $task -Node $nodename) -match "finished")
 
         }
         

@@ -1,5 +1,4 @@
-﻿
-[CmdletBinding()]
+﻿[CmdletBinding()]
 Param(
 [Parameter(Mandatory=$false)][string]$Builddir = $PSScriptRoot,
 [Parameter(Mandatory=$true)][string]$MasterVHD,
@@ -25,7 +24,13 @@ $vlanid,
 $Sourcedir
 )
 
-New-VHD –Path “$Builddir\$Nodename\$Nodename.vhdx” –ParentPath “$MasterVHD” 
+write-host "Creating Differencing disk from $MasterVHD in $Nodename"
+$VHD = New-VHD –Path “$Builddir\$Nodename\$Nodename.vhdx” –ParentPath “$MasterVHD” 
+if (!$VHD)
+    {
+    Write-Warning "Error creating VHD"
+    exit
+    }
 $CloneVM = New-VM -Name $Nodename -Path "$Builddir" -Memory 512MB  -VHDPath "$Builddir\$Nodename\$Nodename.vhdx” -SwitchName $HVSwitch -Generation 2
 $CloneVM | Set-VMMemory -DynamicMemoryEnabled $true -MinimumBytes 128MB -StartupBytes 1024MB -MaximumBytes 2GB -Priority 80 -Buffer 25
 $CloneVM | Add-VMDvdDrive -Path "$Builddir\$Nodename\build.iso"
@@ -37,6 +42,4 @@ if ($vlanid)
     $CloneVM | Get-VMNetworkAdapter | Set-VMNetworkAdapterVlan -Access -VlanId $vlanid
     }
 $CloneVM | start-vm
-$CloneVM | Get-VM 
-
 # return ok
