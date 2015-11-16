@@ -555,7 +555,7 @@ function invoke-postsection
                 Write-Host -NoNewline "."
                 Sleep $Sleep
                 }
-            until ((get-vmguesttask -Task $task -Node $nodename) -match "finished")
+            until ((get-vmguesttask -Task $task -Node $NodeIP) -match "finished")
             }
         }
     <#
@@ -1334,7 +1334,7 @@ Write-Verbose $Content
                 }
             }
         until ($retryok)        
-        Write-Host "waiting for taks $task to be finished"
+        Write-Host "waiting for task $task to be finished"
         do
             {
             Write-Host -NoNewline "."
@@ -1343,31 +1343,30 @@ Write-Verbose $Content
         until ((get-vmguesttask -Task $task -Node $nodename) -match "finished")
         
         $retryok = $true
-        try
-            {
-            $SecurePassword = $Adminpassword | ConvertTo-SecureString -AsPlainText -Force
-            $Credential = New-Object –TypeName System.Management.Automation.PSCredential –ArgumentList "$BuildDomain\$Adminuser", $SecurePassword
-            Invoke-Command -ComputerName $NodeIP -Credential $Credential -EnableNetworkAccess -ScriptBlock  {
-                Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Force
-                New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name "$using:task" -Value "$PSHOME\powershell.exe -Command `". d:\node\set-vmguesttask.ps1 -Task $using:task -Status finished`""
-                ."$Using:ScenarioScriptdir\dns.ps1" -IPv4subnet $using:IPv4Subnet -IPv4Prefixlength $using:IPV4PrefixLength -IPv6PrefixLength $using:IPv6PrefixLength -AddressFamily $using:AddressFamily  -IPV6Prefix $using:IPV6Prefix
-                ."$Using:ScenarioScriptdir\add-serviceuser.ps1"
-                ."$Using:ScenarioScriptdir\pwpolicy.ps1" 
-                ."$Using:NodeScriptDir\set-winrm.ps1" -Scriptdir $Using:GuestScriptdir
+        do {
+            try
+                {
+                $SecurePassword = $Adminpassword | ConvertTo-SecureString -AsPlainText -Force
+                $Credential = New-Object –TypeName System.Management.Automation.PSCredential –ArgumentList "$BuildDomain\$Adminuser", $SecurePassword
+                Invoke-Command -ComputerName $NodeIP -Credential $Credential -EnableNetworkAccess -ScriptBlock  {
+                    Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Force
+                    New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name "$using:task" -Value "$PSHOME\powershell.exe -Command `". d:\node\set-vmguesttask.ps1 -Task $using:task -Status finished`""
+                    ."$Using:ScenarioScriptdir\dns.ps1" -IPv4subnet $using:IPv4Subnet -IPv4Prefixlength $using:IPV4PrefixLength -IPv6PrefixLength $using:IPv6PrefixLength -AddressFamily $using:AddressFamily  -IPV6Prefix $using:IPV6Prefix
+                    ."$Using:ScenarioScriptdir\add-serviceuser.ps1"
+                    ."$Using:ScenarioScriptdir\pwpolicy.ps1" 
+                    ."$Using:NodeScriptDir\set-winrm.ps1" -Scriptdir $Using:GuestScriptdir
+                    }
                 }
-            }
-        catch
-            {
-            Write-Warning "Catched $_ , retrying command"
-            sleep $Sleep
-            $retryOK = $false
+            catch
+                {
+                Write-Warning "Catched $_ , retrying command"
+                sleep $Sleep
+                $retryOK = $false
+                }
             }
         until ($retryok)
         $task = "postsection"
         invoke-postsection -Reboot -wait
-
-
-
         }
         
      "E16"
