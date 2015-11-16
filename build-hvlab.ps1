@@ -1313,10 +1313,11 @@ Write-Verbose $Content
         until ((get-vmguesttask -Task $task -Node $nodename) -match "finished")
 
         Test-WSMan -ComputerName $NodeIP -Credential $Credential -Verbose -Authentication Default
+        
         $task = "finish-dc"
         $retryok = $true
+        Write-Host "Starting $task"
         do {
-            
             try
                 {
 
