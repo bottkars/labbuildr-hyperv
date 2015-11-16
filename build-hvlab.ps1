@@ -531,6 +531,7 @@ function invoke-postsection
     #>
     $SecurePassword = $Adminpassword | ConvertTo-SecureString -AsPlainText -Force
     $Credential = New-Object –TypeName System.Management.Automation.PSCredential –ArgumentList "$BuildDomain\$Adminuser", $SecurePassword
+    do {sleep 1} until (Test-WSMan -ComputerName $NodeIP -Credential $Credential -Verbose -Authentication Default)
     Invoke-Command -ComputerName $NodeIP -Credential $Credential -ScriptBlock  {
         Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Force
         New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name "$using:task" -Value "$PSHOME\powershell.exe -Command `". $Using:NodeScriptDir\set-vmguesttask.ps1 -Task postsection -Status finished`""
