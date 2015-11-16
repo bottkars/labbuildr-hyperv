@@ -521,9 +521,11 @@ param ([string]$Nodename,
 function invoke-postsection
     {
     param (
-    [switch]$wait
+    [switch]$wait,
+    [switch]$Reboot
     )
-    write-host "Setting Power Scheme"
+    write-host "Running Post Section"
+    $Task = "postsection"
     <#
 	invoke-vmxpowershell -config $CloneVMX -Guestuser $Adminuser -Guestpassword $Adminpassword -ScriptPath "$NodeScriptDir" -Script powerconf.ps1 -interactive # $CommonParameter
 	write-verbose "Configuring UAC"
@@ -534,14 +536,26 @@ function invoke-postsection
     do {sleep 1} until (Test-WSMan -ComputerName $NodeIP -Credential $Credential -Verbose -Authentication Default)
     Invoke-Command -ComputerName $NodeIP -Credential $Credential -ScriptBlock  {
         Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Force
-        New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name "$using:task" -Value "$PSHOME\powershell.exe -Command `". $Using:NodeScriptDir\set-vmguesttask.ps1 -Task postsection -Status finished`""
+        $HKitem = New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name "$using:task" -Value "$PSHOME\powershell.exe -Command `". $Using:NodeScriptDir\set-vmguesttask.ps1 -Task $task -Status finished`""
         ."$Using:NodeScriptDir\powerconf.ps1" -Scriptdir $Using:GuestScriptdir
         ."$Using:NodeScriptDir\set-uac.ps1" -Scriptdir $Using:GuestScriptdir
         ."$Using:NodeScriptDir\set-winrm.ps1" -Scriptdir $Using:GuestScriptdir
      }
 
-
-
+     if ($Reboot.IsPresent)
+        {
+        Restart-Computer -ComputerName $NodeIP -Credential $Credential -Force
+            if ($wait.IsPresent)
+            {
+            Write-Host "Checking for task $Task finished"
+            do
+                {
+                Write-Host -NoNewline "."
+                Sleep $Sleep
+                }
+            until ((get-vmguesttask -Task $task -Node $nodename) -match "finished")
+            }
+        }
     <#
     if ($Default.Puppet)
         {
@@ -1321,15 +1335,9 @@ Write-Verbose $Content
             }
 
         $task = "postsection"
-        invoke-postsection -wait
+        invoke-postsection
 
-        Write-Host "Checking for task $Task finished"
-        do
-            {
-            Write-Host -NoNewline "."
-            Sleep $Sleep
-            }
-        until ((get-vmguesttask -Task $task -Node $nodename) -match "finished")
+
 
         }
         
