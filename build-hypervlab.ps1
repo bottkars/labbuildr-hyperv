@@ -1652,7 +1652,63 @@ $ScenarioScriptdir\add-todomain.ps1 -Domain $BuildDomain -domainsuffix $domainsu
         Write-Verbose ""
         Set-Content "$Isodir\Scripts\run-$Current_phase.ps1" -Value $Content -Force
 ## end Phase2 
-       if ($PSCmdlet.MyInvocation.BoundParameters["verbose"].IsPresent)
+
+### phase 3
+       $previous_phase = $current_phase
+       $current_phase = $next_phase
+       $next_phase = "phase4"
+       $Content = @()
+       $Content = "###
+`$ScriptName = `$MyInvocation.MyCommand.Name
+`$Host.UI.RawUI.WindowTitle = `$ScriptName
+`$Logfile = New-Item -ItemType file `"c:\scripts\`$ScriptName.log`"
+$NodeScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status started
+New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name '99-$next_phase' -Value '$PSHOME\powershell.exe -Command `". $GuestScriptdir\scripts\run-$next_phase.ps1`"'
+$NodeScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
+Set-ExecutionPolicy -ExecutionPolicy bypass -Force
+#NodeScriptDir\dns.ps1 -IPv4subnet $IPv4Subnet -IPv4Prefixlength $IPV4PrefixLength -IPv6PrefixLength $IPv6PrefixLength -AddressFamily $AddressFamily  -IPV6Prefix $IPV6Prefix
+$NodeScriptDir\set-winrm.ps1 -Scriptdir $GuestScriptdir
+$NodeScriptDir\powerconf.ps1 -Scriptdir $GuestScriptdir
+$NodeScriptDir\set-uac.ps1 -Scriptdir $GuestScriptdir
+$NodeScriptDir\set-winrm.ps1 -Scriptdir $GuestScriptdir
+"
+
+        if ($nw.IsPresent)
+            {
+            $Content += "$NodeScriptDir\install-nwclient.ps1"
+            }
+
+        $Content += "restart-computer -force"
+    } #end foreach
+        Write-Verbose $Content
+        Set-Content "$Isodir\Scripts\run-$Current_phase.ps1" -Value $Content -Force
+        
+## Phase 4
+       $previous_phase = $current_phase
+       $current_phase = $next_phase
+       $next_phase = "phase5"
+       $Content = @()
+       $Content = "###
+`$ScriptName = `$MyInvocation.MyCommand.Name
+`$Host.UI.RawUI.WindowTitle = `$ScriptName
+`$Logfile = New-Item -ItemType file `"c:\scripts\`$ScriptName.log`"
+$NodeScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status started
+New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name '99-$next_phase' -Value '$PSHOME\powershell.exe -Command `". $GuestScriptdir\scripts\run-$next_phase.ps1`"'
+$NodeScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
+"
+        if ($Node -eq $BlankNodes)
+            {
+            if ($Cluster.IsPresent)
+                {
+                $Content += "$NodeScriptDir\-Script createcluster.ps1 -Nodeprefix 'NODE' -IPAddress '$IPv4Subnet.180' -IPV6Prefix $IPV6Prefix -IPv6PrefixLength $IPv6PrefixLength -AddressFamily $AddressFamily"
+                }
+            }
+        $Content += "$NodeScriptDir\set-vmguesttask.ps1 -Task $Current_phase -Status finished"
+        Write-Verbose $Content
+        Set-Content "$Isodir\Scripts\run-$Current_phase.ps1" -Value $Content -Force
+## end Phase4          
+        
+        if ($PSCmdlet.MyInvocation.BoundParameters["verbose"].IsPresent)
             { 
             Write-verbose "Now Pausing"
             pause
@@ -1685,25 +1741,6 @@ $ScenarioScriptdir\add-todomain.ps1 -Domain $BuildDomain -domainsuffix $domainsu
 
             }
 			<# Clone Base Machine
-			status $Commentline
-			status "Creating Blank Node Host $Nodename with IP $Nodeip"
-			if ($VTbit)
-			{
-				$CloneOK = Invoke-expression "$Builddir\$Script_dir\clone-node.ps1 -Scenario $Scenario -Scenarioname $Scenarioname -Activationpreference $Node -Builddir $Builddir -Mastervmx $MasterVMX -Nodename $Nodename -Clonevmx $CloneVMX -vmnet $VMnet -Domainname $BuildDomain -Hyperv -size $size -Sourcedir $Sourcedir $cloneparm"
-			}
-			else
-			{
-				$CloneOK = Invoke-expression "$Builddir\$Script_dir\clone-node.ps1 -Scenario $Scenario -Scenarioname $Scenarioname -Activationpreference $Node -Builddir $Builddir -Mastervmx $MasterVMX -Nodename $Nodename -Clonevmx $CloneVMX -vmnet $VMnet -Domainname $BuildDomain -size $Size -Sourcedir $Sourcedir $cloneparm"
-			}
-			###################################################
-			If ($CloneOK)
-			{
-				write-verbose "Copy Configuration files, please be patient"
-				copy-tovmx -Sourcedir $NodeScriptDir
-				write-verbose "Waiting System Ready"
-				test-user -whois Administrator
-				write-Verbose "Starting Customization"
-				domainjoin -Nodename $Nodename -Nodeip $Nodeip -BuildDomain $BuildDomain -AddressFamily $AddressFamily -AddOnfeatures $AddonFeatures
                 if ($NW.IsPresent)
                     {
                     write-verbose "Install NWClient"
