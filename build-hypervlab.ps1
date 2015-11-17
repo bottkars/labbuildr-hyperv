@@ -581,6 +581,7 @@ function check-task
     $task,
     $nodename,
     $sleep)
+    <#
         Write-Host "Checking for task $Task started"
         do
             {
@@ -589,6 +590,7 @@ function check-task
             }
         until ((get-vmguesttask -Task $task -Node $NodeName) -match "started")
         Write-Host
+        #>
         Write-Host "Checking for task $Task finished"
         do
             {
@@ -1423,7 +1425,7 @@ check-task -task "start-customize" -nodename $NodeName -sleep $Sleep
 foreach ($n in 2..5)
     {
 
-check-task -task "phase$n" -nodename $NodeName -sleep $Sleep
+check-task -task "phase$n" -nodename $NodeName -sleep 2
 
 
     }
