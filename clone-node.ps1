@@ -28,57 +28,57 @@ $Sourcedir
 switch ($Size)
 { 
 "XS"{
-$start_memsize = "512MB"
-$min_memsize = "512MB"
-$max_memsize = "512MB"
+$start_memsize = 512MB
+$min_memsize = 512MB
+$max_memsize = 512MB
 $numvcpus = "1"
 }
 "S"{
-$start_memsize = "768MB"
-$min_memsize = "512MB"
-$max_memsize = "768MB"
+$start_memsize = 68MB
+$min_memsize = 512MB
+$max_memsize = 768MB
 
 $numvcpus = "1"
 }
 "M"{
-[int64]$start_memsize = "1GB"
-[int64]$min_memsize = "512MB"
-[int64]$max_memsize = "1GB"
+[int64]$start_memsize = 1GB
+[int64]$min_memsize = 512MB
+[int64]$max_memsize = 1GB
 
 $numvcpus = "1"
 }
 "L"{
-[int64]$start_memsize = "2GB"
-[int64]$min_memsize = "1GB"
-[int64]$max_memsize = "2GB"
+[int64]$start_memsize = 2GB
+[int64]$min_memsize = 1GB
+[int64]$max_memsize = 2GB
 
 $numvcpus = "2"
 }
 "XL"{
-$start_memsize = "4GB"
-$min_memsize = "2GB"
-$max_memsize = "4GB"
+[int64]$start_memsize = 4GB
+[int64]$min_memsize = 2GB
+[int64]$max_memsize = 4GB
 
 $numvcpus = "2"
 }
 "TXL"{
-$start_memsize = "6GB"
-$min_memsize = "4GB"
-$max_memsize = "6GB"
+[int64]$start_memsize = 6GB
+[int64]$min_memsize = 4GB
+[int64]$max_memsize = 6GB
 
 $numvcpus = "2"
 }
 "XXL"{
-$start_memsize = "8GB"
-$min_memsize = "4GB"
-$max_memsize = "8GB"
+[int64]$start_memsize = 8GB
+[int64]$min_memsize = 4GB
+[int64]$max_memsize = 8GB
 
 $numvcpus = "4"
 }
 "XXXL"{
-$start_memsize = "8GB"
-$min_memsize = "4GB"
-$max_memsize = "16GB"
+[int64]$start_memsize = 8GB
+[int64]$min_memsize = 4GB
+[int64]$max_memsize = 16GB
 
 $numvcpus = "4"
 }
