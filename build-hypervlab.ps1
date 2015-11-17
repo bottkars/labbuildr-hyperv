@@ -722,61 +722,6 @@ param ([string]$Nodename,
                 }
         }
 }
-function invoke-postsection
-    {
-    param (
-    [switch]$wait,
-    [switch]$Reboot
-    )
-    write-host "Running Post Section"
-    $Task = "postsection"
-    <#
-	invoke-vmxpowershell -config $CloneVMX -Guestuser $Adminuser -Guestpassword $Adminpassword -ScriptPath "$NodeScriptDir" -Script powerconf.ps1 -interactive # $CommonParameter
-	write-verbose "Configuring UAC"
-    invoke-vmxpowershell -config $CloneVMX -Guestuser $Adminuser -Guestpassword $Adminpassword -ScriptPath "$NodeScriptDir" -Script set-uac.ps1 -interactive # $CommonParameter
-    #>
-    $SecurePassword = $Adminpassword | ConvertTo-SecureString -AsPlainText -Force
-    $Credential = New-Object –TypeName System.Management.Automation.PSCredential –ArgumentList "$BuildDomain\$Adminuser", $SecurePassword
-    do {sleep 1} until (Test-WSMan -ComputerName $NodeIP -Credential $Credential -Verbose -Authentication Default)
-    Invoke-Command -ComputerName $NodeIP -Credential $Credential -ScriptBlock  {
-        Set-ExecutionPolicy -ExecutionPolicy Bypass -Force
-        $HKitem = New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name "$using:task" -Value "$PSHOME\powershell.exe -Command `". $Using:NodeScriptDir\set-vmguesttask.ps1 -Task $task -Status finished`""
-        ."$Using:NodeScriptDir\powerconf.ps1" -Scriptdir $Using:GuestScriptdir
-        ."$Using:NodeScriptDir\set-uac.ps1" -Scriptdir $Using:GuestScriptdir
-        ."$Using:NodeScriptDir\set-winrm.ps1" -Scriptdir $Using:GuestScriptdir
-     }
-
-     if ($Reboot.IsPresent)
-        {
-        Restart-Computer -ComputerName $NodeIP -Credential $Credential -Force
-            if ($wait.IsPresent)
-            {
-            Write-Host "Checking for task $Task finished"
-            do
-                {
-                Write-Host -NoNewline "."
-                Sleep $Sleep
-                }
-            until ((get-vmguesttask -Task $task -Node $NodeIP) -match "finished")
-            }
-        }
-    <#
-    if ($Default.Puppet)
-        {
-        invoke-vmxpowershell -config $CloneVMX -Guestuser $Adminuser -Guestpassword $Adminpassword -ScriptPath "$GuestScriptDir\Node" -Script install-puppetagent.ps1 -Parameter "-Puppetmaster $Puppetmaster" -interactive # $CommonParameter
-        }
-    if ($wait.IsPresent)
-        {
-        checkpoint-progress -step UAC -reboot -Guestuser $Adminuser -Guestpassword $Adminpassword
-        }
-    else
-        {
-        checkpoint-progress step UAC -reboot -Nowait -Guestuser $Adminuser -Guestpassword $Adminpassword
-
-        }
-    #>
-    }
-
 function check-task
     {
     param (
@@ -1678,7 +1623,7 @@ if (!(Test-Path `$logpath))
 `$Logfile = New-Item -ItemType file `"c:\scripts\`$ScriptName.log`"
 $NodeScriptDir\set-vmguesttask.ps1 -Task $Current_phase -Status started
 New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name '99-$next_phase' -Value '$PSHOME\powershell.exe -Command `". $GuestScriptdir\scripts\run-$next_phase.ps1`"'
-$ScenarioScriptdir\configurenode.ps1 -nodeip $Nodeip -IPv4subnet $IPv4subnet -nodename $Nodename -IPv4PrefixLength $IPv4PrefixLength -IPv6PrefixLength $IPv6PrefixLength -IPv6Prefix $IPv6Prefix -AddressFamily $AddressFamily $AddGateway -AddOnfeatures $AddonFeatures -Domain $BuildDomain $CommonParameter
+$ScenarioScriptdir\configure-node.ps1 -nodeip $Nodeip -IPv4subnet $IPv4subnet -nodename $Nodename -IPv4PrefixLength $IPv4PrefixLength -IPv6PrefixLength $IPv6PrefixLength -IPv6Prefix $IPv6Prefix -AddressFamily $AddressFamily $AddGateway -AddOnfeatures '$AddonFeatures' -Domain $BuildDomain $CommonParameter
 "
 # $ScenarioScriptdir\new-dc.ps1 -dcname $DCName -Domain $BuildDomain -IPv4subnet $IPv4subnet -IPv4Prefixlength $IPv4PrefixLength -IPv6PrefixLength $IPv6PrefixLength -IPv6Prefix $IPv6Prefix -AddressFamily $AddressFamily #-setwsman $CommonParameter
 
