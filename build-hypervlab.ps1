@@ -64,6 +64,33 @@ param (
     [ValidateSet('final')]$e16_cu,
 
 
+    <# Starting Node for Blank Nodes#>
+    [Parameter(ParameterSetName = "Blanknodes", Mandatory = $false)][ValidateRange(1, 9)][alias('bs')]$Blankstart = "1",
+    <# How many Blank Nodes#>
+	[Parameter(ParameterSetName = "Blanknodes", Mandatory = $false)][ValidateRange(1, 10)][alias('bns')]$BlankNodes = "1",
+
+    <# Do we want Additional Disks / of additional 100GB Disks for ScaleIO. The disk will be made ready for ScaleIO usage in Guest OS#>	
+	[Parameter(ParameterSetName = "Blanknodes", Mandatory = $false)]
+    [Parameter(ParameterSetName = "Hyperv", Mandatory = $false)][ValidateRange(1, 6)][int][alias('ScaleioDisks')]$Disks,
+<# select vmnet, number from 1 to 19#>                                        	
+	[Parameter(ParameterSetName = "Hyperv", Mandatory = $false)]
+	[Parameter(ParameterSetName = "AAG", Mandatory = $false)]
+	[Parameter(ParameterSetName = "E15", Mandatory = $false)]
+    [Parameter(ParameterSetName = "E16", Mandatory = $false)]
+	[Parameter(ParameterSetName = "Blanknodes", Mandatory = $false)]
+	[Parameter(ParameterSetName = "SQL", Mandatory = $false)]
+    [Parameter(ParameterSetName = "DConly", Mandatory = $false)]
+    [Parameter(ParameterSetName = "NWserver", Mandatory = $false)]
+    [Parameter(ParameterSetName = "SOFS", Mandatory = $false)]
+    [Parameter(ParameterSetName = "Sharepoint",Mandatory = $false)]
+    [Parameter(ParameterSetName = "Panorama", Mandatory = $false)]
+    [Parameter(ParameterSetName = "SRM", Mandatory = $false)]
+    [ValidateSet('vmnet2','vmnet3','vmnet4','vmnet5','vmnet6','vmnet7','vmnet9','vmnet10','vmnet11','vmnet12','vmnet13','vmnet14','vmnet15','vmnet16','vmnet17','vmnet18','vmnet19')]$VMnet,
+<# Specify if Machines should be Clustered, valid for Hyper-V and Blanknodes Scenario  #>
+	[Parameter(ParameterSetName = "Hyperv", Mandatory = $false)]
+	[Parameter(ParameterSetName = "Blanknodes", Mandatory = $false)]
+	[switch]$Cluster,
+
 
         <# Wich version of OS Master should be installed
     '2012R2FallUpdate','2016TP3'
@@ -83,22 +110,58 @@ param (
     [Parameter(ParameterSetName = "SRM", Mandatory = $false)]
     [ValidateSet('2016TP3','2012R2FallUpdate')]$Master,
 
-        ######################### common Parameters start here in Order
-    <# reads the Default Config from defaults.xml
-    <config>
-    <nmm_ver>nmm82</nmm_ver>
-    <nw_ver>nw82</nw_ver>
-    <master>2012R2UEFIMASTER</master>
-    <sqlver>SQL2014</sqlver>
-    <ex_cu>cu6</ex_cu>
-    <vmnet>2</vmnet>
-    <BuildDomain>labbuildr</BuildDomain>
-    <MySubnet>10.10.0.0</MySubnet>
-    <AddressFamily>IPv4</AddressFamily>
-    <IPV6Prefix>FD00::</IPV6Prefix>
-    <IPv6PrefixLength>8</IPv6PrefixLength>
-    <NoAutomount>False</NoAutomount>
-    </config>
+    <#do we want a special path to the Masters ? #>
+    [Parameter(ParameterSetName = "Sharepoint",Mandatory = $false)]
+	[Parameter(ParameterSetName = "Hyperv", Mandatory = $false)]
+	[Parameter(ParameterSetName = "AAG", Mandatory = $false)]
+	[Parameter(ParameterSetName = "E15", Mandatory = $false)]
+    [Parameter(ParameterSetName = "E16", Mandatory = $false)]
+	[Parameter(ParameterSetName = "Blanknodes", Mandatory = $false)]
+	[Parameter(ParameterSetName = "SQL", Mandatory = $false)]
+    [Parameter(ParameterSetName = "DConly", Mandatory = $false)]
+    [Parameter(ParameterSetName = "NWserver", Mandatory = $false)]
+    [Parameter(ParameterSetName = "SOFS", Mandatory = $false)]
+    [Parameter(ParameterSetName = "Panorama", Mandatory = $false)]
+    [Parameter(ParameterSetName = "SRM", Mandatory = $false)]
+    [ValidateScript({ Test-Path -Path $_ })]$Masterpath,
+      <#
+    Enable the default gateway 
+    .103 will be set as default gateway, NWserver will have 2 Nics, NIC2 Pointing to NAT serving as Gateway
+    #>
+    [Parameter(ParameterSetName = "NWserver", Mandatory = $false)]
+    [Parameter(ParameterSetName = "DConly", Mandatory = $false)]
+    [switch][alias('gw')]$Gateway,
+
+ #   [Parameter(Mandatory = $false, HelpMessage = "Enter a valid VMware network Number vmnet between 1 and 19 ")]
+<# This stores the defaul config in defaults.xml#>
+	[Parameter(ParameterSetName = "Hyperv", Mandatory = $false)]
+	[Parameter(ParameterSetName = "AAG", Mandatory = $false)]
+	[Parameter(ParameterSetName = "E15", Mandatory = $false)]
+    [Parameter(ParameterSetName = "E16", Mandatory = $false)]
+	[Parameter(ParameterSetName = "Blanknodes", Mandatory = $false)]
+	[Parameter(ParameterSetName = "NWserver", Mandatory = $false)]
+    [Parameter(ParameterSetName = "DConly", Mandatory = $false)]
+	[Parameter(ParameterSetName = "SQL", Mandatory = $false)]
+    [Parameter(ParameterSetName = "Panorama", Mandatory = $false)]
+    [Parameter(ParameterSetName = "SRM", Mandatory = $false)]
+    [Parameter(ParameterSetName = "Sharepoint", Mandatory = $false)]
+	[switch]$savedefaults,
+
+<# reads the Default Config from defaults.xml
+<config>
+<nmm_ver>nmm82</nmm_ver>
+<nw_ver>nw82</nw_ver>
+<master>2012R2UEFIMASTER</master>
+<sqlver>SQL2014</sqlver>
+<ex_cu>cu6</ex_cu>
+<vmnet>2</vmnet>
+<BuildDomain>labbuildr</BuildDomain>
+<MySubnet>10.10.0.0</MySubnet>
+<AddressFamily>IPv4</AddressFamily>
+<IPV6Prefix>FD00::</IPV6Prefix>
+<IPv6PrefixLength>8</IPv6PrefixLength>
+<NoAutomount>False</NoAutomount>
+</config>
 #>
 	[Parameter(ParameterSetName = "Hyperv", Mandatory = $false)]
 	[Parameter(ParameterSetName = "AAG", Mandatory = $false)]
@@ -113,51 +176,186 @@ param (
     [Parameter(ParameterSetName = "Panorama", Mandatory = $false)]
     [Parameter(ParameterSetName = "SRM", Mandatory = $false)]
     [Parameter(ParameterSetName = "Sharepoint", Mandatory = $false)]
-    [Parameter(ParameterSetName = "SCOM", Mandatory = $false)]
 	[switch]$defaults,
-    <# This stores the defaul config in defaults.xml#>
-	[Parameter(ParameterSetName = "Hyperv", Mandatory = $false)]
-	[Parameter(ParameterSetName = "AAG", Mandatory = $false)]
-	[Parameter(ParameterSetName = "E15", Mandatory = $false)]
-    [Parameter(ParameterSetName = "E16", Mandatory = $false)]
-	[Parameter(ParameterSetName = "Blanknodes", Mandatory = $false)]
-	[Parameter(ParameterSetName = "NWserver", Mandatory = $false)]
-    [Parameter(ParameterSetName = "DConly", Mandatory = $false)]
-	[Parameter(ParameterSetName = "SQL", Mandatory = $false)]
-    [Parameter(ParameterSetName = "Panorama", Mandatory = $false)]
-    [Parameter(ParameterSetName = "SRM", Mandatory = $false)]
-    [Parameter(ParameterSetName = "SCOM", Mandatory = $false)]
-    [Parameter(ParameterSetName = "Sharepoint", Mandatory = $false)]
-	[switch]$savedefaults,
 
-	[Parameter(ParameterSetName = "AAG", Mandatory = $false)]
-	[Parameter(ParameterSetName = "E15", Mandatory = $false)]
-    [Parameter(ParameterSetName = "E16", Mandatory = $false)]
-	[Parameter(ParameterSetName = "Blanknodes", Mandatory = $false)]
-	[Parameter(ParameterSetName = "NWserver", Mandatory = $false)]
-    [Parameter(ParameterSetName = "DConly", Mandatory = $false)]
-	[Parameter(ParameterSetName = "SQL", Mandatory = $false)]
-    [Parameter(ParameterSetName = "Panorama", Mandatory = $false)]
-    [Parameter(ParameterSetName = "SRM", Mandatory = $false)]
-    [Parameter(ParameterSetName = "SCOM", Mandatory = $false)]
-    [Parameter(ParameterSetName = "Sharepoint", Mandatory = $false)]
-    [ValidateScript({ Test-Path -Path $_ })]$Masterpath,
-
-    [Parameter(ParameterSetName = "Sharepoint",Mandatory = $false)]
+<#
+Machine Sizes
+'XS'  = 1vCPU, 512MB
+'S'   = 1vCPU, 768MB
+'M'   = 1vCPU, 1024MB
+'L'   = 2vCPU, 2048MB
+'XL'  = 2vCPU, 4096MB 
+'TXL' = 2vCPU, 6144MB
+'XXL' = 4vCPU, 6144MB
+'XXXL' = 4vCPU, 8192MB
+#>
 	[Parameter(ParameterSetName = "Hyperv", Mandatory = $false)]
-	[Parameter(ParameterSetName = "AAG", Mandatory = $false)]
-	[Parameter(ParameterSetName = "E15", Mandatory = $false)]
-    [Parameter(ParameterSetName = "E16", Mandatory = $false)]
 	[Parameter(ParameterSetName = "Blanknodes", Mandatory = $false)]
+	[Parameter(ParameterSetName = "DConly", Mandatory = $false)]
+	[Parameter(ParameterSetName = "Spaces", Mandatory = $false)]
 	[Parameter(ParameterSetName = "SQL", Mandatory = $false)]
-    [Parameter(ParameterSetName = "DConly", Mandatory = $false)]
     [Parameter(ParameterSetName = "NWserver", Mandatory = $false)]
     [Parameter(ParameterSetName = "SOFS", Mandatory = $false)]
     [Parameter(ParameterSetName = "Panorama", Mandatory = $false)]
-    [Parameter(ParameterSetName = "SCOM", Mandatory = $false)]
     [Parameter(ParameterSetName = "SRM", Mandatory = $false)]
-    [ValidateRange(0,4096)]$vlanID=0,
+	[ValidateSet('XS', 'S', 'M', 'L', 'XL', 'TXL', 'XXL', 'XXXL')]$Size = "M",
+	
+<# Specify your own Domain name#>
+	[Parameter(ParameterSetName = "Hyperv", Mandatory = $false)]
+	[Parameter(ParameterSetName = "AAG", Mandatory = $false)]
+	[Parameter(ParameterSetName = "E15", Mandatory = $false)]
+    [Parameter(ParameterSetName = "E16", Mandatory = $false)]
+	[Parameter(ParameterSetName = "Blanknodes", Mandatory = $false)]
+	[Parameter(ParameterSetName = "DConly", Mandatory = $false)]
+    [Parameter(ParameterSetName = "NWserver", Mandatory = $false)]
+	[Parameter(ParameterSetName = "SQL", Mandatory = $false)]
+    [Parameter(ParameterSetName = "SOFS", Mandatory = $false)]
+    [Parameter(ParameterSetName = "Panorama", Mandatory = $false)]
+    [Parameter(ParameterSetName = "SRM", Mandatory = $false)]
+    [Parameter(ParameterSetName = "Sharepoint", Mandatory = $false)]
+	[ValidateLength(1,15)][ValidatePattern("^[a-zA-Z\s]+$")][string]$BuildDomain,
+	
+<# Turn this one on if you would like to install a Hypervisor inside a VM #>
+	[Parameter(ParameterSetName = "Blanknodes", Mandatory = $false)]
+	[switch]$VTbit,
+		
+####networker 	
+    <# install Networker Modules for Microsoft #>
+	[Parameter(ParameterSetName = "Hyperv", Mandatory = $false)]
+	[Parameter(ParameterSetName = "AAG", Mandatory = $false)]
+	[Parameter(ParameterSetName = "E15", Mandatory = $false)]
+    [Parameter(ParameterSetName = "E16", Mandatory = $false)]
+	[Parameter(ParameterSetName = "SQL", Mandatory = $false)]
+    [Parameter(ParameterSetName = "SOFS", Mandatory = $false)]
+    [Parameter(ParameterSetName = "Sharepoint", Mandatory = $false)]
+	[switch]$NMM,
+    <#
+Version Of Networker Modules
+'nmm300','nmm301','nmm2012','nmm3012','nmm82'
+#>
+	[Parameter(ParameterSetName = "Hyperv", Mandatory = $false)]
+	[Parameter(ParameterSetName = "AAG", Mandatory = $false)]
+	[Parameter(ParameterSetName = "E15", Mandatory = $false)]
+    [Parameter(ParameterSetName = "E16", Mandatory = $false)]
+	[Parameter(ParameterSetName = "SQL", Mandatory = $false)]
+    [Parameter(ParameterSetName = "SOFS", Mandatory = $false)]
+    [Parameter(ParameterSetName = "Sharepoint", Mandatory = $false)]
+	[ValidateSet('nmm8211','nmm8212','nmm8214','nmm8216','nmm8217','nmm8218','nmm822','nmm821','nmm300', 'nmm301', 'nmm2012', 'nmm3012', 'nmm82','nmm85','nmm85.BR1','nmm85.BR2','nmm85.BR3','nmm85.BR4','nmm90.DA')]
+$nmm_ver,
+	
+<# Indicates to install Networker Server with Scenario #>
+	[Parameter(ParameterSetName = "Hyperv", Mandatory = $false)]
+	[Parameter(ParameterSetName = "AAG", Mandatory = $false)]
+	[Parameter(ParameterSetName = "E15", Mandatory = $false)]
+    [Parameter(ParameterSetName = "E16", Mandatory = $false)]
+	[Parameter(ParameterSetName = "Blanknodes", Mandatory = $false)]
+	[Parameter(ParameterSetName = "DConly", Mandatory = $false)]
+	[Parameter(ParameterSetName = "SQL", Mandatory = $false)]
+    [Parameter(ParameterSetName = "SOFS", Mandatory = $false)]
+	[Parameter(ParameterSetName = "Isilon")]
+    [Parameter(ParameterSetName = "Panorama", Mandatory = $false)]
+    [Parameter(ParameterSetName = "SRM", Mandatory = $false)]
+    [Parameter(ParameterSetName = "Sharepoint", Mandatory = $false)]
+	[switch]$NW,
+    <#
+Version Of Networker Server / Client to be installed
+    'nw8216','nw8215','nw8214','nw8213','nw8212','nw8211','nw821','nw8205','nw8204','nw8203','nw8202','nw82','nw8116','nw8115','nw8114', 'nw8113','nw8112', 'nw811',  'nw8105','nw8104','nw8102', 'nw81','nw85','nw85.BR1','nw85.BR2','nw85.BR3','nw85.BR4','nw90.DA','nwunknown'
+mus be extracted to [sourcesdir]\[nw_ver], ex. c:\sources\nw82
+#>
+	[Parameter(ParameterSetName = "Hyperv", Mandatory = $false)]
+	[Parameter(ParameterSetName = "AAG", Mandatory = $false)]
+	[Parameter(ParameterSetName = "E15", Mandatory = $false)]
+    [Parameter(ParameterSetName = "E16", Mandatory = $false)]
+	[Parameter(ParameterSetName = "SQL", Mandatory = $false)]
+	[Parameter(ParameterSetName = "DConly", Mandatory = $false)]
+    [Parameter(ParameterSetName = "NWserver", Mandatory = $false)]
+    [Parameter(ParameterSetName = "SOFS", Mandatory = $false)]
+    [Parameter(ParameterSetName = "Blanknodes", Mandatory = $false)]
+    [Parameter(ParameterSetName = "Sharepoint", Mandatory = $false)]
+    [Parameter(ParameterSetName = "SRM", Mandatory = $false)]
+    [Parameter(ParameterSetName = "Panorama", Mandatory = $false)]
+    [ValidateSet('nw822','nw8218','nw8217','nw8216','nw8215','nw8214','nw8213','nw8212','nw8211','nw821','nw8205','nw8204','nw8203','nw8202','nw82','nw8116','nw8115','nw8114', 'nw8113','nw8112', 'nw811',  'nw8105','nw8104','nw8102', 'nw81','nw85','nw85.BR1','nw85.BR2','nw85.BR3','nw85.BR4','nw90.DA','nwunknown')]
+    $nw_ver,
 
+### network Parameters ######
+
+<# Disable Domainchecks for running DC
+This should be used in Distributed scenario´s
+ #>
+	[Parameter(ParameterSetName = "Hyperv", Mandatory = $false)]
+	[Parameter(ParameterSetName = "AAG", Mandatory = $false)]
+	[Parameter(ParameterSetName = "E15", Mandatory = $false)]
+    [Parameter(ParameterSetName = "E16", Mandatory = $false)]
+	[Parameter(ParameterSetName = "Blanknodes", Mandatory = $false)]
+	[Parameter(ParameterSetName = "DConly", Mandatory = $false)]
+	[Parameter(ParameterSetName = "SQL", Mandatory = $false)]
+    [Parameter(ParameterSetName = "NWserver", Mandatory = $false)]
+	[Parameter(ParameterSetName = "Isilon", Mandatory = $false)]
+    [Parameter(ParameterSetName = "Panorama", Mandatory = $false)]
+    [Parameter(ParameterSetName = "SRM", Mandatory = $false)]
+    [Parameter(ParameterSetName = "Sharepoint", Mandatory = $false)]
+    [switch]$NoDomainCheck,
+<# Specify your own Class-C Subnet in format xxx.xxx.xxx.xxx #>
+	[Parameter(ParameterSetName = "Hyperv", Mandatory = $false)]
+	[Parameter(ParameterSetName = "AAG", Mandatory = $false)]
+	[Parameter(ParameterSetName = "E15", Mandatory = $false)]
+    [Parameter(ParameterSetName = "E16", Mandatory = $false)]
+	[Parameter(ParameterSetName = "DConly", Mandatory = $false)]
+    [Parameter(ParameterSetName = "NWserver", Mandatory = $false)]
+	[Parameter(ParameterSetName = "SQL", Mandatory = $false)]
+    [Parameter(ParameterSetName = "Blanknodes", Mandatory = $false)]
+    [Parameter(ParameterSetName = "Panorama", Mandatory = $false)]
+    [Parameter(ParameterSetName = "SRM", Mandatory = $false)]
+    [Parameter(ParameterSetName = "Sharepoint",Mandatory = $false)]
+	[Validatepattern(‘(?<Address>((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?))’)]$MySubnet,
+
+<# Specify your IP Addressfamilie/s
+Valid values 'IPv4','IPv6','IPv4IPv6'
+#>
+	[Parameter(ParameterSetName = "Hyperv", Mandatory = $false)]
+	[Parameter(ParameterSetName = "AAG", Mandatory = $false)]
+	[Parameter(ParameterSetName = "E15", Mandatory = $false)]
+    [Parameter(ParameterSetName = "E16", Mandatory = $false)]
+	[Parameter(ParameterSetName = "Blanknodes", Mandatory = $false)]
+	[Parameter(ParameterSetName = "DConly", Mandatory = $false)]
+	[Parameter(ParameterSetName = "SQL", Mandatory = $false)]
+    [Parameter(ParameterSetName = "NWserver", Mandatory = $false)]
+	[Parameter(ParameterSetName = "Isilon", Mandatory = $false)]
+    [Parameter(ParameterSetName = "Panorama", Mandatory = $false)]
+    [Parameter(ParameterSetName = "Sharepoint",Mandatory = $false)]
+    [Parameter(ParameterSetName = "SRM", Mandatory = $false)]
+    [Validateset('IPv4','IPv6','IPv4IPv6')]$AddressFamily, 
+
+<# Specify your IPv6 ULA Prefix, consider https://www.sixxs.net/tools/grh/ula/  #>
+	[Parameter(ParameterSetName = "Hyperv", Mandatory = $false)]
+	[Parameter(ParameterSetName = "AAG", Mandatory = $false)]
+	[Parameter(ParameterSetName = "E15", Mandatory = $false)]
+    [Parameter(ParameterSetName = "E16", Mandatory = $false)]
+	[Parameter(ParameterSetName = "Blanknodes", Mandatory = $false)]
+	[Parameter(ParameterSetName = "DConly", Mandatory = $false)]
+	[Parameter(ParameterSetName = "SQL", Mandatory = $false)]
+    [Parameter(ParameterSetName = "NWserver", Mandatory = $false)]
+	[Parameter(ParameterSetName = "Isilon", Mandatory = $false)]
+    [Parameter(ParameterSetName = "Panorama", Mandatory = $false)]
+    [Parameter(ParameterSetName = "Sharepoint",Mandatory = $false)]
+    [Parameter(ParameterSetName = "SRM", Mandatory = $false)]
+    [ValidateScript({$_ -match [IPAddress]$_ })]$IPV6Prefix,
+
+<# Specify your IPv6 ULA Prefix Length, #>
+	[Parameter(ParameterSetName = "Hyperv", Mandatory = $false)]
+	[Parameter(ParameterSetName = "AAG", Mandatory = $false)]
+	[Parameter(ParameterSetName = "E15", Mandatory = $false)]
+    [Parameter(ParameterSetName = "E16", Mandatory = $false)]
+	[Parameter(ParameterSetName = "Blanknodes", Mandatory = $false)]
+	[Parameter(ParameterSetName = "DConly", Mandatory = $false)]
+	[Parameter(ParameterSetName = "SQL", Mandatory = $false)]
+    [Parameter(ParameterSetName = "NWserver", Mandatory = $false)]
+	[Parameter(ParameterSetName = "Isilon", Mandatory = $false)]
+    [Parameter(ParameterSetName = "SOFS", Mandatory = $false)]
+    [Parameter(ParameterSetName = "Panorama", Mandatory = $false)]
+    [Parameter(ParameterSetName = "SRM", Mandatory = $false)]
+    [Parameter(ParameterSetName = "Sharepoint",Mandatory = $false)]
+    $IPv6PrefixLength,
     [String]$Sourcedir
 
 )
