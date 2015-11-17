@@ -1679,7 +1679,7 @@ $NodeScriptDir\set-winrm.ps1 -Scriptdir $GuestScriptdir
             }
 
         $Content += "restart-computer -force"
-    } #end foreach
+    
         Write-Verbose $Content
         Set-Content "$Isodir\Scripts\run-$Current_phase.ps1" -Value $Content -Force
         
@@ -1734,32 +1734,14 @@ $NodeScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
 
 ####### wait progress
         check-task -task "start-customize" -nodename $NodeName -sleep $Sleep
-        foreach ($n in 2..2)
+        foreach ($n in 2..5)
             {
 
             check-task -task "phase$n" -nodename $NodeName -sleep $Sleep 
 
             }
-			<# Clone Base Machine
-                if ($NW.IsPresent)
-                    {
-                    write-verbose "Install NWClient"
-		            invoke-vmxpowershell -config $CloneVMX -Guestuser $Adminuser -Guestpassword $Adminpassword -ScriptPath $Targetscriptdir -Script install-nwclient.ps1 -interactive -Parameter $nw_ver
-                    }
-				invoke-postsection
-			}# end Cloneok
-			
-		} # end foreach
-
-    	if ($Cluster.IsPresent)
-		    {
-			write-host
-			write-verbose "Forming Blanknode Cluster"
-			invoke-vmxpowershell -config $CloneVMX -Guestuser $Adminuser -Guestpassword $Adminpassword -ScriptPath $Targetscriptdir -Script createcluster.ps1 -Parameter "-Nodeprefix 'NODE' -IPAddress '$IPv4Subnet.180' -IPV6Prefix $IPV6Prefix -IPv6PrefixLength $IPv6PrefixLength -AddressFamily $AddressFamily $CommonParameter" -interactive
-		    }
-#>
-	} 
-
+	 
+    }#end foreach
 }## End Switchblock Blanknode 
 
 <#
