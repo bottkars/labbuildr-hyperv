@@ -1489,10 +1489,6 @@ switch ($PsCmdlet.ParameterSetName)
         Remove-Item -Path "$Isodir\scripts" -Force -Recurse -ErrorAction SilentlyContinue | Out-Null
         New-Item -ItemType Directory "$Isodir\scripts" -Force | Out-Null
         New-Item -ItemType Directory "$Builddir\$NodePrefix" -Force | Out-Null
-        # New-Item -ItemType Directory "$NodeName" -Force | Out-Null
-        # Copy-Item "$SourceScriptDir\dcnode\new-dc.ps1" "$Isodir\scripts"
-        # Copy-Item "$SourceScriptDir\node\set-vmguesttask.ps1" "$Buiddir\scripts\runtime"
-        # Copy-Item "$SourceScriptDir\node\set-vmguestshare.ps1" "$Builddir\scripts\runtime"
         $Current_phase = "start-customize"
         $next_phase = "phase2"
         $Content = @()
@@ -1577,8 +1573,8 @@ $NodeScriptDir\set-uac.ps1 -Scriptdir $GuestScriptdir
 $NodeScriptDir\set-winrm.ps1 -Scriptdir $GuestScriptdir
 restart-computer -force
 "
-Write-Verbose $Content
-Set-Content "$Isodir\Scripts\run-$Current_phase.ps1" -Value $Content -Force
+        Write-Verbose $Content
+        Set-Content "$Isodir\Scripts\run-$Current_phase.ps1" -Value $Content -Force
 ## end Phase4       
         
 ### phase 5
@@ -1596,8 +1592,8 @@ $NodeScriptDir\set-vmguestshare.ps1 -user $Labbuildr_share_User -password $Labbu
 $NodeScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status finished
 #New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name '99-$next_phase' -Value '$PSHOME\powershell.exe -Command `". $Isodir\scripts\run-$next_phase.ps1`"'
 "
-Write-Verbose $Content
-Set-Content "$Isodir\Scripts\run-$Current_phase.ps1" -Value $Content -Force
+        Write-Verbose $Content
+        Set-Content "$Isodir\Scripts\run-$Current_phase.ps1" -Value $Content -Force
 ## end Phase5  
 
 
@@ -1636,7 +1632,122 @@ check-task -task "phase$n" -nodename $NodeName -sleep $Sleep
     }
         }#end dconly
 
+	"Blanknodes" {
+        if ($Disks)
+            {
+		    $cloneparm = " -AddDisks -disks $Disks"
+            }
+        $AddonFeatures = "RSAT-ADDS, RSAT-ADDS-TOOLS, AS-HTTP-Activation, NET-Framework-45-Features"
+        if ($Cluster.IsPresent) {$AddonFeatures = "$AddonFeatures, Failover-Clustering, RSAT-Clustering, WVR"}
 
+		foreach ($Node in ($Blankstart..$BlankNodes))
+		{
+			
+	    ###################################################
+	    #
+	    # BlanknodeSetup
+	    #			test-dcrunning
+	    ###################################################
+        $Nodeip = "$IPv4Subnet.18$Node"
+        $Nodeprefix = "Node"
+		$Nodename = "Node$Node"
+        $ScenarioScriptdir = "$GuestScriptdir\$NodePrefix"
+        Write-Verbose $IPv4Subnet
+        write-verbose $Nodename
+        write-verbose $Nodeip
+        ####prepare iso
+        Remove-Item -Path "$Isodir\scripts" -Force -Recurse -ErrorAction SilentlyContinue | Out-Null
+        New-Item -ItemType Directory "$Isodir\scripts" -Force | Out-Null
+        New-Item -ItemType Directory "$Builddir\$NodePrefix" -Force | Out-Null
+        $Current_phase = "start-customize"
+        $next_phase = "phase2"
+        $Content = @()
+        $Content = "###
+`$logpath = `"c:\Scripts`"
+if (!(Test-Path `$logpath))
+    {
+    New-Item -ItemType Directory -Path `$logpath -Force
+    }
+
+`$ScriptName = `$MyInvocation.MyCommand.Name
+`$Host.UI.RawUI.WindowTitle = `$ScriptName
+`$Logfile = New-Item -ItemType file `"c:\scripts\`$ScriptName.log`"
+$NodeScriptDir\set-vmguesttask.ps1 -Task $Current_phase -Status started
+New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name '99-$next_phase' -Value '$PSHOME\powershell.exe -Command `". $GuestScriptdir\scripts\run-$next_phase.ps1`"'
+$ScenarioScriptdir\configurenode.ps1 -nodeip $Nodeip -IPv4subnet $IPv4subnet -nodename $Nodename -IPv4PrefixLength $IPv4PrefixLength -IPv6PrefixLength $IPv6PrefixLength -IPv6Prefix $IPv6Prefix -AddressFamily $AddressFamily $AddGateway -AddOnfeatures $AddonFeatures -Domain $BuildDomain $CommonParameter
+"
+# $ScenarioScriptdir\new-dc.ps1 -dcname $DCName -Domain $BuildDomain -IPv4subnet $IPv4subnet -IPv4Prefixlength $IPv4PrefixLength -IPv6PrefixLength $IPv6PrefixLength -IPv6Prefix $IPv6Prefix -AddressFamily $AddressFamily #-setwsman $CommonParameter
+
+        Write-Verbose $Content
+        Write-Verbose
+        Set-Content "$Isodir\Scripts\$Current_phase.ps1" -Value $Content -Force
+        
+
+######## Phase 2
+       $previous_phase = $current_phase
+       $current_phase = $next_phase
+       $next_phase = "phase3"
+       $Content = @()
+       $Content = "###
+`$ScriptName = `$MyInvocation.MyCommand.Name
+`$Host.UI.RawUI.WindowTitle = `$ScriptName
+`$Logfile = New-Item -ItemType file `"c:\scripts\`$ScriptName.log`"
+$NodeScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status started
+$NodeScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
+New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name '99-$next_phase' -Value '$PSHOME\powershell.exe -Command `". $GuestScriptdir\scripts\run-$next_phase.ps1`"'
+Set-ExecutionPolicy -ExecutionPolicy bypass -Force
+$NodeScriptDir\set-vmguestshare.ps1 -user $Labbuildr_share_User -password $Labbuildr_share_password
+$ScenarioScriptdir\addtodomain.ps1 -Domain $BuildDomain -domainsuffix $domainsuffix -subnet $IPv4subnet -IPV6Subnet $IPv6Prefix -AddressFamily $AddressFamily
+"
+        Write-Verbose $Content
+        Write-Verbose
+        Set-Content "$Isodir\Scripts\run-$Current_phase.ps1" -Value $Content -Force
+## end Phase2 
+       if ($PSCmdlet.MyInvocation.BoundParameters["verbose"].IsPresent)
+            { 
+            Write-verbose "Now Pausing"
+            pause
+            }
+			<# Clone Base Machine
+			status $Commentline
+			status "Creating Blank Node Host $Nodename with IP $Nodeip"
+			if ($VTbit)
+			{
+				$CloneOK = Invoke-expression "$Builddir\$Script_dir\clone-node.ps1 -Scenario $Scenario -Scenarioname $Scenarioname -Activationpreference $Node -Builddir $Builddir -Mastervmx $MasterVMX -Nodename $Nodename -Clonevmx $CloneVMX -vmnet $VMnet -Domainname $BuildDomain -Hyperv -size $size -Sourcedir $Sourcedir $cloneparm"
+			}
+			else
+			{
+				$CloneOK = Invoke-expression "$Builddir\$Script_dir\clone-node.ps1 -Scenario $Scenario -Scenarioname $Scenarioname -Activationpreference $Node -Builddir $Builddir -Mastervmx $MasterVMX -Nodename $Nodename -Clonevmx $CloneVMX -vmnet $VMnet -Domainname $BuildDomain -size $Size -Sourcedir $Sourcedir $cloneparm"
+			}
+			###################################################
+			If ($CloneOK)
+			{
+				write-verbose "Copy Configuration files, please be patient"
+				copy-tovmx -Sourcedir $NodeScriptDir
+				write-verbose "Waiting System Ready"
+				test-user -whois Administrator
+				write-Verbose "Starting Customization"
+				domainjoin -Nodename $Nodename -Nodeip $Nodeip -BuildDomain $BuildDomain -AddressFamily $AddressFamily -AddOnfeatures $AddonFeatures
+                if ($NW.IsPresent)
+                    {
+                    write-verbose "Install NWClient"
+		            invoke-vmxpowershell -config $CloneVMX -Guestuser $Adminuser -Guestpassword $Adminpassword -ScriptPath $Targetscriptdir -Script install-nwclient.ps1 -interactive -Parameter $nw_ver
+                    }
+				invoke-postsection
+			}# end Cloneok
+			
+		} # end foreach
+
+    	if ($Cluster.IsPresent)
+		    {
+			write-host
+			write-verbose "Forming Blanknode Cluster"
+			invoke-vmxpowershell -config $CloneVMX -Guestuser $Adminuser -Guestpassword $Adminpassword -ScriptPath $Targetscriptdir -Script createcluster.ps1 -Parameter "-Nodeprefix 'NODE' -IPAddress '$IPv4Subnet.180' -IPV6Prefix $IPV6Prefix -IPv6PrefixLength $IPv6PrefixLength -AddressFamily $AddressFamily $CommonParameter" -interactive
+		    }
+#>
+	} 
+
+}## End Switchblock Blanknode 
 
 <#
    	"E16"{
