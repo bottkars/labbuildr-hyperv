@@ -24,6 +24,45 @@ $vlanid,
 $Sourcedir
 )
 
+
+switch ($Size)
+{ 
+"XS"{
+$memsize = "512"
+$numvcpus = "1"
+}
+"S"{
+$memsize = "768"
+$numvcpus = "1"
+}
+"M"{
+$memsize = "1024"
+$numvcpus = "1"
+}
+"L"{
+$memsize = "2048"
+$numvcpus = "2"
+}
+"XL"{
+$memsize = "4096"
+$numvcpus = "2"
+}
+"TXL"{
+$memsize = "6144"
+$numvcpus = "2"
+}
+"XXL"{
+$memsize = "8192"
+$numvcpus = "4"
+}
+"XXXL"{
+$memsize = "16384"
+$numvcpus = "4"
+}
+}
+
+
+
 write-host "Creating Differencing disk from $MasterVHD in $Nodename"
 $VHD = New-VHD –Path “$Builddir\$Nodename\$Nodename.vhdx” –ParentPath “$MasterVHD” 
 if (!$VHD)
@@ -31,10 +70,10 @@ if (!$VHD)
     Write-Warning "Error creating VHD"
     exit
     }
-$CloneVM = New-VM -Name $Nodename -Path "$Builddir" -Memory 512MB  -VHDPath "$Builddir\$Nodename\$Nodename.vhdx” -SwitchName $HVSwitch -Generation 2
-$CloneVM | Set-VMMemory -DynamicMemoryEnabled $true -MinimumBytes 128MB -StartupBytes 2GB -MaximumBytes 2GB -Priority 80 -Buffer 25
+$CloneVM = New-VM -Name $Nodename -Path "$Builddir" -Memory "$memsizeMB"  -VHDPath "$Builddir\$Nodename\$Nodename.vhdx” -SwitchName $HVSwitch -Generation 2
+$CloneVM | Set-VMMemory -DynamicMemoryEnabled $true -MinimumBytes 1024MB -StartupBytes 2GB -MaximumBytes 2GB -Priority 80 -Buffer 25
 $CloneVM | Add-VMDvdDrive -Path "$Builddir\$Nodename\build.iso"
-$CloneVM | Set-VMProcessor -Count 2
+$CloneVM | Set-VMProcessor -Count $numvcpus
 $CloneVM | Get-VMHardDiskDrive | Set-VMHardDiskDrive -MaximumIOPS 2000
 $CloneVM | Set-VM –AutomaticStartAction Start
 if ($vlanid)

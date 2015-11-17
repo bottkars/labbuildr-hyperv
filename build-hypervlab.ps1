@@ -1352,8 +1352,8 @@ $NodeScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
 $NodeScriptDir\powerconf.ps1 -Scriptdir $GuestScriptdir
 $NodeScriptDir\set-uac.ps1 -Scriptdir $GuestScriptdir
 $NodeScriptDir\set-winrm.ps1 -Scriptdir $GuestScriptdir
-restart-computer -force
 New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name '99-$next_phase' -Value '$PSHOME\powershell.exe -Command `". $GuestScriptdir\scripts\run-$next_phase.ps1`"'
+restart-computer -force
 "
 Write-Verbose $Content
 Set-Content "$Isodir\Scripts\run-$Current_phase.ps1" -Value $Content -Force
@@ -1388,11 +1388,11 @@ Set-Content "$Isodir\Scripts\run-$Current_phase.ps1" -Value $Content -Force
             }
         If ($vlanID)
             {
-            Invoke-Expression  "$Builddir\clone-node.ps1 -MasterVHD $MasterVHDX -Nodename $NodeName -HVSwitch $HVSwitch -vlanid $vlanID $CommonParameter"
+            Invoke-Expression  "$Builddir\clone-node.ps1 -MasterVHD $MasterVHDX -Nodename $NodeName -Size L -HVSwitch $HVSwitch -vlanid $vlanID $CommonParameter"
             }
         else
             {
-            Invoke-Expression  "$Builddir\clone-node.ps1 -MasterVHD $MasterVHDX -Nodename $NodeName -HVSwitch $HVSwitch $CommonParameter"
+            Invoke-Expression  "$Builddir\clone-node.ps1 -MasterVHD $MasterVHDX -Nodename $NodeName -Size L -HVSwitch $HVSwitch $CommonParameter"
             }
 
 ####### wait progress
