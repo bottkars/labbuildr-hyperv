@@ -537,7 +537,7 @@ function invoke-postsection
     $Credential = New-Object –TypeName System.Management.Automation.PSCredential –ArgumentList "$BuildDomain\$Adminuser", $SecurePassword
     do {sleep 1} until (Test-WSMan -ComputerName $NodeIP -Credential $Credential -Verbose -Authentication Default)
     Invoke-Command -ComputerName $NodeIP -Credential $Credential -ScriptBlock  {
-        Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Force
+        Set-ExecutionPolicy -ExecutionPolicy Bypass -Force
         $HKitem = New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name "$using:task" -Value "$PSHOME\powershell.exe -Command `". $Using:NodeScriptDir\set-vmguesttask.ps1 -Task $task -Status finished`""
         ."$Using:NodeScriptDir\powerconf.ps1" -Scriptdir $Using:GuestScriptdir
         ."$Using:NodeScriptDir\set-uac.ps1" -Scriptdir $Using:GuestScriptdir
@@ -1325,7 +1325,7 @@ Set-Content "$Isodir\Scripts\$Current_phase.ps1" -Value $Content -Force
 $NodeScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status started
 $NodeScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
 New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name '99-$next_phase' -Value '$PSHOME\powershell.exe -Command `". $GuestScriptdir\scripts\run-$next_phase.ps1`"'
-Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Force
+Set-ExecutionPolicy -ExecutionPolicy bypass -Force
 $NodeScriptDir\set-vmguestshare.ps1 -user $Labbuildr_share_User -password $Labbuildr_share_password
 $ScenarioScriptdir\finish-domain.ps1 -domain $BuildDomain -domainsuffix $domainsuffix
 "
@@ -1346,7 +1346,7 @@ Set-Content "$Isodir\Scripts\run-$Current_phase.ps1" -Value $Content -Force
 $NodeScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status started
 New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name '99-$next_phase' -Value '$PSHOME\powershell.exe -Command `". $GuestScriptdir\scripts\run-$next_phase.ps1`"'
 $NodeScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
-Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Force
+Set-ExecutionPolicy -ExecutionPolicy bypass -Force
 $ScenarioScriptdir\dns.ps1 -IPv4subnet $IPv4Subnet -IPv4Prefixlength $IPV4PrefixLength -IPv6PrefixLength $IPv6PrefixLength -AddressFamily $AddressFamily  -IPV6Prefix $IPV6Prefix
 $ScenarioScriptdir\add-serviceuser.ps1
 $ScenarioScriptdir\pwpolicy.ps1 
