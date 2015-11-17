@@ -596,6 +596,7 @@ function check-task
             Sleep $Sleep
             }
         until ((get-vmguesttask -Task $task -Node $nodename) -match "finished")
+        Write-Host
 
 }
 
