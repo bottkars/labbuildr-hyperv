@@ -1646,7 +1646,7 @@ $NodeScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
 New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name '99-$next_phase' -Value '$PSHOME\powershell.exe -Command `". $GuestScriptdir\scripts\run-$next_phase.ps1`"'
 Set-ExecutionPolicy -ExecutionPolicy bypass -Force
 $NodeScriptDir\set-vmguestshare.ps1 -user $Labbuildr_share_User -password $Labbuildr_share_password
-$ScenarioScriptdir\addtodomain.ps1 -Domain $BuildDomain -domainsuffix $domainsuffix -subnet $IPv4subnet -IPV6Subnet $IPv6Prefix -AddressFamily $AddressFamily
+$ScenarioScriptdir\add-todomain.ps1 -Domain $BuildDomain -domainsuffix $domainsuffix -subnet $IPv4subnet -IPV6Subnet $IPv6Prefix -AddressFamily $AddressFamily
 "
         Write-Verbose $Content
         Write-Verbose ""
@@ -1661,9 +1661,6 @@ $ScenarioScriptdir\addtodomain.ps1 -Domain $BuildDomain -domainsuffix $domainsuf
 
 ####### Iso Creation        
         $Isocreatio = make-iso -Nodename $NodeName -Builddir $Builddir -isodir $Isodir
-
-
-
 ####### clone creation
         if ($PSCmdlet.MyInvocation.BoundParameters["verbose"].IsPresent)
             {
