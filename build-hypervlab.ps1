@@ -1599,7 +1599,7 @@ $NodeScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status finished
 
         
 ####### Iso Creation        
-        $Isocreatio = make-iso -Nodename $NodeName -Builddir $Builddir -isodir $Isodir
+        make-iso -Nodename $NodeName -Builddir $Builddir -isodir $Isodir
 
 
 
