@@ -1425,7 +1425,7 @@ check-task -task "start-customize" -nodename $NodeName -sleep $Sleep
 foreach ($n in 2..5)
     {
 
-check-task -task "phase$n" -nodename $NodeName -sleep 2
+check-task -task "phase$n" -nodename $NodeName -sleep $Sleep 
 
 
     }
