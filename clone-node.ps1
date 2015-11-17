@@ -41,16 +41,16 @@ $max_memsize = "768MB"
 $numvcpus = "1"
 }
 "M"{
-$start_memsize = "1GB"
-$min_memsize = "512MB"
-$max_memsize = "1GB"
+[int64]$start_memsize = "1GB"
+[int64]$min_memsize = "512MB"
+[int64]$max_memsize = "1GB"
 
 $numvcpus = "1"
 }
 "L"{
-$start_memsize = "2GB"
-$min_memsize = "1GB"
-$max_memsize = "2GB"
+[int64]$start_memsize = "2GB"
+[int64]$min_memsize = "1GB"
+[int64]$max_memsize = "2GB"
 
 $numvcpus = "2"
 }
