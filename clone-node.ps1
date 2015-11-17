@@ -28,35 +28,58 @@ $Sourcedir
 switch ($Size)
 { 
 "XS"{
-$memsize = "512"
+$start_memsize = "512MB"
+$min_memsize = "512MB"
+$max_memsize = "512MB"
 $numvcpus = "1"
 }
 "S"{
-$memsize = "768"
+$start_memsize = "768MB"
+$min_memsize = "512MB"
+$max_memsize = "768MB"
+
 $numvcpus = "1"
 }
 "M"{
-$memsize = "1024"
+$start_memsize = "1GB"
+$min_memsize = "512MB"
+$max_memsize = "1GB"
+
 $numvcpus = "1"
 }
 "L"{
-$memsize = "2048"
+$start_memsize = "2GB"
+$min_memsize = "1GB"
+$max_memsize = "2GB"
+
 $numvcpus = "2"
 }
 "XL"{
-$memsize = "4096"
+$start_memsize = "4GB"
+$min_memsize = "2GB"
+$max_memsize = "4GB"
+
 $numvcpus = "2"
 }
 "TXL"{
-$memsize = "6144"
+$start_memsize = "6GB"
+$min_memsize = "4GB"
+$max_memsize = "6GB"
+
 $numvcpus = "2"
 }
 "XXL"{
-$memsize = "8192"
+$start_memsize = "8GB"
+$min_memsize = "4GB"
+$max_memsize = "8GB"
+
 $numvcpus = "4"
 }
 "XXXL"{
-$memsize = "16384"
+$start_memsize = "8GB"
+$min_memsize = "4GB"
+$max_memsize = "16GB"
+
 $numvcpus = "4"
 }
 }
@@ -70,10 +93,10 @@ if (!$VHD)
     Write-Warning "Error creating VHD"
     exit
     }
-$CloneVM = New-VM -Name $Nodename -Path "$Builddir" -Memory "$memsizeMB"  -VHDPath "$Builddir\$Nodename\$Nodename.vhdx” -SwitchName $HVSwitch -Generation 2
-$CloneVM | Set-VMMemory -DynamicMemoryEnabled $true -MinimumBytes 1024MB -StartupBytes 2GB -MaximumBytes 2GB -Priority 80 -Buffer 25
+$CloneVM = New-VM -Name $Nodename -Path "$Builddir" -Memory $start_memsize  -VHDPath "$Builddir\$Nodename\$Nodename.vhdx” -SwitchName $HVSwitch -Generation 2
+$CloneVM | Set-VMMemory -DynamicMemoryEnabled $true -MinimumBytes $min_memsize -StartupBytes $start_memsize -MaximumBytes $max_memsize -Priority 80 -Buffer 25
 $CloneVM | Add-VMDvdDrive -Path "$Builddir\$Nodename\build.iso"
-$CloneVM | Set-VMProcessor -Count $numvcpus
+$CloneVM | Set-VMProcessor -Count $N
 $CloneVM | Get-VMHardDiskDrive | Set-VMHardDiskDrive -MaximumIOPS 2000
 $CloneVM | Set-VM –AutomaticStartAction Start
 if ($vlanid)
