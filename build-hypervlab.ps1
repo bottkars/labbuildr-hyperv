@@ -1708,6 +1708,36 @@ $ScenarioScriptdir\addtodomain.ps1 -Domain $BuildDomain -domainsuffix $domainsuf
             Write-verbose "Now Pausing"
             pause
             }
+
+
+####### Iso Creation        
+        $Isocreatio = make-iso -Nodename $NodeName -Builddir $Builddir -isodir $Isodir
+
+
+
+####### clone creation
+        if ($PSCmdlet.MyInvocation.BoundParameters["verbose"].IsPresent)
+            {
+            Write-Verbose "Press any Key to continue to Cloning"
+            pause
+            }
+        If ($vlanID)
+            {
+            Invoke-Expression  "$Builddir\clone-node.ps1 -MasterVHD $MasterVHDX -Nodename $NodeName -Size L -HVSwitch $HVSwitch -vlanid $vlanID $CommonParameter"
+            }
+        else
+            {
+            Invoke-Expression  "$Builddir\clone-node.ps1 -MasterVHD $MasterVHDX -Nodename $NodeName -Size L -HVSwitch $HVSwitch $CommonParameter"
+            }
+
+####### wait progress
+        check-task -task "start-customize" -nodename $NodeName -sleep $Sleep
+        foreach ($n in 2..2)
+            {
+
+            check-task -task "phase$n" -nodename $NodeName -sleep $Sleep 
+
+            }
 			<# Clone Base Machine
 			status $Commentline
 			status "Creating Blank Node Host $Nodename with IP $Nodeip"
