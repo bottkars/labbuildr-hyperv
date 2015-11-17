@@ -1734,7 +1734,7 @@ $NodeScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
 
 ####### wait progress
         check-task -task "start-customize" -nodename $NodeName -sleep $Sleep
-        foreach ($n in 2..5)
+        foreach ($n in 2..4)
             {
 
             check-task -task "phase$n" -nodename $NodeName -sleep $Sleep 
