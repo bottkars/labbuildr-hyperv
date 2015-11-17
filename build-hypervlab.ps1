@@ -1400,10 +1400,10 @@ Set-Content "$Isodir\Scripts\run-$Current_phase.ps1" -Value $Content -Force
         $Credential = New-Object –TypeName System.Management.Automation.PSCredential –ArgumentList $Adminuser, $SecurePassword
 
 check-task -task "start-customize" -nodename $NodeName -sleep $Sleep
-foreach ($n in 2..4)
+foreach ($n in 2..5)
     {
 
-check-task -task "$phase$n" -nodename $NodeName -sleep $Sleep
+check-task -task "phase$n" -nodename $NodeName -sleep $Sleep
 
 
     }
