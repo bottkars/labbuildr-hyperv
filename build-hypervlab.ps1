@@ -1296,7 +1296,11 @@ switch ($PsCmdlet.ParameterSetName)
         $Current_phase = "start-customize"
         $next_phase = "phase2"
         $Content = @()
-        $Content = "$NodeScriptDir\set-vmguesttask.ps1 -Task $Current_phase -Status started
+        $Content = "###
+`$ScriptName = `$MyInvocation.MyCommand.Name
+`$Host.UI.RawUI.WindowTitle = `$ScriptName
+`$Logfile = New-Item -ItemType file `"c:\scripts\`$ScriptName.log`"
+$NodeScriptDir\set-vmguesttask.ps1 -Task $Current_phase -Status started
 #New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name '1-$Current_phase' -Value '$PSHOME\powershell.exe -Command `". $NodeScriptDir\set-vmguesttask.ps1 -Task $Current_phase -Status finished`"'
 # New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name '2-Share' -Value '$PSHOME\powershell.exe -Command `". $NodeScriptDir\set-vmguestshare.ps1 -user $Labbuildr_share_User -password $Labbuildr_share_password`"'
 New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name '99-$next_phase' -Value '$PSHOME\powershell.exe -Command `". $GuestScriptdir\scripts\run-$next_phase.ps1`"'
@@ -1312,7 +1316,11 @@ Set-Content "$Isodir\Scripts\$Current_phase.ps1" -Value $Content -Force
        $current_phase = $next_phase
        $next_phase = "phase3"
        $Content = @()
-       $Content = "$NodeScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status started
+       $Content = "###
+`$ScriptName = `$MyInvocation.MyCommand.Name
+`$Host.UI.RawUI.WindowTitle = `$ScriptName
+`$Logfile = New-Item -ItemType file `"c:\scripts\`$ScriptName.log`"
+$NodeScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status started
 $NodeScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
 New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name '99-$next_phase' -Value '$PSHOME\powershell.exe -Command `". $GuestScriptdir\scripts\run-$next_phase.ps1`"'
 Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Force
@@ -1329,7 +1337,11 @@ Set-Content "$Isodir\Scripts\run-$Current_phase.ps1" -Value $Content -Force
        $current_phase = $next_phase
        $next_phase = "phase4"
        $Content = @()
-       $Content = "$NodeScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status started
+       $Content = "###
+`$ScriptName = `$MyInvocation.MyCommand.Name
+`$Host.UI.RawUI.WindowTitle = `$ScriptName
+`$Logfile = New-Item -ItemType file `"c:\scripts\`$ScriptName.log`"
+$NodeScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status started
 New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name '99-$next_phase' -Value '$PSHOME\powershell.exe -Command `". $GuestScriptdir\scripts\run-$next_phase.ps1`"'
 $NodeScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
 Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Force
@@ -1347,7 +1359,11 @@ Set-Content "$Isodir\Scripts\run-$Current_phase.ps1" -Value $Content -Force
        $current_phase = $next_phase
        $next_phase = "phase5"
        $Content = @()
-       $Content = "$NodeScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status started
+       $Content = "###
+`$ScriptName = `$MyInvocation.MyCommand.Name
+`$Host.UI.RawUI.WindowTitle = `$ScriptName
+`$Logfile = New-Item -ItemType file `"c:\scripts\`$ScriptName.log`"
+$NodeScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status started
 New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name '99-$next_phase' -Value '$PSHOME\powershell.exe -Command `". $GuestScriptdir\scripts\run-$next_phase.ps1`"'
 $NodeScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
 $NodeScriptDir\powerconf.ps1 -Scriptdir $GuestScriptdir
@@ -1364,7 +1380,11 @@ Set-Content "$Isodir\Scripts\run-$Current_phase.ps1" -Value $Content -Force
        $current_phase = $next_phase
        #$next_phase = "finished"
        $Content = @()
-       $Content = "$NodeScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status started
+       $Content = "###
+`$ScriptName = `$MyInvocation.MyCommand.Name
+`$Host.UI.RawUI.WindowTitle = `$ScriptName
+`$Logfile = New-Item -ItemType file `"c:\scripts\`$ScriptName.log`"
+$NodeScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status started
 $NodeScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
 $NodeScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status finished
 #New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name '99-$next_phase' -Value '$PSHOME\powershell.exe -Command `". $Isodir\scripts\run-$next_phase.ps1`"'
