@@ -1299,6 +1299,12 @@ switch ($PsCmdlet.ParameterSetName)
         $next_phase = "phase2"
         $Content = @()
         $Content = "###
+`$logpath = `"c:\Scripts`"
+if (!(Test-Path `$logpath))
+    {
+    New-Item -ItemType Directory -Path `$logpath -Force
+    }
+
 `$ScriptName = `$MyInvocation.MyCommand.Name
 `$Host.UI.RawUI.WindowTitle = `$ScriptName
 `$Logfile = New-Item -ItemType file `"c:\scripts\`$ScriptName.log`"
