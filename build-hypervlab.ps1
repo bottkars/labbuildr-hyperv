@@ -1330,13 +1330,13 @@ Set-Content "$Isodir\Scripts\run-$Current_phase.ps1" -Value $Content -Force
        $next_phase = "phase4"
        $Content = @()
        $Content = "$NodeScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status started
-$NodeScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
 New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name '99-$next_phase' -Value '$PSHOME\powershell.exe -Command `". $GuestScriptdir\scripts\run-$next_phase.ps1`"'
+$NodeScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
 Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Force
 $ScenarioScriptdir\dns.ps1 -IPv4subnet $IPv4Subnet -IPv4Prefixlength $IPV4PrefixLength -IPv6PrefixLength $IPv6PrefixLength -AddressFamily $AddressFamily  -IPV6Prefix $IPV6Prefix
 $ScenarioScriptdir\add-serviceuser.ps1
 $ScenarioScriptdir\pwpolicy.ps1 
-$NodeScriptDir\set-winrm.ps1 -Scriptdir $GuestScriptdir
+#$NodeScriptDir\set-winrm.ps1 -Scriptdir $GuestScriptdir
 restart-computer -force
 "
 Write-Verbose $Content
@@ -1348,11 +1348,11 @@ Set-Content "$Isodir\Scripts\run-$Current_phase.ps1" -Value $Content -Force
        $next_phase = "phase5"
        $Content = @()
        $Content = "$NodeScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status started
+New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name '99-$next_phase' -Value '$PSHOME\powershell.exe -Command `". $GuestScriptdir\scripts\run-$next_phase.ps1`"'
 $NodeScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
 $NodeScriptDir\powerconf.ps1 -Scriptdir $GuestScriptdir
 $NodeScriptDir\set-uac.ps1 -Scriptdir $GuestScriptdir
 $NodeScriptDir\set-winrm.ps1 -Scriptdir $GuestScriptdir
-New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name '99-$next_phase' -Value '$PSHOME\powershell.exe -Command `". $GuestScriptdir\scripts\run-$next_phase.ps1`"'
 restart-computer -force
 "
 Write-Verbose $Content
@@ -1371,7 +1371,7 @@ $NodeScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status finished
 "
 Write-Verbose $Content
 Set-Content "$Isodir\Scripts\run-$Current_phase.ps1" -Value $Content -Force
-## end Phase4  
+## end Phase5  
 
 
         
@@ -1407,13 +1407,170 @@ check-task -task "phase$n" -nodename $NodeName -sleep $Sleep
 
 
     }
-        }
-        
-     "E16"
+        }#end dconly
+
+
+
+<#
+   	"E16"{
+        Write-Verbose "Starting $EX_Version $e16_cu Setup"
+        # we need ipv4
+        if ($AddressFamily -notmatch 'ipv4')
+            { 
+            $EXAddressFamiliy = 'IPv4IPv6'
+            }
+        else
         {
-        $EXnode1 = "HV01"
+        $EXAddressFamiliy = $AddressFamily
         }
+        if ($DAG.IsPresent)
+            {
+            Write-Warning "Running e16 Avalanche Install"
+
+            if ($DAGNOIP.IsPresent)
+			    {
+				$DAGIP = ([System.Net.IPAddress])::None
+			    }
+			else
+                {
+                $DAGIP = "$IPv4subnet.110"
+                }
+        }
+                $DCName =  $BuildDomain+"DC"
+
+		foreach ($EXNODE in ($EXStartNode..($EXNodes+$EXStartNode-1)))
+            {
+			###################################################
+			# Setup e16 Node
+			# Init
+			$Nodeip = "$IPv4Subnet.12$EXNODE"
+			$Nodename = "$EX_Version"+"N"+"$EXNODE"
+            $NodePrefix = $EX_Version
+			$ScenarioScriptdir = "$GuestScriptdir\$NodePrefix"
+		    $SourceScriptDir = "$Builddir\$Script_dir\$EX_Version\"
+		    # $Exprereqdir = "$Sourcedir\EXPREREQ\"
+            $AddonFeatures = "RSAT-ADDS, RSAT-ADDS-TOOLS, AS-HTTP-Activation, NET-Framework-45-Features"
+            # $AddonFeatures = "$AddonFeatures, RSAT-DNS-SERVER, Desktop-Experience, RPC-over-HTTP-proxy, RSAT-Clustering, RSAT-Clustering-CmdInterface, Web-Mgmt-Console, WAS-Process-Model, Web-Asp-Net45, Web-Basic-Auth, Web-Client-Auth, Web-Digest-Auth, Web-Dir-Browsing, Web-Dyn-Compression, Web-Http-Errors, Web-Http-Logging, Web-Http-Redirect, Web-Http-Tracing, Web-ISAPI-Ext, Web-ISAPI-Filter, Web-Lgcy-Mgmt-Console, Web-Metabase, Web-Mgmt-Console, Web-Mgmt-Service, Web-Net-Ext45, Web-Request-Monitor, Web-Server, Web-Stat-Compression, Web-Static-Content, Web-Windows-Auth, Web-WMI, Windows-Identity-Foundation" 
+            $AddonFeatures = "$AddonFeatures, AS-HTTP-Activation, Desktop-Experience, NET-Framework-45-Features, RPC-over-HTTP-proxy, RSAT-Clustering, RSAT-Clustering-CmdInterface, RSAT-Clustering-Mgmt, RSAT-Clustering-PowerShell, Web-Mgmt-Console, WAS-Process-Model, Web-Asp-Net45, Web-Basic-Auth, Web-Client-Auth, Web-Digest-Auth, Web-Dir-Browsing, Web-Dyn-Compression, Web-Http-Errors, Web-Http-Logging, Web-Http-Redirect, Web-Http-Tracing, Web-ISAPI-Ext, Web-ISAPI-Filter, Web-Lgcy-Mgmt-Console, Web-Metabase, Web-Mgmt-Console, Web-Mgmt-Service, Web-Net-Ext45, Web-Request-Monitor, Web-Server, Web-Stat-Compression, Web-Static-Content, Web-Windows-Auth, Web-WMI, Windows-Identity-Foundation"
+
+
+			###################################################
+	    	
+            Write-Verbose $IPv4Subnet
+            Write-Verbose "IPv4PrefixLength = $IPv4PrefixLength"
+            write-verbose $Nodename
+            write-verbose $Nodeip
+            Write-Verbose "IPv6Prefix = $IPV6Prefix"
+            Write-Verbose "IPv6PrefixLength = $IPv6PrefixLength"
+            Write-Verbose "Addressfamily = $AddressFamily"
+            Write-Verbose "EXAddressFamiliy = $EXAddressFamiliy"
+            if ($PSCmdlet.MyInvocation.BoundParameters["verbose"].IsPresent)
+                { 
+                Write-verbose "Now Pausing"
+                pause
+                }
+            $Exchangesize = "XXL"
+		    # test-dcrunning
+		    
+
+
+
+
+
+
+
+		    ###################################################
+		    If ($CloneOK)
+            {
+            $EXnew = $True
+			write-verbose "Copy Configuration files, please be patient"
+			copy-tovmx -Sourcedir $NodeScriptDir
+			copy-tovmx -Sourcedir $SourceScriptDir
+			# copy-tovmx -Sourcedir $Exprereqdir
+			write-verbose "Waiting System Ready"
+			test-user -whois Administrator
+			write-Verbose "Starting Customization"
+			domainjoin -Nodename $Nodename -Nodeip $Nodeip -BuildDomain $BuildDomain -AddressFamily $EXAddressFamiliy -AddOnfeatures $AddonFeatures
+			write-verbose "Setup Database Drives"
+			invoke-vmxpowershell -config $CloneVMX -Guestuser $Adminuser -Guestpassword $Adminpassword -ScriptPath $Targetscriptdir -Script prepare-disks.ps1
+			write-verbose "Setup e16 Prereqs"
+			invoke-vmxpowershell -config $CloneVMX -Guestuser $Adminuser -Guestpassword $Adminpassword -ScriptPath $Targetscriptdir -Script install-exchangeprereqs.ps1 -interactive
+            checkpoint-progress -step exprereq -reboot -Guestuser $Adminuser -Guestpassword $Adminpassword
+			write-verbose "Setting Power Scheme"
+			invoke-vmxpowershell -config $CloneVMX -Guestuser $Adminuser -Guestpassword $Adminpassword -ScriptPath $Targetscriptdir -Script powerconf.ps1 -interactive
+			write-verbose "Installing e16, this may take up to 60 Minutes ...."
+			invoke-vmxpowershell -config $CloneVMX -Guestuser $Adminuser -Guestpassword $Adminpassword -ScriptPath $Targetscriptdir -Script install-exchange.ps1 -interactive -nowait -Parameter "$CommonParameter -ex_cu $e16_cu"
+            }
+            }
+        if ($EXnew)
+        {
+        foreach ($EXNODE in ($EXStartNode..($EXNodes+$EXStartNode-1)))
+            {
+            $Nodename = "$EX_Version"+"N"+"$EXNODE"
+            $CloneVMX = (get-vmx $Nodename).config
+            # 
+			test-user -whois Administrator
+            status "Waiting for Pass 4 (e16 Installed) for $Nodename"
+            #$EXSetupStart = Get-Date
+			    While ($FileOK = (&$vmrun -gu $BuildDomain\Administrator -gp Password123! fileExistsInGuest $CloneVMX c:\$Script_dir\exchange.pass) -ne "The file exists.")
+			    {
+				    sleep $Sleep
+				    #runtime $EXSetupStart "Exchange"
+			    } #end while
+			    Write-Host
+                    do {
+                        $ToolState = Get-VMXToolsState -config $CloneVMX
+                         Write-Verbose $ToolState.State
+                        }
+                    until ($ToolState.state -match "running")
+            write-Verbose "Performing e16 Post Install Tasks:"
+    		invoke-vmxpowershell -config $CloneVMX -Guestuser $Adminuser -Guestpassword $Adminpassword -ScriptPath $Targetscriptdir -Script configure-exchange.ps1 -interactive
+     
     
+    #  -nowait
+            if ($EXNode -eq ($EXNodes+$EXStartNode-1)) #are we last sever in Setup ?!
+                {
+                if ($DAG.IsPresent) 
+                    {
+				    write-verbose "Creating DAG"
+				    invoke-vmxpowershell -config $CloneVMX -Guestuser $Adminuser -Guestpassword $Adminpassword -ScriptPath $Targetscriptdir -activeWindow -interactive -Script create-dag.ps1 -Parameter "-DAGIP $DAGIP -AddressFamily $EXAddressFamiliy -EX_Version $EX_Version $CommonParameter"
+				    } # end if $DAG
+                if (!($nouser.ispresent))
+                    {
+                    write-verbose "Creating Accounts and Mailboxes:"
+	                do
+				        {
+					    ($cmdresult = &$vmrun -gu "$BuildDomain\Administrator" -gp Password123! runPrograminGuest  $CloneVMX -activeWindow -interactive c:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe ". 'C:\Program Files\Microsoft\Exchange Server\V15\bin\RemoteExchange.ps1'; Connect-ExchangeServer -auto; C:\$Script_dir\User.ps1 -subnet $IPv4Subnet -AddressFamily $AddressFamily -IPV6Prefix $IPV6Prefix $CommonParameter") 
+					    if ($BugTest) { debug $Cmdresult }
+				        }
+				    until ($VMrunErrorCondition -notcontains $cmdresult)
+                    } #end creatuser
+            }# end if last server
+       }      
+		
+        foreach ($EXNODE in ($EXStartNode..($EXNodes+$EXStartNode-1)))
+            {
+            $Nodename = "$EX_Version"+"N"+"$EXNODE"
+            $CloneVMX = (get-vmx $Nodename).config				
+			write-verbose "Setting Local Security Policies"
+			invoke-vmxpowershell -config $CloneVMX -Guestuser $Adminuser -Guestpassword $Adminpassword -ScriptPath $Targetscriptdir -Script create-security.ps1 -interactive
+			########### Entering networker Section ##############
+			if ($NMM.IsPresent)
+			{
+				write-verbose "Install NWClient"
+				invoke-vmxpowershell -config $CloneVMX -Guestuser $Adminuser -Guestpassword $Adminpassword -ScriptPath $Targetscriptdir -Script install-nwclient.ps1 -interactive -Parameter $nw_ver
+				write-verbose "Install NMM"
+				invoke-vmxpowershell -config $CloneVMX -Guestuser $Adminuser -Guestpassword $Adminpassword -ScriptPath $Targetscriptdir -Script install-nmm.ps1 -interactive -Parameter $nmm_ver
+			    write-verbose "Performin NMM Post Install Tasks"
+			    invoke-vmxpowershell -config $CloneVMX -Guestuser $Adminuser -Guestpassword $Adminpassword -ScriptPath $Targetscriptdir -Script finish-nmm.ps1 -interactive
+            }# end nmm
+			########### leaving NMM Section ###################
+		    invoke-postsection
+    }#end foreach exnode
+        }
+} #End Switchblock Exchange
+
+#>    
     
     
 }
