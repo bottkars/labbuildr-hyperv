@@ -698,6 +698,10 @@ param ([string]$Nodename,
         }
 
         Write-Verbose "Building iso from $isodir"
+    if (!(test-path "$Builddir\$Nodename\"))
+        {
+        New-Item -ItemType Directory "$Builddir\$Nodename\"
+        }
     .$Builddir\bin\mkisofs.exe -J -V build -o "$Builddir\$Nodename\build.iso"  "$Isodir"  2>&1| Out-Null
     $LASTEXITCODE
     switch ($LASTEXITCODE)
