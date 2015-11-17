@@ -32,7 +32,7 @@ if (!$VHD)
     exit
     }
 $CloneVM = New-VM -Name $Nodename -Path "$Builddir" -Memory 512MB  -VHDPath "$Builddir\$Nodename\$Nodename.vhdx” -SwitchName $HVSwitch -Generation 2
-$CloneVM | Set-VMMemory -DynamicMemoryEnabled $true -MinimumBytes 128MB -StartupBytes 1024MB -MaximumBytes 2GB -Priority 80 -Buffer 25
+$CloneVM | Set-VMMemory -DynamicMemoryEnabled $true -MinimumBytes 128MB -StartupBytes 2GB -MaximumBytes 2GB -Priority 80 -Buffer 25
 $CloneVM | Add-VMDvdDrive -Path "$Builddir\$Nodename\build.iso"
 $CloneVM | Set-VMProcessor -Count 2
 $CloneVM | Get-VMHardDiskDrive | Set-VMHardDiskDrive -MaximumIOPS 2000
