@@ -1679,7 +1679,7 @@ $ScenarioScriptdir\configurenode.ps1 -nodeip $Nodeip -IPv4subnet $IPv4subnet -no
 # $ScenarioScriptdir\new-dc.ps1 -dcname $DCName -Domain $BuildDomain -IPv4subnet $IPv4subnet -IPv4Prefixlength $IPv4PrefixLength -IPv6PrefixLength $IPv6PrefixLength -IPv6Prefix $IPv6Prefix -AddressFamily $AddressFamily #-setwsman $CommonParameter
 
         Write-Verbose $Content
-        Write-Verbose
+        Write-Verbose ""
         Set-Content "$Isodir\Scripts\$Current_phase.ps1" -Value $Content -Force
         
 
@@ -1700,7 +1700,7 @@ $NodeScriptDir\set-vmguestshare.ps1 -user $Labbuildr_share_User -password $Labbu
 $ScenarioScriptdir\addtodomain.ps1 -Domain $BuildDomain -domainsuffix $domainsuffix -subnet $IPv4subnet -IPV6Subnet $IPv6Prefix -AddressFamily $AddressFamily
 "
         Write-Verbose $Content
-        Write-Verbose
+        Write-Verbose ""
         Set-Content "$Isodir\Scripts\run-$Current_phase.ps1" -Value $Content -Force
 ## end Phase2 
        if ($PSCmdlet.MyInvocation.BoundParameters["verbose"].IsPresent)
