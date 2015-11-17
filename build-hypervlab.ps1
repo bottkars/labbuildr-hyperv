@@ -1304,7 +1304,7 @@ switch ($PsCmdlet.ParameterSetName)
 `$Logfile = New-Item -ItemType file `"c:\scripts\`$ScriptName.log`"
 $NodeScriptDir\set-vmguesttask.ps1 -Task $Current_phase -Status started
 #New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name '1-$Current_phase' -Value '$PSHOME\powershell.exe -Command `". $NodeScriptDir\set-vmguesttask.ps1 -Task $Current_phase -Status finished`"'
-# New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name '2-Share' -Value '$PSHOME\powershell.exe -Command `". $NodeScriptDir\set-vmguestshare.ps1 -user $Labbuildr_share_User -password $Labbuildr_share_password`"'
+#New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name '2-Share' -Value '$PSHOME\powershell.exe -Command `". $NodeScriptDir\set-vmguestshare.ps1 -user $Labbuildr_share_User -password $Labbuildr_share_password`"'
 New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name '99-$next_phase' -Value '$PSHOME\powershell.exe -Command `". $GuestScriptdir\scripts\run-$next_phase.ps1`"'
 $ScenarioScriptdir\new-dc.ps1 -dcname $DCName -Domain $BuildDomain -IPv4subnet $IPv4subnet -IPv4Prefixlength $IPv4PrefixLength -IPv6PrefixLength $IPv6PrefixLength -IPv6Prefix $IPv6Prefix -AddressFamily $AddressFamily
 "
@@ -1386,8 +1386,9 @@ Set-Content "$Isodir\Scripts\run-$Current_phase.ps1" -Value $Content -Force
 `$ScriptName = `$MyInvocation.MyCommand.Name
 `$Host.UI.RawUI.WindowTitle = `$ScriptName
 `$Logfile = New-Item -ItemType file `"c:\scripts\`$ScriptName.log`"
-$NodeScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status started
 $NodeScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
+$NodeScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status started
+$NodeScriptDir\set-vmguestshare.ps1 -user $Labbuildr_share_User -password $Labbuildr_share_password
 $NodeScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status finished
 #New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name '99-$next_phase' -Value '$PSHOME\powershell.exe -Command `". $Isodir\scripts\run-$next_phase.ps1`"'
 "
