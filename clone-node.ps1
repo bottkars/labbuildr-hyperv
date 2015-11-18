@@ -104,7 +104,7 @@ if ($AddDisks)
         {
         $VHD = New-VHD -Dynamic -SizeBytes $Disksize -Path "$Builddir\$Nodename\Disk_$Disk.vhdx"
         # $VHD | Set-VMHardDiskDrive -MaximumIOPS 200   -     
-        $CloneVM | Add-VMHardDiskDrive -path $VHD.path -ControllerType SCSI -ControllerNumber 0  -MaximumIOPS 200
+        $CloneVM | Add-VMHardDiskDrive -path $VHD.path -ControllerType SCSI -ControllerNumber 0  #-MaximumIOPS 200
         }
     }
 $CloneVM | Set-VM –AutomaticStartAction Start
