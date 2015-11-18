@@ -1248,6 +1248,28 @@ if ($defaults.IsPresent)
     $HVSwitch = $SwitchDefault.$($Vmnet)
     }
 
+
+try
+   {
+   $vmswitch = Get-VMSwitch $hvswitch
+   }
+catch
+    {
+    Write-Warning "No vmSwitch with name $HVSwitch found, please check setup !"
+    break
+    }
+
+try
+    {
+    $HostIP_Address = Get-NetIPAddress -InterfaceAlias "vEthernet ($HVSwitch)" -AddressFamily IPv4
+    $HostIP = $HostIP_Address.IPAddress
+    }
+catch
+    {
+    Write-Warning "Could not detect Host IP Address configured for VMSwitch $HVSwitch"
+    }
+
+Write-Verbose " We have Switch $HVSwitch and Host IP $HostIP"
 if (!$MySubnet) {$MySubnet = "192.168.2.0"}
 $IPv4Subnet = convert-iptosubnet $MySubnet
 if (!$BuildDomain) { $BuildDomain = $Default_BuildDomain }
@@ -1455,8 +1477,6 @@ if (!(Test-Path `$logpath))
 `$Host.UI.RawUI.WindowTitle = `$ScriptName
 `$Logfile = New-Item -ItemType file `"c:\scripts\`$ScriptName.log`"
 $NodeScriptDir\set-vmguesttask.ps1 -Task $Current_phase -Status started
-#New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name '1-$Current_phase' -Value '$PSHOME\powershell.exe -Command `". $NodeScriptDir\set-vmguesttask.ps1 -Task $Current_phase -Status finished`"'
-#New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name '2-Share' -Value '$PSHOME\powershell.exe -Command `". $NodeScriptDir\set-vmguestshare.ps1 -user $Labbuildr_share_User -password $Labbuildr_share_password`"'
 New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name '99-$next_phase' -Value '$PSHOME\powershell.exe -Command `". $GuestScriptdir\scripts\run-$next_phase.ps1`"'
 $ScenarioScriptdir\new-dc.ps1 -dcname $DCName -Domain $BuildDomain -IPv4subnet $IPv4subnet -IPv4Prefixlength $IPv4PrefixLength -IPv6PrefixLength $IPv6PrefixLength -IPv6Prefix $IPv6Prefix -AddressFamily $AddressFamily
 "
@@ -1478,7 +1498,6 @@ $NodeScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status started
 $NodeScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
 New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name '99-$next_phase' -Value '$PSHOME\powershell.exe -Command `". $GuestScriptdir\scripts\run-$next_phase.ps1`"'
 Set-ExecutionPolicy -ExecutionPolicy bypass -Force
-$NodeScriptDir\set-vmguestshare.ps1 -user $Labbuildr_share_User -password $Labbuildr_share_password
 $ScenarioScriptdir\finish-domain.ps1 -domain $BuildDomain -domainsuffix $domainsuffix
 "
 Write-Verbose $Content
@@ -1540,7 +1559,7 @@ restart-computer -force
 `$Logfile = New-Item -ItemType file `"c:\scripts\`$ScriptName.log`"
 $NodeScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
 $NodeScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status started
-$NodeScriptDir\set-vmguestshare.ps1 -user $Labbuildr_share_User -password $Labbuildr_share_password
+$NodeScriptDir\set-vmguestshare.ps1 -user $Labbuildr_share_User -password $Labbuildr_share_password -HostIP $HostIP
 $NodeScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status finished
 #New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name '99-$next_phase' -Value '$PSHOME\powershell.exe -Command `". $Isodir\scripts\run-$next_phase.ps1`"'
 "
@@ -1639,7 +1658,8 @@ check-task -task "phase$n" -nodename $NodeName -sleep $Sleep
 	    ###################################################
         $Nodeip = "$IPv4Subnet.18$Node"
         $Nodeprefix = "Node"
-		$Nodename = "GEN$NodePrefix$Node"
+        $NamePrefix = "GEN"
+		$Nodename = "$NamePrefix$NodePrefix$Node"
         $ScenarioScriptdir = "$GuestScriptdir\$NodePrefix"
         $ClusterIP = "$IPv4Subnet.180"
 	    Write-Verbose $IPv4Subnet
@@ -1692,7 +1712,6 @@ $NodeScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status started
 $NodeScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
 New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name '99-$next_phase' -Value '$PSHOME\powershell.exe -Command `". $GuestScriptdir\scripts\run-$next_phase.ps1`"'
 Set-ExecutionPolicy -ExecutionPolicy bypass -Force
-$NodeScriptDir\set-vmguestshare.ps1 -user $Labbuildr_share_User -password $Labbuildr_share_password
 $NodeScriptDir\add-todomain.ps1 -Domain $BuildDomain -domainsuffix $domainsuffix -subnet $IPv4subnet -IPV6Subnet $IPv6Prefix -AddressFamily $AddressFamily -scriptdir $GuestScriptdir
 "
         Write-Verbose $Content
@@ -1739,24 +1758,24 @@ $NodeScriptDir\set-winrm.ps1 -Scriptdir $GuestScriptdir
 `$Logfile = New-Item -ItemType file `"c:\scripts\`$ScriptName.log`"
 $NodeScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status started
 New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name '99-$next_phase' -Value '$PSHOME\powershell.exe -Command `". $GuestScriptdir\scripts\run-$next_phase.ps1`"'
-$NodeScriptDir\set-vmguestshare.ps1 -user $Labbuildr_share_User -password $Labbuildr_share_password
+$NodeScriptDir\set-vmguestshare.ps1 -user $Labbuildr_share_User -password $Labbuildr_share_password -HostIP $HostIP
 $NodeScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
 "
         if ($Node -eq $BlankNodes)
             {
             if ($Cluster.IsPresent)
                 {
-                $Content += "$NodeScriptDir\create-cluster.ps1 -Nodeprefix '$NodePrefix' -ClusterName $ClusterName -IPAddress '$ClusterIP' -IPV6Prefix $IPV6Prefix -IPv6PrefixLength $IPv6PrefixLength -AddressFamily $AddressFamily $CommonParameter -Scriptdir $GuestScriptdir 
-                "
+                $Content += "$NodeScriptDir\create-cluster.ps1 -Nodeprefix '$NamePrefix' -ClusterName $ClusterName -IPAddress '$ClusterIP' -IPV6Prefix $IPV6Prefix -IPv6PrefixLength $IPv6PrefixLength -AddressFamily $AddressFamily $CommonParameter -Scriptdir $GuestScriptdir 
+"
                 if ($SpacesDirect.IsPresent)
                     {
                     $Content += "$NodeScriptDir\new-s2dpool.ps1 -Scriptdir $GuestScriptdir 
-                    "
+"
                     }
                 }
             }
         $Content += "$NodeScriptDir\set-vmguesttask.ps1 -Task $Current_phase -Status finished
-        "
+"
         Write-Verbose $Content
         Set-Content "$Isodir\Scripts\run-$Current_phase.ps1" -Value $Content -Force
 ## end Phase4          
