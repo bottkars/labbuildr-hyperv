@@ -1583,6 +1583,25 @@ check-task -task "phase$n" -nodename $NodeName -sleep $Sleep
 
 	"Blanknodes" {
         $CloneParameter = $CommonParameter
+        if ($SpacesDirect.IsPresent )
+            {
+            If ($Master -lt "2016")
+                {
+                Write-Warning "Master 2016TP3 or Later is required for Spaces Direct"
+                exit
+                }
+            if ($Disks -lt 2)
+                {
+                $Disks = 2
+                }
+            if ($BlankNodes -lt 4)
+                {
+                $BlankNodes = 4
+                }
+            $Cluster = $true
+            $BlankHV = $true
+            }
+
         if ($Disks)
             {
 		    $cloneparameter = "$CloneParameter -AddDisks -disks $Disks"
@@ -1592,6 +1611,12 @@ check-task -task "phase$n" -nodename $NodeName -sleep $Sleep
             $CloneParameter = "$CloneParameter -vlanid $vlanID"
             }
         $AddonFeatures = "RSAT-ADDS, RSAT-ADDS-TOOLS, AS-HTTP-Activation, NET-Framework-45-Features"
+        if ($Cluster.IsPresent) 
+            {
+            $AddonFeatures = "$AddonFeatures, Failover-Clustering, RSAT-Clustering, RSAT-Clustering-AutomationServer, RSAT-Clustering-CmdInterface, WVR"
+            }
+        # if ($BlankHV.IsPresent) {$AddonFeatures = "$AddonFeatures, Hyper-V, RSAT-Hyper-V-Tools, Multipath-IO"}
+
         if ($Cluster.IsPresent) 
             {
             $AddonFeatures = "$AddonFeatures, Failover-Clustering, RSAT-Clustering, WVR"
@@ -1611,11 +1636,17 @@ check-task -task "phase$n" -nodename $NodeName -sleep $Sleep
 	    ###################################################
         $Nodeip = "$IPv4Subnet.18$Node"
         $Nodeprefix = "Node"
-		$Nodename = "Node$Node"
+		$Nodename = "GEN$NodePrefix$Node"
         $ScenarioScriptdir = "$GuestScriptdir\$NodePrefix"
-        Write-Verbose $IPv4Subnet
+        $ClusterIP = "$IPv4Subnet.180"
+	    Write-Verbose $IPv4Subnet
         write-verbose $Nodename
         write-verbose $Nodeip
+        Write-Verbose "Disks: $Disks"
+        Write-Verbose "Blanknodes: $BlankNodes"
+        Write-Verbose "Cluster: $($Cluster.IsPresent)"
+        Write-Verbose "Pre Clustername: $ClusterName"
+        Write-Verbose "Pre ClusterIP: $ClusterIP"
         Write-Verbose "Cloneparameter $CloneParameter"
         ####prepare iso
         Remove-Item -Path "$Isodir\scripts" -Force -Recurse -ErrorAction SilentlyContinue | Out-Null
@@ -1712,7 +1743,7 @@ $NodeScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
             {
             if ($Cluster.IsPresent)
                 {
-                $Content =+ "$NodeScriptDir\create-cluster.ps1 -Nodeprefix 'NODE' -IPAddress '$IPv4Subnet.180' -IPV6Prefix $IPV6Prefix -IPv6PrefixLength $IPv6PrefixLength -AddressFamily $AddressFamily -clustername $Clustername -Scriptdir $GuestScriptdir 
+                $Content += "$NodeScriptDir\create-cluster.ps1 -Parameter -Nodeprefix '$NodePrefix' -ClusterName $ClusterName -IPAddress '$IPv4Subnet.$ClusterIP' -IPV6Prefix $IPV6Prefix -IPv6PrefixLength $IPv6PrefixLength -AddressFamily $AddressFamily $CommonParameter -Scriptdir $GuestScriptdir 
                 "
                 }
             }
