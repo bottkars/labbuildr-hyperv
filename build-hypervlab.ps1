@@ -1713,7 +1713,6 @@ $NodeScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status started
 New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name '99-$next_phase' -Value '$PSHOME\powershell.exe -Command `". $GuestScriptdir\scripts\run-$next_phase.ps1`"'
 $NodeScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
 Set-ExecutionPolicy -ExecutionPolicy bypass -Force
-$NodeScriptDir\set-winrm.ps1 -Scriptdir $GuestScriptdir
 $NodeScriptDir\powerconf.ps1 -Scriptdir $GuestScriptdir
 $NodeScriptDir\set-uac.ps1 -Scriptdir $GuestScriptdir
 $NodeScriptDir\set-winrm.ps1 -Scriptdir $GuestScriptdir
