@@ -1778,7 +1778,7 @@ $NodeScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
             pause
             }
 
-        Invoke-Expression  "$Builddir\clone-node.ps1 -MasterVHD $MasterVHDX -Nodename $NodeName -Size L -HVSwitch $HVSwitch $CloneParameter"
+        Invoke-Expression  "$Builddir\clone-node.ps1 -MasterVHD $MasterVHDX -Nodename $NodeName -Size $Size -HVSwitch $HVSwitch $CloneParameter"
 
 ####### wait progress
         check-task -task "start-customize" -nodename $NodeName -sleep $Sleep
