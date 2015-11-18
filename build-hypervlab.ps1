@@ -1582,12 +1582,24 @@ check-task -task "phase$n" -nodename $NodeName -sleep $Sleep
         }#end dconly
 
 	"Blanknodes" {
+        $CloneParameter = $CommonParameter
         if ($Disks)
             {
-		    $cloneparm = " -AddDisks -disks $Disks"
+		    $cloneparameter = "$CloneParameter -AddDisks -disks $Disks"
+            }
+        If ($vlanID)
+            {
+            $CloneParameter = "$CloneParameter -vlanid $vlanID"
             }
         $AddonFeatures = "RSAT-ADDS, RSAT-ADDS-TOOLS, AS-HTTP-Activation, NET-Framework-45-Features"
-        if ($Cluster.IsPresent) {$AddonFeatures = "$AddonFeatures, Failover-Clustering, RSAT-Clustering, WVR"}
+        if ($Cluster.IsPresent) 
+            {
+            $AddonFeatures = "$AddonFeatures, Failover-Clustering, RSAT-Clustering, WVR"
+            if (!$Clustername)
+                {
+                $Clustername = "GenCluster"
+                }
+            }
 
 		foreach ($Node in ($Blankstart..$BlankNodes))
 		{
@@ -1604,6 +1616,7 @@ check-task -task "phase$n" -nodename $NodeName -sleep $Sleep
         Write-Verbose $IPv4Subnet
         write-verbose $Nodename
         write-verbose $Nodeip
+        Write-Verbose $CloneParameter
         ####prepare iso
         Remove-Item -Path "$Isodir\scripts" -Force -Recurse -ErrorAction SilentlyContinue | Out-Null
         New-Item -ItemType Directory "$Isodir\scripts" -Force | Out-Null
@@ -1700,10 +1713,12 @@ $NodeScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
             {
             if ($Cluster.IsPresent)
                 {
-                $Content += "$NodeScriptDir\-Script createcluster.ps1 -Nodeprefix 'NODE' -IPAddress '$IPv4Subnet.180' -IPV6Prefix $IPV6Prefix -IPv6PrefixLength $IPv6PrefixLength -AddressFamily $AddressFamily"
+                $Content =+ "$NodeScriptDir\create-cluster.ps1 -Nodeprefix 'NODE' -IPAddress '$IPv4Subnet.180' -IPV6Prefix $IPV6Prefix -IPv6PrefixLength $IPv6PrefixLength -AddressFamily $AddressFamily -clustername $Clustername
+                "
                 }
             }
-        $Content += "$NodeScriptDir\set-vmguesttask.ps1 -Task $Current_phase -Status finished"
+        $Content += "$NodeScriptDir\set-vmguesttask.ps1 -Task $Current_phase -Status finished
+        "
         Write-Verbose $Content
         Set-Content "$Isodir\Scripts\run-$Current_phase.ps1" -Value $Content -Force
 ## end Phase4          
@@ -1723,14 +1738,8 @@ $NodeScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
             Write-Verbose "Press any Key to continue to Cloning"
             pause
             }
-        If ($vlanID)
-            {
-            Invoke-Expression  "$Builddir\clone-node.ps1 -MasterVHD $MasterVHDX -Nodename $NodeName -Size L -HVSwitch $HVSwitch -vlanid $vlanID $CommonParameter"
-            }
-        else
-            {
-            Invoke-Expression  "$Builddir\clone-node.ps1 -MasterVHD $MasterVHDX -Nodename $NodeName -Size L -HVSwitch $HVSwitch $CommonParameter"
-            }
+
+        Invoke-Expression  "$Builddir\clone-node.ps1 -MasterVHD $MasterVHDX -Nodename $NodeName -Size L -HVSwitch $HVSwitch $CommonParameter"
 
 ####### wait progress
         check-task -task "start-customize" -nodename $NodeName -sleep $Sleep
