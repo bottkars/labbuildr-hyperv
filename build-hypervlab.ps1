@@ -1616,7 +1616,7 @@ check-task -task "phase$n" -nodename $NodeName -sleep $Sleep
         Write-Verbose $IPv4Subnet
         write-verbose $Nodename
         write-verbose $Nodeip
-        Write-Verbose $CloneParameter
+        Write-Verbose "Cloneparameter $CloneParameter"
         ####prepare iso
         Remove-Item -Path "$Isodir\scripts" -Force -Recurse -ErrorAction SilentlyContinue | Out-Null
         New-Item -ItemType Directory "$Isodir\scripts" -Force | Out-Null
