@@ -1522,7 +1522,7 @@ $ScenarioScriptdir\dns.ps1 -IPv4subnet $IPv4Subnet -IPv4Prefixlength $IPV4Prefix
 $ScenarioScriptdir\add-serviceuser.ps1
 $ScenarioScriptdir\pwpolicy.ps1 
 #$NodeScriptDir\set-winrm.ps1 -Scriptdir $GuestScriptdir
-restart-computer -force
+restart-computer
 "
 Write-Verbose $Content
 Set-Content "$Isodir\Scripts\run-$Current_phase.ps1" -Value $Content -Force
@@ -1542,7 +1542,7 @@ $NodeScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
 $NodeScriptDir\powerconf.ps1 -Scriptdir $GuestScriptdir
 $NodeScriptDir\set-uac.ps1 -Scriptdir $GuestScriptdir
 $NodeScriptDir\set-winrm.ps1 -Scriptdir $GuestScriptdir
-restart-computer -force
+restart-computer 
 "
         Write-Verbose $Content
         Set-Content "$Isodir\Scripts\run-$Current_phase.ps1" -Value $Content -Force
@@ -1742,7 +1742,7 @@ $NodeScriptDir\set-winrm.ps1 -Scriptdir $GuestScriptdir
             $Content += "$NodeScriptDir\install-nwclient.ps1 -Scriptdir $GuestScriptdir"
             }
 
-        $Content += "restart-computer -force"
+        $Content += "restart-computer"
     
         Write-Verbose $Content
         Set-Content "$Isodir\Scripts\run-$Current_phase.ps1" -Value $Content -Force
