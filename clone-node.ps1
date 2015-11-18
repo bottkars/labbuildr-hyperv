@@ -93,11 +93,20 @@ if (!$VHD)
     Write-Warning "Error creating VHD"
     exit
     }
-$CloneVM = New-VM -Name $Nodename -Path "$Builddir" -Memory $start_memsize  -VHDPath "$Builddir\$Nodename\$Nodename.vhdx” -SwitchName $HVSwitch -Generation 2
+$CloneVM = New-VM -Name $Nodename -Path "$Builddir" -Memory $start_memsize  -VHDPath $vhd.path -SwitchName $HVSwitch -Generation 2
 $CloneVM | Set-VMMemory -DynamicMemoryEnabled $true -MinimumBytes $min_memsize -StartupBytes $start_memsize -MaximumBytes $max_memsize -Priority 80 -Buffer 25
 $CloneVM | Add-VMDvdDrive -Path "$Builddir\$Nodename\build.iso"
 $CloneVM | Set-VMProcessor -Count $numvcpus
 $CloneVM | Get-VMHardDiskDrive | Set-VMHardDiskDrive -MaximumIOPS 2000
+if ($AddDisks)
+    {
+    Write-Verbose "Adding Disks"
+    foreach ($disk in (1..$Disks+1))
+        {
+        $VHD = New-VHD -Dynamic -SizeBytes $Disksize -Path "$Builddir\$Nodename\Disk$Disk.vhdx"        
+        $CloneVM | Add-VMHardDiskDrive -path $vhd.path -ControllerType SCSI -ControllerNumber 0 -DiskNumber $disk 
+        }
+    }
 $CloneVM | Set-VM –AutomaticStartAction Start
 if ($vlanid)
     {
