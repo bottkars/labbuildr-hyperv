@@ -1659,7 +1659,7 @@ $NodeScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
 New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name '99-$next_phase' -Value '$PSHOME\powershell.exe -Command `". $GuestScriptdir\scripts\run-$next_phase.ps1`"'
 Set-ExecutionPolicy -ExecutionPolicy bypass -Force
 $NodeScriptDir\set-vmguestshare.ps1 -user $Labbuildr_share_User -password $Labbuildr_share_password
-$ScenarioScriptdir\add-todomain.ps1 -Domain $BuildDomain -domainsuffix $domainsuffix -subnet $IPv4subnet -IPV6Subnet $IPv6Prefix -AddressFamily $AddressFamily
+$NodeScriptDir\add-todomain.ps1 -Domain $BuildDomain -domainsuffix $domainsuffix -subnet $IPv4subnet -IPV6Subnet $IPv6Prefix -AddressFamily $AddressFamily -scriptdir $GuestScriptdir
 "
         Write-Verbose $Content
         Write-Verbose ""
@@ -1679,7 +1679,6 @@ $NodeScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status started
 New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name '99-$next_phase' -Value '$PSHOME\powershell.exe -Command `". $GuestScriptdir\scripts\run-$next_phase.ps1`"'
 $NodeScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
 Set-ExecutionPolicy -ExecutionPolicy bypass -Force
-#NodeScriptDir\dns.ps1 -IPv4subnet $IPv4Subnet -IPv4Prefixlength $IPV4PrefixLength -IPv6PrefixLength $IPv6PrefixLength -AddressFamily $AddressFamily  -IPV6Prefix $IPV6Prefix
 $NodeScriptDir\set-winrm.ps1 -Scriptdir $GuestScriptdir
 $NodeScriptDir\powerconf.ps1 -Scriptdir $GuestScriptdir
 $NodeScriptDir\set-uac.ps1 -Scriptdir $GuestScriptdir
@@ -1688,7 +1687,7 @@ $NodeScriptDir\set-winrm.ps1 -Scriptdir $GuestScriptdir
 
         if ($nw.IsPresent)
             {
-            $Content += "$NodeScriptDir\install-nwclient.ps1"
+            $Content += "$NodeScriptDir\install-nwclient.ps1 -Scriptdir $GuestScriptdir"
             }
 
         $Content += "restart-computer -force"
@@ -1713,7 +1712,7 @@ $NodeScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
             {
             if ($Cluster.IsPresent)
                 {
-                $Content =+ "$NodeScriptDir\create-cluster.ps1 -Nodeprefix 'NODE' -IPAddress '$IPv4Subnet.180' -IPV6Prefix $IPV6Prefix -IPv6PrefixLength $IPv6PrefixLength -AddressFamily $AddressFamily -clustername $Clustername
+                $Content =+ "$NodeScriptDir\create-cluster.ps1 -Nodeprefix 'NODE' -IPAddress '$IPv4Subnet.180' -IPV6Prefix $IPV6Prefix -IPv6PrefixLength $IPv6PrefixLength -AddressFamily $AddressFamily -clustername $Clustername -Scriptdir $GuestScriptdir 
                 "
                 }
             }

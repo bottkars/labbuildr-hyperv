@@ -87,7 +87,7 @@ $numvcpus = "4"
 
 
 write-host "Creating Differencing disk from $MasterVHD in $Nodename"
-$VHD = New-VHD –Path “$Builddir\$Nodename\$Nodename.vhdx” –ParentPath “$MasterVHD” 
+$VHD = New-VHD –Path “$Builddir\$Nodename\Disk_0.vhdx” –ParentPath “$MasterVHD” 
 if (!$VHD)
     {
     Write-Warning "Error creating VHD"
@@ -97,17 +97,19 @@ $CloneVM = New-VM -Name $Nodename -Path "$Builddir" -Memory $start_memsize  -VHD
 $CloneVM | Set-VMMemory -DynamicMemoryEnabled $true -MinimumBytes $min_memsize -StartupBytes $start_memsize -MaximumBytes $max_memsize -Priority 80 -Buffer 25
 $CloneVM | Add-VMDvdDrive -Path "$Builddir\$Nodename\build.iso"
 $CloneVM | Set-VMProcessor -Count $numvcpus
-$CloneVM | Get-VMHardDiskDrive | Set-VMHardDiskDrive -MaximumIOPS 2000
 if ($AddDisks)
     {
     Write-Verbose "Adding Disks"
-    foreach ($disk in (1..$Disks+1))
+    foreach ($disk in (1..$Disks))
         {
-        $VHD = New-VHD -Dynamic -SizeBytes $Disksize -Path "$Builddir\$Nodename\Disk$Disk.vhdx"        
-        $CloneVM | Add-VMHardDiskDrive -path $vhd.path -ControllerType SCSI -ControllerNumber 0 -DiskNumber $disk 
+        $VHD = New-VHD -Dynamic -SizeBytes $Disksize -Path "$Builddir\$Nodename\Disk_$Disk.vhdx"
+        # $VHD | Set-VMHardDiskDrive -MaximumIOPS 200   -     
+        $CloneVM | Add-VMHardDiskDrive -path $VHD.path -ControllerType SCSI -ControllerNumber 0  -MaximumIOPS 200
         }
     }
 $CloneVM | Set-VM –AutomaticStartAction Start
+
+
 if ($vlanid)
     {
     $CloneVM | Get-VMNetworkAdapter | Set-VMNetworkAdapterVlan -Access -VlanId $vlanid
