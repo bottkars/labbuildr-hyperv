@@ -51,6 +51,9 @@ param (
     IP-Addresses: .180 - .189
     #>
 	[Parameter(ParameterSetName = "Blanknodes")][switch][alias('bn')]$Blanknode,
+	[Parameter(ParameterSetName = "Blanknodes")][switch][alias('bnhv')]$BlankHV,
+	[Parameter(ParameterSetName = "Blanknodes")][switch][alias('S2D')]$SpacesDirect,
+	[Parameter(ParameterSetName = "Blanknodes")][string][alias('CLN')]$ClusterName,
     <#Exchange 2016   #>
 	[Parameter(ParameterSetName = "E16",Mandatory = $true)][switch][alias('ex16')]$Exchange2016,
     <#
