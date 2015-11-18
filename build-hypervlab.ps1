@@ -1740,14 +1740,20 @@ $NodeScriptDir\set-winrm.ps1 -Scriptdir $GuestScriptdir
 `$Logfile = New-Item -ItemType file `"c:\scripts\`$ScriptName.log`"
 $NodeScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status started
 New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name '99-$next_phase' -Value '$PSHOME\powershell.exe -Command `". $GuestScriptdir\scripts\run-$next_phase.ps1`"'
+$NodeScriptDir\set-vmguestshare.ps1 -user $Labbuildr_share_User -password $Labbuildr_share_password
 $NodeScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
 "
         if ($Node -eq $BlankNodes)
             {
             if ($Cluster.IsPresent)
                 {
-                $Content += "$NodeScriptDir\create-cluster.ps1 -Parameter -Nodeprefix '$NodePrefix' -ClusterName $ClusterName -IPAddress '$IPv4Subnet.$ClusterIP' -IPV6Prefix $IPV6Prefix -IPv6PrefixLength $IPv6PrefixLength -AddressFamily $AddressFamily $CommonParameter -Scriptdir $GuestScriptdir 
+                $Content += "$NodeScriptDir\create-cluster.ps1 -Nodeprefix '$NodePrefix' -ClusterName $ClusterName -IPAddress '$ClusterIP' -IPV6Prefix $IPV6Prefix -IPv6PrefixLength $IPv6PrefixLength -AddressFamily $AddressFamily $CommonParameter -Scriptdir $GuestScriptdir 
                 "
+                if ($SpacesDirect.IsPresent)
+                    {
+                    $Content += "$NodeScriptDir\new-s2dpool.ps1 -Scriptdir $GuestScriptdir 
+                    "
+                    }
                 }
             }
         $Content += "$NodeScriptDir\set-vmguesttask.ps1 -Task $Current_phase -Status finished
