@@ -96,7 +96,7 @@ param (
 
 
         <# Wich version of OS Master should be installed
-    '2012R2FallUpdate','2016TP3'
+    '2012R2FallUpdate','2016TP3','2016TP4'
     #>
     [Parameter(ParameterSetName = "Sharepoint",Mandatory = $false)]
 	[Parameter(ParameterSetName = "Hyperv", Mandatory = $false)]
@@ -111,7 +111,7 @@ param (
     [Parameter(ParameterSetName = "Panorama", Mandatory = $false)]
     [Parameter(ParameterSetName = "SCOM", Mandatory = $false)]
     [Parameter(ParameterSetName = "SRM", Mandatory = $false)]
-    [ValidateSet('2016TP3','2012R2FallUpdate')]$Master,
+    [ValidateSet('2016TP4','2016TP3','2012R2FallUpdate')]$Master,
 
     <#do we want a special path to the Masters ? #>
     [Parameter(ParameterSetName = "Sharepoint",Mandatory = $false)]
@@ -1800,7 +1800,7 @@ $NodeScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
 
 ####### wait progress
         check-task -task "start-customize" -nodename $NodeName -sleep $Sleep
-        foreach ($n in 2..4)
+        foreach ($n in 2..2)
             {
 
             check-task -task "phase$n" -nodename $NodeName -sleep $Sleep 
