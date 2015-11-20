@@ -2039,7 +2039,7 @@ $AddContent = @()
             run-phase4 -Current_phase $Current_phase -next_phase $next_phase -next_phase_no_reboot
 
 
-                }
+             
 ## phase_EX_PRE
 
 
@@ -2076,6 +2076,7 @@ $ScenarioScriptdir\install-exchangeprereqs.ps1
                 { 
                 Write-verbose "Now Pausing"
                 pause
+                    }
             $Size = "XXL"
 		    # test-dcrunning
 		    ###################################################
