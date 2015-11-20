@@ -909,7 +909,8 @@ function run-phase4
 {
 param (
 [string]$next_phase,
-[string]$Current_phase
+[string]$Current_phase,
+[switch]$next_phase_no_reboot
 )
 $Content = @()
 $Content = "###
@@ -917,10 +918,19 @@ $Content = "###
 `$Host.UI.RawUI.WindowTitle = `$ScriptName
 `$Logfile = New-Item -ItemType file `"c:\scripts\`$ScriptName.log`"
 $NodeScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status started
-New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name '99-$next_phase' -Value '$PSHOME\powershell.exe -Command `". $GuestScriptdir\scripts\run-$next_phase.ps1`"'
 $NodeScriptDir\set-vmguestshare.ps1 -user $Labbuildr_share_User -password $Labbuildr_share_password -HostIP $HostIP
 $NodeScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
 "
+if ($next_phase_no_reboot)
+    {
+    $Content += "$NodeScriptDir\scripts\run-$next_phase.ps1
+    "
+    }
+else
+    {
+    $Content += "New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name '99-$next_phase' -Value '$PSHOME\powershell.exe -Command `". $GuestScriptdir\scripts\run-$next_phase.ps1`"'
+    "
+    }
 Write-Verbose $Content
 Set-Content "$Isodir\Scripts\run-$Current_phase.ps1" -Value $Content -Force
 
@@ -2024,15 +2034,49 @@ $AddContent = @()
 ## Phase 4
             $previous_phase = $current_phase
             $current_phase = $next_phase
-            $next_phase = "phase5"
-            run-phase4 -Current_phase $Current_phase -next_phase $next_phase
+            $next_phase = "phase_EX_PRE"
+            $Next_Phase_noreboot = $true
+            run-phase4 -Current_phase $Current_phase -next_phase $next_phase -next_phase_no_reboot
+
+
+                }
+## phase_EX_PRE
+
+
+            $previous_phase = $current_phase
+            $current_phase = $next_phase
+            $next_phase = "phase_EX_RUN"
+
+
+$Content = "###
+`$ScriptName = `$MyInvocation.MyCommand.Name
+`$Host.UI.RawUI.WindowTitle = `$ScriptName
+`$Logfile = New-Item -ItemType file `"c:\scripts\`$ScriptName.log`"
+$NodeScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status started
+$NodeScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
+$ScenarioScriptdir\prepare-disks.ps1
+
+$ScenarioScriptdir\install-exchangeprereqs.ps1
+"
+
+
+<#
+			invoke-vmxpowershell -config $CloneVMX -Guestuser $Adminuser -Guestpassword $Adminpassword -ScriptPath $Targetscriptdir -Script prepare-disks.ps1
+			write-verbose "Setup e16 Prereqs"
+			invoke-vmxpowershell -config $CloneVMX -Guestuser $Adminuser -Guestpassword $Adminpassword -ScriptPath $Targetscriptdir -Script install-exchangeprereqs.ps1 -interactive
+            checkpoint-progress -step exprereq -reboot -Guestuser $Adminuser -Guestpassword $Adminpassword
+			write-verbose "Setting Power Scheme"
+			invoke-vmxpowershell -config $CloneVMX -Guestuser $Adminuser -Guestpassword $Adminpassword -ScriptPath $Targetscriptdir -Script powerconf.ps1 -interactive
+			write-verbose "Installing e16, this may take up to 60 Minutes ...."
+			invoke-vmxpowershell -config $CloneVMX -Guestuser $Adminuser -Guestpassword $Adminpassword -ScriptPath $Targetscriptdir -Script install-exchange.ps1 -interactive -nowait -Parameter "$CommonParameter -ex_cu $e16_cu"
+#>
+
 
             if ($PSCmdlet.MyInvocation.BoundParameters["verbose"].IsPresent)
                 { 
                 Write-verbose "Now Pausing"
                 pause
-                }
-            $Exchangesize = "XXL"
+            $Size = "XXL"
 		    # test-dcrunning
 		    ###################################################
 
