@@ -358,6 +358,20 @@ Valid values 'IPv4','IPv6','IPv4IPv6'
     [Parameter(ParameterSetName = "Panorama", Mandatory = $false)]
     [Parameter(ParameterSetName = "SRM", Mandatory = $false)]
     [Parameter(ParameterSetName = "Sharepoint",Mandatory = $false)]
+    <# wait for deployment phases to finish befor next clone#>
+	[Parameter(ParameterSetName = "Hyperv", Mandatory = $false)]
+	[Parameter(ParameterSetName = "AAG", Mandatory = $false)]
+	[Parameter(ParameterSetName = "E15", Mandatory = $false)]
+    [Parameter(ParameterSetName = "E16", Mandatory = $false)]
+	[Parameter(ParameterSetName = "Blanknodes", Mandatory = $false)]
+	[Parameter(ParameterSetName = "NWserver", Mandatory = $false)]
+    [Parameter(ParameterSetName = "DConly", Mandatory = $false)]
+	[Parameter(ParameterSetName = "SQL", Mandatory = $false)]
+    [Parameter(ParameterSetName = "Panorama", Mandatory = $false)]
+    [Parameter(ParameterSetName = "SRM", Mandatory = $false)]
+    [Parameter(ParameterSetName = "Sharepoint", Mandatory = $false)]
+	[switch]$wait,
+
     $IPv6PrefixLength,
     [String]$Sourcedir
 
@@ -1807,13 +1821,17 @@ $NodeScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
         Invoke-Expression  "$Builddir\clone-node.ps1 -MasterVHD $MasterVHDX -Nodename $NodeName -Size $Size -HVSwitch $HVSwitch $CloneParameter"
 
 ####### wait progress
+
         check-task -task "start-customize" -nodename $NodeName -sleep $Sleep
-        foreach ($n in 2..2)
+    if ($wait.ispresent)
+        {
+        foreach ($n in 2..4)
             {
 
             check-task -task "phase$n" -nodename $NodeName -sleep $Sleep 
 
             }
+        {
 	 
     }#end foreach
 }## End Switchblock Blanknode 
