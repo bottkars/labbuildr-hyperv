@@ -1440,13 +1440,13 @@ if (!(test-path $Builddir\bin\mkisofs.exe -ErrorAction SilentlyContinue))
         New-Item -ItemType Directory -Path $Builddir\bin\ 
         }
     $url = "ftp://ftp.heise.de/pub/ct/listings/0603-202.zip"
-    if (!(Get-LABFTPFile -Source $url))
+    $Zipfile = Split-Path -Leaf $URL
+   if (!(Get-LABFTPFile -Source $url -Defaultcredentials -TarGet "$Builddir\$Zipfile"))
         {
         write-warning "Error downloading mkisofs, please check location"
         break
         }
 
-    $Zipfile = Split-Path -Leaf $URL
     Expand-LABZip -zipfilename "$Builddir\$Zipfile" -destination "$Builddir\bin"
     }
 
