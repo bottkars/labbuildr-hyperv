@@ -114,5 +114,12 @@ if ($vlanid)
     {
     $CloneVM | Get-VMNetworkAdapter | Set-VMNetworkAdapterVlan -Access -VlanId $vlanid
     }
-$CloneVM | start-vm
-# return ok
+try
+    {
+    $CloneVM | start-vm -ErrorAction Stop
+    }
+catch
+    {
+    Write-Warning "Error Starting Node"
+    }
+return ok
