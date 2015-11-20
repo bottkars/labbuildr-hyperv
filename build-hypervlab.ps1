@@ -1502,6 +1502,13 @@ if ($Exchange2016.IsPresent)
         {
         $e16_cu = $Latest_e16_cu
         }
+
+    If ($Master -gt '2012Z')
+        {
+        Write-Warning "Only master up 2012R2Fallupdate supported in this scenario"
+        exit
+        }
+
     $EX_Version = "E2016"
     $Scenarioname = "Exchange"
     $Prereqdir = "Attachments"
