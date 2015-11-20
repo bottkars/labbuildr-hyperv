@@ -996,120 +996,6 @@ if ($PSCmdlet.MyInvocation.BoundParameters["debug"].IsPresent)
     }
 
 
-if ($Exchange2016.IsPresent)
-{
-    if (!$e16_cu)
-        {
-        $e16_cu = $Latest_e16_cu
-        }
-    $EX_Version = "E2016"
-    $Scenarioname = "Exchange"
-    $Prereqdir = "Attachments"
-    $attachments = (
-    "http://www.cisco.com/c/dam/en/us/solutions/collateral/data-center-virtualization/unified-computing/fle_vmware.pdf"
-   # "http://www.emc.com/collateral/white-papers/h12234-emc-integration-for-microsoft-private-cloud-wp.pdf",
-   # "http://www.emc.com/collateral/software/data-sheet/h2257-networker-ds.pdf",
-   # "http://www.emc.com/collateral/software/data-sheet/h2479-networker-app-modules-ds.pdf",
-   # "http://www.emc.com/collateral/software/data-sheet/h4525-networker-ms-apps-ds.pdf",
-   # "http://www.emc.com/collateral/handouts/h14152-cloudboost-handout.pdf",
-   # "http://www.emc.com/collateral/software/data-sheet/h2257-networker-ds.pdf",
-   # "http://www.emc.com/collateral/software/data-sheet/h3979-networker-dedupe-ds.pdf"
-    )
-    $Destination = Join-Path $Sourcedir $Prereqdir
-    if (!(Test-Path $Destination)){New-Item -ItemType Directory -Path $Destination | Out-Null }
-     foreach ($URL in $attachments)
-        {
-        $FileName = Split-Path -Leaf -Path $Url
-        if (!(test-path  "$Destination\$FileName"))
-            {
-            Write-Verbose "$FileName not found, trying Download"
-            if (!(get-prereq -DownLoadUrl $URL -destination $Sourcedir\$Prereqdir\$FileName))
-                { write-warning "Error Downloading file $Url, Please check connectivity"
-                  Write-Warning "Creating Dummy File"
-                  New-Item -ItemType file -Path "$Sourcedir\$Prereqdir\$FileName" | out-null
-                }
-            }
-
-        
-        }
-    
-    $Prereqdir = $EX_Version+"prereq"
-
-    Write-Verbose "We are now going to Test $EX_Version Prereqs"
-    $DownloadUrls = (
-		        "http://download.microsoft.com/download/E/2/1/E21644B5-2DF2-47C2-91BD-63C560427900/NDP452-KB2901907-x86-x64-AllOS-ENU.exe",
-#                "http://download.microsoft.com/download/A/A/3/AA345161-18B8-45AE-8DC8-DA6387264CB9/filterpack2010sp1-kb2460041-x64-fullfile-en-us.exe",
-#                "http://download.microsoft.com/download/0/A/2/0A28BBFA-CBFA-4C03-A739-30CCA5E21659/FilterPack64bit.exe",
-                "http://download.microsoft.com/download/2/C/4/2C47A5C1-A1F3-4843-B9FE-84C0032C61EC/UcmaRuntimeSetup.exe"
- #               "http://download.microsoft.com/download/6/2/D/62DFA722-A628-4CF7-A789-D93E17653111/ExchangeMapiCdo.EXE"
-                
-                )
-    $Destination = Join-Path $Sourcedir $Prereqdir             
-    if (Test-Path -Path "$Destination")
-        {
-        Write-Verbose "$EX_Version Sourcedir Found"
-        }
-        else
-        {
-        Write-Verbose "Creating Sourcedir for $EX_Version Prereqs"
-        New-Item -ItemType Directory -Path $Destination | Out-Null
-        }
-
-
-    foreach ($URL in $DownloadUrls)
-        {
-        $FileName = Split-Path -Leaf -Path $Url
-        if (!(test-path  "$Destination\$FileName"))
-            {
-            Write-Verbose "$FileName not found, trying Download"
-            if (!(get-prereq -DownLoadUrl $URL -destination "$Destination\$FileName"))
-                { write-warning "Error Downloading file $Url, Please check connectivity"
-                exit
-                }
-            }
-        }
-    $Destination =  Join-Path "$Sourcedir" "$EX_Version$ex_cu"
-    write-verbose "Testing $Destination/setup.exe"
-    if (Test-Path "$Destination/setup.exe")
-        {
-        Write-Verbose "E16 $e16_cu Found"
-        }
-        else
-        {
-        Write-Warning "We need to Extract $EX_Version $e16_cu, this may take a while"
-        # New-Item -ItemType Directory -Path $Sourcedir\$EX_Version$ex_cu | Out-Null
-        # }
-        Switch ($e16_cu)
-
-            {
-                "final"
-                {
-                $URL = "http://download.microsoft.com/download/3/9/B/39B8DDA8-509C-4B9E-BCE9-4CD8CDC9A7DA/Exchange2016-x64.exe"
-                }
-
-            }
-
-        $FileName = Split-Path -Leaf -Path $Url
-        $Downloadfile = Join-Path $Sourcedir $FileName
-        if (!(test-path  ( Join-Path $Downloadfile)))
-            {
-            "We need to Download $EX_Version $e16_cu from $url, this may take a while"
-            if (!(get-prereq -DownLoadUrl $URL -destination $Downloadfile))
-                { write-warning "Error Downloading file $Url, Please check connectivity"
-                exit
-            }
-        }
-        Write-Verbose "Extracting $FileName"
-        Start-Process -FilePath "$Downloadfile" -ArgumentList "/extract:$Destination /passive" -Wait
-            
-    } #end else
-
-	    if ($DAG.IsPresent)
-	        {
-		    Write-Host -ForegroundColor Yellow "We will form a $EXNodes-Node DAG"
-	        }
-
-}
 #################### default Parameter Section Start
 write-verbose "Config pre defaults"
 if ($PSCmdlet.MyInvocation.BoundParameters["verbose"].IsPresent)
@@ -1583,6 +1469,122 @@ if (!(test-path $Builddir\bin\mkisofs.exe -ErrorAction SilentlyContinue))
     Expand-LABZip -zipfilename "$Builddir\$Zipfile" -destination "$Builddir\bin"
     }
 
+if ($Exchange2016.IsPresent)
+{
+    if (!$e16_cu)
+        {
+        $e16_cu = $Latest_e16_cu
+        }
+    $EX_Version = "E2016"
+    $Scenarioname = "Exchange"
+    $Prereqdir = "Attachments"
+    $attachments = (
+    "http://www.cisco.com/c/dam/en/us/solutions/collateral/data-center-virtualization/unified-computing/fle_vmware.pdf"
+   # "http://www.emc.com/collateral/white-papers/h12234-emc-integration-for-microsoft-private-cloud-wp.pdf",
+   # "http://www.emc.com/collateral/software/data-sheet/h2257-networker-ds.pdf",
+   # "http://www.emc.com/collateral/software/data-sheet/h2479-networker-app-modules-ds.pdf",
+   # "http://www.emc.com/collateral/software/data-sheet/h4525-networker-ms-apps-ds.pdf",
+   # "http://www.emc.com/collateral/handouts/h14152-cloudboost-handout.pdf",
+   # "http://www.emc.com/collateral/software/data-sheet/h2257-networker-ds.pdf",
+   # "http://www.emc.com/collateral/software/data-sheet/h3979-networker-dedupe-ds.pdf"
+    )
+    $Destination = Join-Path $Sourcedir $Prereqdir
+    if (!(Test-Path $Destination)){New-Item -ItemType Directory -Path $Destination | Out-Null }
+     foreach ($URL in $attachments)
+        {
+        $FileName = Split-Path -Leaf -Path $Url
+        if (!(test-path  "$Destination\$FileName"))
+            {
+            Write-Verbose "$FileName not found, trying Download"
+            if (!(get-prereq -DownLoadUrl $URL -destination $Sourcedir\$Prereqdir\$FileName))
+                { write-warning "Error Downloading file $Url, Please check connectivity"
+                  Write-Warning "Creating Dummy File"
+                  New-Item -ItemType file -Path "$Sourcedir\$Prereqdir\$FileName" | out-null
+                }
+            }
+
+        
+        }
+    
+    $Prereqdir = $EX_Version+"prereq"
+
+    Write-Verbose "We are now going to Test $EX_Version Prereqs"
+    $DownloadUrls = (
+		        "http://download.microsoft.com/download/E/2/1/E21644B5-2DF2-47C2-91BD-63C560427900/NDP452-KB2901907-x86-x64-AllOS-ENU.exe",
+#                "http://download.microsoft.com/download/A/A/3/AA345161-18B8-45AE-8DC8-DA6387264CB9/filterpack2010sp1-kb2460041-x64-fullfile-en-us.exe",
+#                "http://download.microsoft.com/download/0/A/2/0A28BBFA-CBFA-4C03-A739-30CCA5E21659/FilterPack64bit.exe",
+                "http://download.microsoft.com/download/2/C/4/2C47A5C1-A1F3-4843-B9FE-84C0032C61EC/UcmaRuntimeSetup.exe"
+ #               "http://download.microsoft.com/download/6/2/D/62DFA722-A628-4CF7-A789-D93E17653111/ExchangeMapiCdo.EXE"
+                
+                )
+    $Destination = Join-Path $Sourcedir $Prereqdir             
+    if (Test-Path -Path "$Destination")
+        {
+        Write-Verbose "$EX_Version Sourcedir Found"
+        }
+        else
+        {
+        Write-Verbose "Creating Sourcedir for $EX_Version Prereqs"
+        New-Item -ItemType Directory -Path $Destination | Out-Null
+        }
+
+
+    foreach ($URL in $DownloadUrls)
+        {
+        $FileName = Split-Path -Leaf -Path $Url
+        if (!(test-path  "$Destination\$FileName"))
+            {
+            Write-Verbose "$FileName not found, trying Download"
+            if (!(get-prereq -DownLoadUrl $URL -destination "$Destination\$FileName"))
+                { write-warning "Error Downloading file $Url, Please check connectivity"
+                exit
+                }
+            }
+        }
+    $Destination =  Join-Path "$Sourcedir" "$EX_Version$ex_cu"
+    write-verbose "Testing $Destination/setup.exe"
+    if (Test-Path "$Destination/setup.exe")
+        {
+        Write-Verbose "E16 $e16_cu Found"
+        }
+        else
+        {
+        Write-Warning "We need to Extract $EX_Version $e16_cu, this may take a while"
+        # New-Item -ItemType Directory -Path $Sourcedir\$EX_Version$ex_cu | Out-Null
+        # }
+        Switch ($e16_cu)
+
+            {
+                "final"
+                {
+                $URL = "http://download.microsoft.com/download/3/9/B/39B8DDA8-509C-4B9E-BCE9-4CD8CDC9A7DA/Exchange2016-x64.exe"
+                }
+
+            }
+
+        $FileName = Split-Path -Leaf -Path $Url
+        $Downloadfile = Join-Path $Sourcedir $FileName
+        if (!(test-path  ( Join-Path $Downloadfile)))
+            {
+            "We need to Download $EX_Version $e16_cu from $url, this may take a while"
+            if (!(get-prereq -DownLoadUrl $URL -destination $Downloadfile))
+                { write-warning "Error Downloading file $Url, Please check connectivity"
+                exit
+            }
+        }
+        Write-Verbose "Extracting $FileName"
+        Start-Process -FilePath "$Downloadfile" -ArgumentList "/extract:$Destination /passive" -Wait
+            
+    } #end else
+
+	    if ($DAG.IsPresent)
+	        {
+		    Write-Host -ForegroundColor Yellow "We will form a $EXNodes-Node DAG"
+	        }
+
+}
+
+##########
 switch ($PsCmdlet.ParameterSetName)
 
     {
