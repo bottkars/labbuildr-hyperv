@@ -1934,7 +1934,20 @@ $AddContent = @()
 
    	"E16"{
         Write-Verbose "Starting $EX_Version $e16_cu Setup"
-        # we need ipv4
+        $CloneParameter = $CommonParameter
+        If ($Disks -lt 3)
+            {
+            $Disks = 3
+            }
+        if ($Disks)
+            {
+		    $cloneparameter = "$CloneParameter -AddDisks -disks $Disks"
+            }
+        If ($vlanID)
+            {
+            $CloneParameter = "$CloneParameter -vlanid $vlanID"
+            }
+
         if ($AddressFamily -notmatch 'ipv4')
             { 
             $EXAddressFamiliy = 'IPv4IPv6'
