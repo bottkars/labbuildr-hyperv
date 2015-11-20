@@ -65,6 +65,32 @@ param (
     #>
 	[Parameter(ParameterSetName = "E16", Mandatory = $false)]
     [ValidateSet('final')]$e16_cu,
+        <#
+    Determines if Exchange should be installed in a DAG
+    #>
+    [Parameter(ParameterSetName = "E16", Mandatory = $false)]
+	[Parameter(ParameterSetName = "E15", Mandatory = $false)][switch]$DAG,
+    <# Specify the Number of Exchange Nodes#>
+    [Parameter(ParameterSetName = "E16", Mandatory = $false)]
+    [Parameter(ParameterSetName = "E15", Mandatory = $false)][ValidateRange(1, 10)][int][alias('exn')]$EXNodes,
+    <# Specify the Starting exchange Node#>
+    [Parameter(ParameterSetName = "E16", Mandatory = $false)]
+	[Parameter(ParameterSetName = "E15", Mandatory = $false)][ValidateRange(1, 9)][int][alias('exs')]$EXStartNode = "1",
+<#
+    Determines Exchange CU Version to be Installed
+    Valid Versions are:
+    'cu1','cu2','cu3','cu4','sp1','cu6','cu7'
+    Default is latest
+    CU Location is [Driveletter]:\sources\e2013[cuver], e.g. c:\sources\e2013cu7
+    #>
+	[Parameter(ParameterSetName = "E15", Mandatory = $false)]
+    [ValidateSet('cu1', 'cu2', 'cu3', 'sp1','cu5','cu6','cu7','cu8','cu9','cu10')]$ex_cu,
+    <# schould we prestage users ? #>	
+    [Parameter(ParameterSetName = "E16", Mandatory = $false)]
+    [Parameter(ParameterSetName = "E15", Mandatory = $false)][switch]$nouser,
+    <# Install a DAG without Management IP Address ? #>
+    [Parameter(ParameterSetName = "E16", Mandatory = $false)]
+	[Parameter(ParameterSetName = "E15", Mandatory = $false)][switch]$DAGNOIP,
 
 
     <# Starting Node for Blank Nodes#>
