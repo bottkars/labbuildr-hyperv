@@ -1948,6 +1948,7 @@ $AddContent = @()
 
 
    	"E16"{
+        $Sourcepath = "X:"
         Write-Verbose "Starting $EX_Version $e16_cu Setup"
         $CloneParameter = $CommonParameter
         If ($Disks -lt 3)
