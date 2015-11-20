@@ -832,7 +832,7 @@ if (!(Test-Path `$logpath))
 `$Logfile = New-Item -ItemType file `"c:\scripts\`$ScriptName.log`"
 $NodeScriptDir\set-vmguesttask.ps1 -Task $Current_phase -Status started
 New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name '99-$next_phase' -Value '$PSHOME\powershell.exe -Command `". $GuestScriptdir\scripts\run-$next_phase.ps1`"'
-$ScenarioScriptdir\configure-node.ps1 -nodeip $Nodeip -IPv4subnet $IPv4subnet -nodename $Nodename -IPv4PrefixLength $IPv4PrefixLength -IPv6PrefixLength $IPv6PrefixLength -IPv6Prefix $IPv6Prefix -AddressFamily $AddressFamily $AddGateway -AddOnfeatures '$AddonFeatures' -Domain $BuildDomain $CommonParameter
+$NodeScriptDir\configure-node.ps1 -nodeip $Nodeip -IPv4subnet $IPv4subnet -nodename $Nodename -IPv4PrefixLength $IPv4PrefixLength -IPv6PrefixLength $IPv6PrefixLength -IPv6Prefix $IPv6Prefix -AddressFamily $AddressFamily $AddGateway -AddOnfeatures '$AddonFeatures' -Domain $BuildDomain $CommonParameter
 "
 Write-Verbose $Content
 Write-Verbose ""
@@ -2014,13 +2014,13 @@ $AddContent = @()
             $previous_phase = $current_phase
             $current_phase = $next_phase
             $next_phase = "phase4"
-            run-phase4 -Current_phase $Current_phase -next_phase $next_phase
+            run-phase3 -Current_phase $Current_phase -next_phase $next_phase
         
 ## Phase 4
             $previous_phase = $current_phase
             $current_phase = $next_phase
             $next_phase = "phase5"
-            run-phase5 -Current_phase $Current_phase -next_phase $next_phase
+            run-phase4 -Current_phase $Current_phase -next_phase $next_phase
 
             if ($PSCmdlet.MyInvocation.BoundParameters["verbose"].IsPresent)
                 { 
