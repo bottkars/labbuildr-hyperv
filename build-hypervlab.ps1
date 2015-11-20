@@ -1669,8 +1669,9 @@ check-task -task "phase$n" -nodename $NodeName -sleep $Sleep
                 $Clustername = "GenCluster"
                 }
             }
-
-		foreach ($Node in ($Blankstart..$BlankNodes))
+        $Blank_End = ($Blankstart+$BlankNodes-1)
+        Write-Verbose "We will deplo $Nodes Nodes from $Blankstart to $Blank_End"
+		foreach ($Node in ($Blankstart..$Blank_End))
 		{
 			
 	    ###################################################
