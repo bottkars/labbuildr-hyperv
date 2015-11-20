@@ -2045,6 +2045,23 @@ $AddContent = @()
 
             $previous_phase = $current_phase
             $current_phase = $next_phase
+            $next_phase = "phase_EX_E"
+$Content = "###
+`$ScriptName = `$MyInvocation.MyCommand.Name
+`$Host.UI.RawUI.WindowTitle = `$ScriptName
+`$Logfile = New-Item -ItemType file `"c:\scripts\`$ScriptName.log`"
+$NodeScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status started
+$NodeScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
+$ScenarioScriptdir\prepare-disks.ps1
+$ScenarioScriptdir\install-exchangeprereqs.ps1 -SourcePath $SourcePath -Scriptdir $GuestScriptdir
+
+"
+Write-Verbose $Content
+Set-Content "$Isodir\Scripts\run-$Current_phase.ps1" -Value $Content -Force
+   
+   
+            $previous_phase = $current_phase
+            $current_phase = $next_phase
             $next_phase = "phase_EX_RUN"
 
 
@@ -2054,10 +2071,11 @@ $Content = "###
 `$Logfile = New-Item -ItemType file `"c:\scripts\`$ScriptName.log`"
 $NodeScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status started
 $NodeScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
-$ScenarioScriptdir\prepare-disks.ps1
-
-$ScenarioScriptdir\install-exchangeprereqs.ps1
+$ScenarioScriptdir\install-exchange.ps1 -ex_cu $e16_cu -SourcePath $SourcePath -Scriptdir $GuestScriptdir
 "
+Write-Verbose $Content
+Set-Content "$Isodir\Scripts\run-$Current_phase.ps1" -Value $Content -Force
+
 
 
 <#
