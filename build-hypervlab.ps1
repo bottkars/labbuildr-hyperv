@@ -1541,7 +1541,7 @@ if ($Exchange2016.IsPresent)
                 }
             }
         }
-    $Destination =  Join-Path "$Sourcedir" "$EX_Version$ex_cu"
+    $Destination =  Join-Path "$Sourcedir" "$EX_Version$e16_cu"
     write-verbose "Testing $Destination/setup.exe"
     if (Test-Path "$Destination/setup.exe")
         {
