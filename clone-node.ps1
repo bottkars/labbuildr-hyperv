@@ -122,4 +122,4 @@ catch
     {
     Write-Warning "Error Starting Node"
     }
-return ok
+return $true

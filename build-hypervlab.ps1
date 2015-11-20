@@ -919,6 +919,7 @@ $Content = "###
 $NodeScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status started
 New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name '99-$next_phase' -Value '$PSHOME\powershell.exe -Command `". $GuestScriptdir\scripts\run-$next_phase.ps1`"'
 $NodeScriptDir\set-vmguestshare.ps1 -user $Labbuildr_share_User -password $Labbuildr_share_password -HostIP $HostIP
+# $NodeScriptDir\set-vmguestshare.ps1 -user $Labbuildr_share_User -password $Labbuildr_share_password -HostIP $HostIP
 $NodeScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
 "
 
