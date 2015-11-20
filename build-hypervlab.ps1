@@ -358,6 +358,7 @@ Valid values 'IPv4','IPv6','IPv4IPv6'
     [Parameter(ParameterSetName = "Panorama", Mandatory = $false)]
     [Parameter(ParameterSetName = "SRM", Mandatory = $false)]
     [Parameter(ParameterSetName = "Sharepoint",Mandatory = $false)]
+    $IPv6PrefixLength,
     <# wait for deployment phases to finish befor next clone#>
 	[Parameter(ParameterSetName = "Hyperv", Mandatory = $false)]
 	[Parameter(ParameterSetName = "AAG", Mandatory = $false)]
@@ -372,7 +373,6 @@ Valid values 'IPv4','IPv6','IPv4IPv6'
     [Parameter(ParameterSetName = "Sharepoint", Mandatory = $false)]
 	[switch]$wait,
 
-    $IPv6PrefixLength,
     [String]$Sourcedir
 
 )
@@ -1832,6 +1832,7 @@ $NodeScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
 
             }#end foreach
         } 
+    }
 }## End Switchblock Blanknode 
 
 <#
