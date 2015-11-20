@@ -569,7 +569,7 @@ function Extract-Zip
 function get-prereq
 { 
 param ([string]$DownLoadUrl,
-        [string]$destination )
+        [string]$destination)
 $ReturnCode = $True
 if (!(Test-Path $Destination))
     {
@@ -579,7 +579,7 @@ if (!(Test-Path $Destination))
             {
             New-Item -ItemType Directory  -Path (Split-Path $destination) -Force | out-null
             }
-        Write-verbose "Starting Download of $DownLoadUrl"
+        Write-verbose "Starting Download of $DownLoadUrl to $destination"
         Start-BitsTransfer -Source $DownLoadUrl -Destination $destination -DisplayName "Getting $destination" -Priority Foreground -Description "From $DownLoadUrl..." -ErrorVariable err 
                 If ($err) {Throw ""} 
 
@@ -1027,12 +1027,12 @@ if ($Exchange2016.IsPresent)
    # "http://www.emc.com/collateral/software/data-sheet/h2257-networker-ds.pdf",
    # "http://www.emc.com/collateral/software/data-sheet/h3979-networker-dedupe-ds.pdf"
     )
-    
-    if (!(Test-Path $Sourcedir\$Prereqdir)){New-Item -ItemType Directory -Path $Sourcedir\$Prereqdir | Out-Null }
+    $Destination = Join-Path $Sourcedir $Prereqdir
+    if (!(Test-Path $Destination)){New-Item -ItemType Directory -Path $Destination | Out-Null }
      foreach ($URL in $attachments)
         {
         $FileName = Split-Path -Leaf -Path $Url
-        if (!(test-path  $Sourcedir\$Prereqdir\$FileName))
+        if (!(test-path  "$Destination\$FileName"))
             {
             Write-Verbose "$FileName not found, trying Download"
             if (!(get-prereq -DownLoadUrl $URL -destination $Sourcedir\$Prereqdir\$FileName))
@@ -1055,33 +1055,34 @@ if ($Exchange2016.IsPresent)
                 "http://download.microsoft.com/download/2/C/4/2C47A5C1-A1F3-4843-B9FE-84C0032C61EC/UcmaRuntimeSetup.exe"
  #               "http://download.microsoft.com/download/6/2/D/62DFA722-A628-4CF7-A789-D93E17653111/ExchangeMapiCdo.EXE"
                 
-                ) 
-    if (Test-Path -Path "$Sourcedir\$Prereqdir")
+                )
+    $Destination = Join-Path $Sourcedir $Prereqdir             
+    if (Test-Path -Path "$Destination")
         {
         Write-Verbose "$EX_Version Sourcedir Found"
         }
         else
         {
         Write-Verbose "Creating Sourcedir for $EX_Version Prereqs"
-        New-Item -ItemType Directory -Path $Sourcedir\$Prereqdir | Out-Null
+        New-Item -ItemType Directory -Path $Destination | Out-Null
         }
 
 
     foreach ($URL in $DownloadUrls)
         {
         $FileName = Split-Path -Leaf -Path $Url
-        if (!(test-path  $Sourcedir\$Prereqdir\$FileName))
+        if (!(test-path  "$Destination\$FileName"))
             {
             Write-Verbose "$FileName not found, trying Download"
-            if (!(get-prereq -DownLoadUrl $URL -destination $Sourcedir\$Prereqdir\$FileName))
+            if (!(get-prereq -DownLoadUrl $URL -destination "$Destination\$FileName"))
                 { write-warning "Error Downloading file $Url, Please check connectivity"
                 exit
                 }
             }
         }
-
-    write-verbose "Testing $Sourcedir/$EX_Version$e16_cu/setup.exe"
-    if (Test-Path "$Sourcedir/$EX_Version$e16_cu/setup.exe")
+    $Destination =  Join-Path "$Sourcedir" "$EX_Version$ex_cu"
+    write-verbose "Testing $Destination/setup.exe"
+    if (Test-Path "$Destination/setup.exe")
         {
         Write-Verbose "E16 $e16_cu Found"
         }
@@ -1101,26 +1102,20 @@ if ($Exchange2016.IsPresent)
             }
 
         $FileName = Split-Path -Leaf -Path $Url
-        if (!(test-path  $Sourcedir\$FileName))
+        $Downloadfile = Join-Path $Sourcedir $FileName
+        if (!(test-path  ( Join-Path $Downloadfile)))
             {
             "We need to Download $EX_Version $e16_cu from $url, this may take a while"
-            if (!(get-prereq -DownLoadUrl $URL -destination $Sourcedir\$FileName))
+            if (!(get-prereq -DownLoadUrl $URL -destination $Downloadfile))
                 { write-warning "Error Downloading file $Url, Please check connectivity"
                 exit
             }
         }
         Write-Verbose "Extracting $FileName"
-        Start-Process -FilePath "$Sourcedir\$FileName" -ArgumentList "/extract:$Sourcedir\$EX_Version$e16_cu /passive" -Wait
+        Start-Process -FilePath "$Downloadfile" -ArgumentList "/extract:$Destination /passive" -Wait
             
     } #end else
-    if (!(Test-Path $Sourcedir\attachments))
-        {
-         Write-Warning "attachments Directory not found. Please Create $Sourcedir\attachments and copy some Documents for Mail and Public Folder Deployment"
-            }
-        else
-            {
-            Write-Verbose "Found attachments"
-            }
+
 	    if ($DAG.IsPresent)
 	        {
 		    Write-Host -ForegroundColor Yellow "We will form a $EXNodes-Node DAG"
