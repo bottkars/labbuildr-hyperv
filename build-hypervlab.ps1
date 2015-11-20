@@ -68,7 +68,7 @@ param (
 
 
     <# Starting Node for Blank Nodes#>
-    [Parameter(ParameterSetName = "Blanknodes", Mandatory = $false)][ValidateRange(1, 9)][alias('bs')]$Blankstart = "1",
+    [Parameter(ParameterSetName = "Blanknodes", Mandatory = $false)][ValidateRange(1, 12)][alias('bs')]$Blankstart = "1",
     <# How many Blank Nodes#>
 	[Parameter(ParameterSetName = "Blanknodes", Mandatory = $false)][ValidateRange(1, 12)][alias('bns')]$BlankNodes = "1",
 
