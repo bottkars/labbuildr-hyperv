@@ -514,7 +514,7 @@ function update-fromGit
                     $Updatepath = "$Builddir\Update"
 					if (!(Get-Item -Path $Updatepath -ErrorAction SilentlyContinue))
 					        {
-						    $newDir = New-Item -ItemType Directory -Path "$Updatepath"
+						    $newDir = New-Item -ItemType Directory -Path "$Updatepath" | out-null
                             }
                     Write-Output "We found a newer Version for $repo on Git Dated $($request.Headers.'Last-Modified')"
                     if ($delete.IsPresent)
@@ -563,7 +563,7 @@ if (!(Test-Path $Destination))
         {
         if (!(Test-Path (Split-Path $destination)))
             {
-            New-Item -ItemType Directory  -Path (Split-Path $destination) -Force
+            New-Item -ItemType Directory  -Path (Split-Path $destination) -Force | out-null
             }
         Write-verbose "Starting Download of $DownLoadUrl"
         Start-BitsTransfer -Source $DownLoadUrl -Destination $destination -DisplayName "Getting $destination" -Priority Foreground -Description "From $DownLoadUrl..." -ErrorVariable err 
@@ -703,7 +703,7 @@ param ([string]$Nodename,
         Write-Verbose "Building iso from $isodir"
     if (!(test-path "$Builddir\$Nodename\"))
         {
-        New-Item -ItemType Directory "$Builddir\$Nodename\"
+        New-Item -ItemType Directory "$Builddir\$Nodename\" | out-null
         }
     .$Builddir\bin\mkisofs.exe -J -V build -o "$Builddir\$Nodename\build.iso"  "$Isodir"  2>&1| Out-Null
     $LASTEXITCODE
@@ -899,7 +899,7 @@ if ($Exchange2016.IsPresent)
             if (!(get-prereq -DownLoadUrl $URL -destination $Sourcedir\$Prereqdir\$FileName))
                 { write-warning "Error Downloading file $Url, Please check connectivity"
                   Write-Warning "Creating Dummy File"
-                  New-Item -ItemType file -Path "$Sourcedir\$Prereqdir\$FileName"
+                  New-Item -ItemType file -Path "$Sourcedir\$Prereqdir\$FileName" | out-null
                 }
             }
 
@@ -1439,8 +1439,15 @@ if (!(test-path $Builddir\bin\mkisofs.exe -ErrorAction SilentlyContinue))
         {
         New-Item -ItemType Directory -Path $Builddir\bin\ 
         }
-    Get-LABHttpFile -SourceURL "https://osspack32.googlecode.com/files/mkisofs.exe" -TarGetFile "$Builddir\bin\mkisofs.exe "
-    Unblock-File -Path "$Builddir\bin\mkisofs.exe"
+    $url = "ftp://ftp.heise.de/pub/ct/listings/0603-202.zip"
+    if (!(Get-LABFTPFile -Source $url))
+        {
+        write-warning "Error downloading mkisofs, please check location"
+        break
+        }
+
+    $Zipfile = Split-Path -Leaf $URL
+    Expand-LABZip -zipfilename "$Builddir\$Zipfile" -destination "$Builddir\bin"
     }
 
 switch ($PsCmdlet.ParameterSetName)
