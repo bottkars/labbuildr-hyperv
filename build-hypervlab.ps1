@@ -34,7 +34,7 @@ param (
 	[Parameter(ParameterSetName = "update",Mandatory = $false, HelpMessage = "this will update labbuildr from latest git commit")][switch]$Update,
     <#
     run build-lab update    #>
-	[Parameter(ParameterSetName = "update",Mandatory = $false, HelpMessage = "select a branch to update from")][ValidateSet('develop')]$branch  = "develop",
+	[Parameter(ParameterSetName = "update",Mandatory = $false, HelpMessage = "select a branch to update from")][ValidateSet('develop','testing')]$branch  = "testing",
     [Parameter(ParameterSetName = "update",Mandatory = $false, HelpMessage = "this will force update labbuildr")]
     [switch]$force,
         <# 
@@ -70,7 +70,7 @@ param (
     <# Starting Node for Blank Nodes#>
     [Parameter(ParameterSetName = "Blanknodes", Mandatory = $false)][ValidateRange(1, 9)][alias('bs')]$Blankstart = "1",
     <# How many Blank Nodes#>
-	[Parameter(ParameterSetName = "Blanknodes", Mandatory = $false)][ValidateRange(1, 10)][alias('bns')]$BlankNodes = "1",
+	[Parameter(ParameterSetName = "Blanknodes", Mandatory = $false)][ValidateRange(1, 12)][alias('bns')]$BlankNodes = "1",
 
     <# Do we want Additional Disks / of additional 100GB Disks for ScaleIO. The disk will be made ready for ScaleIO usage in Guest OS#>	
 	[Parameter(ParameterSetName = "Blanknodes", Mandatory = $false)]
@@ -1678,12 +1678,14 @@ check-task -task "phase$n" -nodename $NodeName -sleep $Sleep
 	    # BlanknodeSetup
 	    #			test-dcrunning
 	    ###################################################
-        $Nodeip = "$IPv4Subnet.18$Node"
+        $Node_range = 200
+        $Node_byte = $Node_range+$node
+        $Nodeip = "$IPv4Subnet.$Node_byte"
         $Nodeprefix = "Node"
         $NamePrefix = "GEN"
 		$Nodename = "$NamePrefix$NodePrefix$Node"
         $ScenarioScriptdir = "$GuestScriptdir\$NodePrefix"
-        $ClusterIP = "$IPv4Subnet.180"
+        $ClusterIP = "$IPv4Subnet.$Node_range"
 	    Write-Verbose $IPv4Subnet
         write-verbose $Nodename
         write-verbose $Nodeip
