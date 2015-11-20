@@ -1830,10 +1830,8 @@ $NodeScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
 
             check-task -task "phase$n" -nodename $NodeName -sleep $Sleep 
 
-            }
-        {
-	 
-    }#end foreach
+            }#end foreach
+        } 
 }## End Switchblock Blanknode 
 
 <#
