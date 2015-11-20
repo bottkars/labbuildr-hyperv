@@ -1823,7 +1823,7 @@ $NodeScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
 ####### wait progress
 
         check-task -task "start-customize" -nodename $NodeName -sleep $Sleep
-    if ($wait.ispresent)
+    if ($wait)
         {
         foreach ($n in 2..4)
             {
