@@ -1982,7 +1982,7 @@ $AddContent = @()
 			    }
 			else
                 {
-                $DAGIP = "$IPv4subnet.110"
+                $DAGIP = "$IPv4subnet.120"
                 }
         }
                 $DCName =  $BuildDomain+"DC"
