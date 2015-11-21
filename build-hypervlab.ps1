@@ -2046,7 +2046,7 @@ $AddContent = @()
 
             $previous_phase = $current_phase
             $current_phase = $next_phase
-            $next_phase = "phase_EX_E"
+            $next_phase = "phase_EX_SETUP"
 $Content = "###
 `$ScriptName = `$MyInvocation.MyCommand.Name
 `$Host.UI.RawUI.WindowTitle = `$ScriptName
@@ -2055,7 +2055,8 @@ $NodeScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status started
 $NodeScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
 $ScenarioScriptdir\prepare-disks.ps1
 $ScenarioScriptdir\install-exchangeprereqs.ps1 -SourcePath $SourcePath -Scriptdir $GuestScriptdir
-
+New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name '99-$next_phase' -Value '$PSHOME\powershell.exe -Command `". $GuestScriptdir\scripts\run-$next_phase.ps1`"'
+restart-computer
 "
 Write-Verbose $Content
 Set-Content "$Isodir\Scripts\run-$Current_phase.ps1" -Value $Content -Force
