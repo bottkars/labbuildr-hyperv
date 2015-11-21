@@ -2079,17 +2079,40 @@ Write-Verbose $Content
 Set-Content "$Isodir\Scripts\run-$Current_phase.ps1" -Value $Content -Force
 
 
+#####
+            $previous_phase = $current_phase
+            $current_phase = $next_phase
+            $next_phase = "phase_EX_POST"
 
-<#
-			invoke-vmxpowershell -config $CloneVMX -Guestuser $Adminuser -Guestpassword $Adminpassword -ScriptPath $Targetscriptdir -Script prepare-disks.ps1
-			write-verbose "Setup e16 Prereqs"
-			invoke-vmxpowershell -config $CloneVMX -Guestuser $Adminuser -Guestpassword $Adminpassword -ScriptPath $Targetscriptdir -Script install-exchangeprereqs.ps1 -interactive
-            checkpoint-progress -step exprereq -reboot -Guestuser $Adminuser -Guestpassword $Adminpassword
-			write-verbose "Setting Power Scheme"
-			invoke-vmxpowershell -config $CloneVMX -Guestuser $Adminuser -Guestpassword $Adminpassword -ScriptPath $Targetscriptdir -Script powerconf.ps1 -interactive
-			write-verbose "Installing e16, this may take up to 60 Minutes ...."
-			invoke-vmxpowershell -config $CloneVMX -Guestuser $Adminuser -Guestpassword $Adminpassword -ScriptPath $Targetscriptdir -Script install-exchange.ps1 -interactive -nowait -Parameter "$CommonParameter -ex_cu $e16_cu"
-#>
+
+$Content = "###
+`$ScriptName = `$MyInvocation.MyCommand.Name
+`$Host.UI.RawUI.WindowTitle = `$ScriptName
+`$Logfile = New-Item -ItemType file `"c:\scripts\`$ScriptName.log`"
+$NodeScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status started
+$NodeScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
+"
+
+# dag phase fo last server
+    if ($EXNode -eq ($EXNodes+$EXStartNode-1)) #are we last sever in Setup ?!
+        {
+        if ($DAG.IsPresent) 
+            {
+			write-verbose "Creating DAG"
+            $Content += "$ScenarioScriptdir\create-dag.ps1 -DAGIP $DAGIP -AddressFamily $EXAddressFamiliy -EX_Version $EX_Version -SourcePath $SourcePath -Scriptdir $GuestScriptdir
+            "
+			} # end if $DAG
+        if (!($nouser.ispresent))
+            {
+            write-verbose "Creating Accounts and Mailboxes:"
+            $Content += "c:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe `". 'C:\Program Files\Microsoft\Exchange Server\V15\bin\RemoteExchange.ps1'; Connect-ExchangeServer -auto; C:\$Script_dir\User.ps1 -subnet $IPv4Subnet -AddressFamily $AddressFamily -IPV6Prefix $IPV6Prefix -SourcePath $SourcePath -Scriptdir $GuestScriptdir`"
+            "
+            } #end creatuser
+    }# end if last server
+
+Write-Verbose $Content
+Set-Content "$Isodir\Scripts\run-$Current_phase.ps1" -Value $Content -Force
+####
 
 
             if ($PSCmdlet.MyInvocation.BoundParameters["verbose"].IsPresent)
@@ -2121,14 +2144,6 @@ Set-Content "$Isodir\Scripts\run-$Current_phase.ps1" -Value $Content -Force
 
             $EXnew = $True
             <##
-			invoke-vmxpowershell -config $CloneVMX -Guestuser $Adminuser -Guestpassword $Adminpassword -ScriptPath $Targetscriptdir -Script prepare-disks.ps1
-			write-verbose "Setup e16 Prereqs"
-			invoke-vmxpowershell -config $CloneVMX -Guestuser $Adminuser -Guestpassword $Adminpassword -ScriptPath $Targetscriptdir -Script install-exchangeprereqs.ps1 -interactive
-            checkpoint-progress -step exprereq -reboot -Guestuser $Adminuser -Guestpassword $Adminpassword
-			write-verbose "Setting Power Scheme"
-			invoke-vmxpowershell -config $CloneVMX -Guestuser $Adminuser -Guestpassword $Adminpassword -ScriptPath $Targetscriptdir -Script powerconf.ps1 -interactive
-			write-verbose "Installing e16, this may take up to 60 Minutes ...."
-			invoke-vmxpowershell -config $CloneVMX -Guestuser $Adminuser -Guestpassword $Adminpassword -ScriptPath $Targetscriptdir -Script install-exchange.ps1 -interactive -nowait -Parameter "$CommonParameter -ex_cu $e16_cu"
             }
             
         if ($EXnew)
