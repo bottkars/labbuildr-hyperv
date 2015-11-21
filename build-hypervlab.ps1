@@ -923,7 +923,7 @@ $NodeScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
 "
 if ($next_phase_no_reboot)
     {
-    $Content += "$NodeScriptDir\run-$next_phase.ps1
+    $Content += "$GuestScriptdir\scripts\run-$next_phase.ps1
     "
     }
 else
