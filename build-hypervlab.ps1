@@ -2071,6 +2071,7 @@ $Content = "###
 `$ScriptName = `$MyInvocation.MyCommand.Name
 `$Host.UI.RawUI.WindowTitle = `$ScriptName
 `$Logfile = New-Item -ItemType file `"c:\scripts\`$ScriptName.log`"
+New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name '99-$next_phase' -Value '$PSHOME\powershell.exe -Command `". $GuestScriptdir\scripts\run-$next_phase.ps1`"'
 $NodeScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status started
 $NodeScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
 $ScenarioScriptdir\install-exchange.ps1 -ex_cu $e16_cu -SourcePath $SourcePath -Scriptdir $GuestScriptdir
