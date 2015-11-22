@@ -586,6 +586,33 @@ function Extract-Zip
 	}
 }
 
+function test-source
+{
+	param ($SourceVer, $SourceDir)
+	
+	
+	$SourceFiles = (Get-ChildItem $SourceDir -ErrorAction SilentlyContinue).Name
+	#####
+	
+	foreach ($Version in ($Sourcever))
+	{
+		if ($Version -ne "")
+		{
+			write-verbose "Checking $Version"
+			if (!($SourceFiles -contains $Version))
+			{
+				write-Host "$Sourcedir does not contain $Version"
+				debug "Please Download and extraxt $Version to $Sourcedir\$Version"
+				$Sourceerror = $true
+			}
+			else { write-verbose "found $Version, good..." }
+		}
+		
+	}
+	If ($Sourceerror) { return, $false }
+	else { return, $true }
+}
+
 function get-prereq
 { 
 param ([string]$DownLoadUrl,
@@ -827,10 +854,7 @@ function get-vmguesttask
         }
     Return $taskstatus
 }
-
-
 ############################### phase fuctions
-
 function run-startcustomize
 {
 param (
@@ -856,7 +880,6 @@ Write-Verbose $Content
 Write-Verbose ""
 Set-Content "$Isodir\$Scripts\$Current_phase.ps1" -Value $Content -Force
 }
-
 function run-phase1
 {
 param (
@@ -866,7 +889,6 @@ param (
 
 
 }
-
 function run-phase2
 {
 param (
@@ -966,7 +988,6 @@ Write-Verbose $Content
 Set-Content "$Isodir\$Scripts\run-$Current_phase.ps1" -Value $Content -Force
 
 }
-
 
 ############################### End Function
 switch ($PsCmdlet.ParameterSetName)
@@ -1529,6 +1550,200 @@ if (!(test-path $Builddir\bin\mkisofs.exe -ErrorAction SilentlyContinue))
     Expand-LABZip -zipfilename "$Builddir\$Zipfile" -destination "$Builddir\bin"
     }
 
+
+####### Building required Software Versions Tabs
+
+$Sourcever = @()
+
+# $Sourcever = @("$nw_ver","$nmm_ver","E2013$ex_cu","$WAIKVER","$SQL2012R2")
+if (!($DConly.IsPresent))
+{
+	if ($Exchange2013.IsPresent) 
+        {
+        $EX_Version = "E2013"
+        $Scenarioname = "Exchange"
+        $Scenario = 1
+        }
+    if ($Exchange2016.IsPresent) 
+        {
+        $EX_Version = "E2016"
+        $Scenarioname = "Exchange"
+        $Scenario = 1
+        }
+	if (($NMM.IsPresent) -and ($Blanknode -eq $false)) { $Sourcever += $nmm_ver }
+	if ($NWServer.IsPresent -or $NW.IsPresent -or $NMM.IsPresent ) 
+        { 
+        $Sourcever += $nw_ver 
+        }
+	if ($SQL.IsPresent -or $AlwaysOn.IsPresent) 
+        {
+        $Sourcever +=  $AAGDB #$SQLVER,
+        $Scenarioname = "SQL"
+        $SQL = $true
+        $Scenario = 2
+        }
+	if ($HyperV.IsPresent)
+	{
+		
+        $Scenarioname = "Hyper-V"
+        $Scenario = 3
+        if ($ScaleIO.IsPresent) 
+            { 
+            $Sourcever += "ScaleIO"
+            }
+	}
+	if ($Sharepoint.IsPresent)
+	{
+		
+        $Scenarioname = "Sharepoint"
+        $Scenario = 4
+	}
+} # end not dconly
+if ($NWServer.IsPresent -or $NW.IsPresent)
+    {
+    $url = "ftp://ftp.adobe.com/pub/adobe/reader/win/Acrobat2015/1500630033/AcroRdr20151500630033_MUI.exe"
+    $FileName = Split-Path -Leaf -Path $Url
+    if (!(test-path  $Sourcedir\$FileName))
+        {
+        Write-Verbose "$FileName not found, trying Download"
+        if (!( Get-LABFTPFile -Source $URL -Target $Sourcedir\$FileName -verbose -UserName Anonymous -Password "Admin@labbuildr.local"))
+            { 
+            write-warning "Error Downloading file $Url, Please check connectivity"
+            }
+        }
+
+    }
+
+if ($NWServer.IsPresent -or $NMM.IsPresent -or $NW.IsPresent)
+    {
+
+    if ((Test-Path "$Sourcedir/$nw_ver/win_x64/networkr/networker.msi") -or (Test-Path "$Sourcedir/$nw_ver/win_x64/networkr/lgtoclnt-8.5.0.0.exe"))
+        {
+        Write-Verbose "Networker $nw_ver found"
+        }
+    elseif ($nw_ver -lt "nw84")
+        {
+
+        Write-Warning "We need to get $NW_ver, trying Automated Download"
+        if ($nw_ver -notin ('nw822','nw821','nw82'))
+            {
+            $nwdotver = $nw_ver -replace "nw",""
+            $nwdotver = $nwdotver.insert(1,'.')
+            $nwdotver = $nwdotver.insert(3,'.')
+            $nwdotver = $nwdotver.insert(5,'.')
+            $nwzip = $nw_ver -replace ".$"
+            $nwzip = $nwzip+'_win_x64.zip'
+            $url = "ftp://ftp.legato.com/pub/NetWorker/Cumulative_Hotfixes/$($nwdotver.Substring(0,3))/$nwdotver/$nwzip"
+            if ($url)
+            {
+            # $FileName = Split-Path -Leaf -Path $Url
+            $FileName = "$nw_ver.zip"
+            $Zipfilename = Join-Path $Sourcedir $FileName
+            $Destinationdir = Join-Path $Sourcedir $nw_ver
+            if (!(test-path  $Zipfilename ))
+                {
+                Write-Verbose "$FileName not found, trying Download"
+                if (!( Get-LABFTPFile -Source $URL -Target $Zipfilename -verbose -Defaultcredentials))
+                    { 
+                    write-warning "Error Downloading file $Url, 
+                    $url might not exist.
+                    Please check connectivity or download manually"
+                    break
+                    }
+                }
+            Write-Verbose $Zipfilename     
+            Expand-LABZip -zipfilename "$Zipfilename" -destination "$Destinationdir" -verbose
+            }
+            }
+        else
+            {
+            Write-Warning "We can only autodownload Cumulative Updates from ftp, please get $nw_ver from support.emc.com"
+            break
+            }
+
+      } #end elseif
+}
+
+if ($NMM.IsPresent)
+    {
+    <#
+    if ($nmm_ver -ge "nmm85")
+        { 
+        write-verbose "we need .Net Framework 4.51 or later"
+        $Prereqdir = "NMMPrereq"
+        $Url =  "http://download.microsoft.com/download/E/2/1/E21644B5-2DF2-47C2-91BD-63C560427900/NDP452-KB2901907-x86-x64-AllOS-ENU.exe"
+        $FileName = Split-Path -Leaf -Path $Url
+        Write-Verbose "Testing $FileName in $Prereqdir"
+        if (!(test-path  "$Sourcedir\$Prereqdir\$FileName"))
+        {
+        Write-Verbose "Trying Download"
+        if (!(get-prereq -DownLoadUrl $URL -destination  "$Sourcedir\$Prereqdir\$FileName"))
+            { 
+            write-warning "Error Downloading file $Url, Please check connectivity"
+            exit
+            }
+        }
+    }
+    #>   
+         
+
+    if ((Test-Path "$Sourcedir/$nmm_ver/win_x64/networkr/NetWorker Module for Microsoft.msi") -or (Test-Path "$Sourcedir/$nmm_ver/win_x64/networkr/NWVSS.exe"))
+        {
+        Write-Verbose "Networker NMM $nmm_ver found"
+        }
+    else
+        {
+        Write-Warning "We need to get $NMM_ver, trying Automated Download"
+        # New-Item -ItemType Directory -Path $Sourcedir\$EX_Version$ex_cu | Out-Null
+        # }
+        $URLS = ""
+        if ($nmm_ver -notin ('nmm822','nmm821','nmm82') -and $nmm_ver -gt 'nmm_82')
+            {
+            $nmmdotver = $nmm_ver -replace "nmm",""
+            $nmmdotver = $nmmdotver.insert(1,'.')
+            $nmmdotver = $nmmdotver.insert(3,'.')
+            $nmmdotver = $nmmdotver.insert(5,'.')
+            $nmmzip = $nmm_ver -replace ".$"
+            $nmmzip = $nmmzip+'_win_x64.zip'
+            $scvmmzip = $nmmzip -replace "nmm","scvmm"
+            Write-Verbose "$scvmmzip"
+            $urls = ("ftp://ftp.legato.com/pub/NetWorker/NMM/Cumulative_Hotfixes/$($nmmdotver.Substring(0,5))/$nmmdotver/$nmmzip",
+                     "ftp://ftp.legato.com/pub/NetWorker/NMM/Cumulative_Hotfixes/$($nmmdotver.Substring(0,5))/$nmmdotver/$scvmmzip")
+            }
+
+        if ($urls)
+            {
+            foreach ($url in $urls)
+                {
+                $FileName = Split-Path -Leaf -Path $Url
+                if ($FileName -match "nmm")
+                    {
+                    $Zipfilename = "$nmm_ver.zip"
+                    }
+                if ($FileName -match "scvmm")
+                    {
+                    $Zipfilename = "$NMM_scvmm_ver.zip"
+                    }
+                $Zipfile = Join-Path $Sourcedir $Zipfilename
+                if (!(test-path  $Zipfile))
+                    {
+                    Write-Verbose "$Zipfilename not found, trying Download"
+                    if (!( Get-LABFTPFile -Source $URL -Target $Zipfile -verbose -Defaultcredentials))
+                        { 
+                        write-warning "Error Downloading file $Url, Please check connectivity"
+                        }
+                    }
+                $Destinationdir =  "$($Zipfile.replace(".zip"," "))"
+                Write-Verbose $Destinationdir
+                Expand-LABZip -zipfilename $Zipfile -destination $Destinationdir
+                }
+            }
+      }
+}
+
+
+
+
 if ($Exchange2016.IsPresent)
 {
     if (!$e16_cu)
@@ -1650,6 +1865,99 @@ if ($Exchange2016.IsPresent)
 	        }
 
 }
+
+
+##end Autodownloaders
+##########################################
+if ($nw.IsPresent -and !$NoDomainCheck.IsPresent) { workorder "Networker $nw_ver Node will be installed" }
+write-verbose "Checking Environment"
+if ($NW.IsPresent -or $NWServer.IsPresent)
+{
+    if (!$Scenarioname) 
+        {
+        $Scenarioname = "nwserver"
+        $Scenario = 8
+        }
+	if (!($Acroread = Get-ChildItem -Path $Sourcedir -Filter 'a*rdr*.exe'))
+	    {
+		status "Adobe reader not found ...."
+	    }
+	else
+	    {
+		$Acroread = $Acroread | Sort-Object -Property Name -Descending
+		$LatestReader = $Acroread[0].Name
+		write-verbose "Found Adobe $LatestReader"
+	    }
+	
+	##### 
+    $Java7_required = $True
+    #####
+If ($nw_ver -gt "nw85.BR1")
+            {
+            $Java8_required = $true
+            $Java7_required = $false
+            if ($LatestJava7)
+                {
+                $LatestJava = $LatestJava7
+                }
+            
+            if ($LatestJava8)
+                {
+                $LatestJava = $LatestJava8
+                }
+            }
+}
+
+#end $nw
+
+
+if ($Java7_required)
+    {
+    Write-Verbose "Checking for Java 7"
+    if (!($Java7 = Get-ChildItem -Path $Sourcedir -Filter 'jre-7*x64*'))
+	    {
+		write-warning "Java7 not found, please download from www.java.com"
+	    break
+        }
+    else
+        {
+	    $Java7 = $Java7 | Sort-Object -Property Name -Descending
+	    $LatestJava = $Java7[0].Name
+        }
+    }
+
+
+If ($Java8_required)
+    {
+    Write-Verbose "Checking for Java 8"
+    if (!($Java8 = Get-ChildItem -Path $Sourcedir -Filter 'jre-8*x64*'))
+        {
+	    Write-Warning "Java8 not found, trying download"
+        Write-Verbose "Asking for latest Java8"
+        $LatestJava = (get-labJava64 -DownloadDir $Sourcedir).LatestJava8
+        if (!$LatestJava)
+            {
+            break
+            }
+	    }
+    else
+        {
+        $Java8 = $Java8 | Sort-Object -Property Name -Descending
+	    $LatestJava = $Java8[0].Name
+        Write-Verbose "Got $LatestJava"
+        }
+    }
+
+
+
+if (!($SourceOK = test-source -SourceVer $Sourcever -SourceDir $Sourcedir))
+{
+	Write-Verbose "Sourcecomlete: $SourceOK"
+	break
+}
+if ($DefaultGateway) {$AddGateway  = "-DefaultGateway $DefaultGateway"}
+If ($VMnet -ne "VMnet2") { debug "Setting different Network is untested and own Risk !" }
+
 
 ##########
 switch ($PsCmdlet.ParameterSetName)
