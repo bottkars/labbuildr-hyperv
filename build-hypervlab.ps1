@@ -618,22 +618,33 @@ function status
 	write-host -ForegroundColor Yellow $message
 }
 
-
-<#function CreateShortcut
+function test-dcrunning
 {
-	$wshell = New-Object -comObject WScript.Shell
-	$Deskpath = $wshell.SpecialFolders.Item('Desktop')
-	# $path2 = $wshell.SpecialFolders.Item('Programs')
-	# $path1, $path2 | ForEach-Object {
-	$link = $wshell.CreateShortcut("$Deskpath\$Buildname.lnk")
-	$link.TargetPath = "$psHome\powershell.exe"
-	$link.Arguments = "-noexit -command $Builddir\profile.ps1 -verb 'RunAs'"
-	$link.Description = "$Buildname"
-	$link.WorkingDirectory = "$Builddir"
-	$link.IconLocation = 'powershell.exe,1'
-	$link.Save()
-	# }
-#>
+	$Origin = $MyInvocation.MyCommand
+    
+    try
+        {
+        $dcnode_status = get-vm DCNODE | where {$_.path -eq "$Builddir\dcnode"}
+        }
+    catch 
+        {
+        Write-Warning "No dc installed for $Builddir labbuildr environment"
+        break
+        }
+    $Running_Domain = get-vmguesttask -Node DCNode -Task Domain
+    $Running_IP = get-vmguesttask -Node dcnode -Task IPAddress
+    if ($dcnode_status.state -ne "running")
+        {
+        write-warning "DCNode not running, we need to start it first"
+        Break
+        }
+  <#  if (!$NoDomainCheck.IsPresent)
+	}#end if
+	else
+# } end nodomaincheck#>
+return $True
+} #end test-dcrunning
+
 Function CreateShortcut
 {
     [CmdletBinding()]
@@ -1796,6 +1807,7 @@ check-task -task "phase$n" -nodename $NodeName -sleep $Sleep
         }#end dconly
 
 	"Blanknodes" {
+        test-dcrunning
         $CloneParameter = $CommonParameter
         if ($SpacesDirect.IsPresent )
             {
