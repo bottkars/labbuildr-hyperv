@@ -636,6 +636,7 @@ function test-dcrunning
     if ($dcnode_status.state -ne "running")
         {
         write-warning "DCNode not running, we need to start it first"
+        $dcnode_status | Start-VM
         Break
         }
   <#  if (!$NoDomainCheck.IsPresent)
