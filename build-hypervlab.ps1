@@ -1750,6 +1750,7 @@ restart-computer
 `$Logfile = New-Item -ItemType file `"c:\scripts\`$ScriptName.log`"
 $NodeScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
 $NodeScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status started
+$ScenarioScriptdir\check-domain.ps1 -SourcePath $SourcePath -Scriptdir $GuestScriptdir
 $NodeScriptDir\set-vmguestshare.ps1 -user $Labbuildr_share_User -password $Labbuildr_share_password -HostIP $HostIP
 $NodeScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status finished
 #New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name '99-$next_phase' -Value '$PSHOME\powershell.exe -Command `". $Isodir\scripts\run-$next_phase.ps1`"'
