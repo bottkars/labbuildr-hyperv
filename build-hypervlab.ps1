@@ -625,7 +625,7 @@ function test-dcrunning
     
     try
         {
-        $dcnode_status = get-vm DCNODE | where {$_.path -eq "$Builddir\dcnode"}
+        $dcnode_status = get-vm DCNODE | where {$_.path -eq "$Builddir\dcnode"} -ErrorAction stop
         }
     catch 
         {
