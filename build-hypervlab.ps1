@@ -2198,19 +2198,21 @@ if (($NW.IsPresent -and !$NoDomainCheck.IsPresent) -or $NWServer.IsPresent)
 	        ###################################################
 	        $Nodeip = "$IPv4Subnet.$Gatewayhost"
 	        $Nodename = $NWNODE
+            $NodePrefix = $NWNODE
             [string]$AddonFeatures = "RSAT-ADDS, RSAT-ADDS-TOOLS, AS-HTTP-Activation, NET-Framework-45-Features"
-            $ScenarioScriptDir = "$GuestScriptdir\$NWNODE" 
+            $ScenarioScriptdir = "$IN_Guest_CD_Scriptdir\$NodePrefix"
 	        ###################################################
             if ($nw_ver -ge "nw85")
                 {
                 $Size = "L"
                 }
-
-            if ($PSCmdlet.MyInvocation.BoundParameters["verbose"].IsPresent)
-                { 
-                Write-verbose "Now Pausing, Clone Process will start after keypress"
-             pause
+            $CloneParameter = $CommonParameter
+            If ($vlanID)
+                {
+                $CloneParameter = "$CloneParameter -vlanid $vlanID"
                 }
+
+
 	        test-dcrunning
             If ($DefaultGateway -match $Nodeip){$SetGateway = "-Gateway"}
 	        ###################################################
@@ -2255,7 +2257,7 @@ if (($NW.IsPresent -and !$NoDomainCheck.IsPresent) -or $NWServer.IsPresent)
 
             $previous_phase = $current_phase
             $current_phase = $next_phase
-            $next_phase = "phase_EX_SETUP"
+            $next_phase = "phase_nw_done"
 $Content = "###
 `$ScriptName = `$MyInvocation.MyCommand.Name
 `$Host.UI.RawUI.WindowTitle = `$ScriptName
