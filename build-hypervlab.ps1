@@ -1923,7 +1923,7 @@ $AddContent = @()
             }
         $AddContent += "$NodeScriptDir\set-vmguesttask.ps1 -Task $Current_phase -Status finished
 "
-        Write-Verbose $AddContent
+        # Write-Verbose $AddContent
         Add-Content "$Isodir\Scripts\run-$Current_phase.ps1" -Value $AddContent -Force
 ## end Phase4          
         
