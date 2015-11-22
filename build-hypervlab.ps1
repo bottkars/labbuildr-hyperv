@@ -65,7 +65,7 @@ param (
     #>
 	[Parameter(ParameterSetName = "E16", Mandatory = $false)]
     [ValidateSet('final')]$e16_cu,
-        <#
+    <#
     Determines if Exchange should be installed in a DAG
     #>
     [Parameter(ParameterSetName = "E16", Mandatory = $false)]
@@ -91,7 +91,12 @@ param (
     <# Install a DAG without Management IP Address ? #>
     [Parameter(ParameterSetName = "E16", Mandatory = $false)]
 	[Parameter(ParameterSetName = "E15", Mandatory = $false)][switch]$DAGNOIP,
-
+    <#
+    Specify if Networker Scenario sould be installed
+    IP-Addresses: .11
+    #>
+    [Parameter(ParameterSetName = "NWserver", Mandatory = $false)]
+	[switch][alias('nsr')]$NWServer,
 
     <# Starting Node for Blank Nodes#>
     [Parameter(ParameterSetName = "Blanknodes", Mandatory = $false)][ValidateRange(1, 12)][alias('bs')]$Blankstart = "1",
