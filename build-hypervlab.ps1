@@ -2572,9 +2572,9 @@ $Content = "###
 `$Logfile = New-Item -ItemType file `"c:\$Scripts\`$ScriptName.log`"
 $IN_Node_ScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status started
 $IN_Node_ScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
-$ScenarioScriptdir\install-program.ps1 -Program $LatestJava -ArgumentList '/s' -SourcePath $IN_Guest_Sourcepath -Scriptdir $IN_Guest_CD_Scriptdir
-$ScenarioScriptdir\install-program.ps1 -Parameter -Program $LatestReader -ArgumentList '/sPB /rs' -SourcePath $IN_Guest_Sourcepath -Scriptdir $IN_Guest_CD_Scriptdir
-$ScenarioScriptdir\install-nwserver.ps1 -Parameter -nw_ver $nw_ver -SourcePath $IN_Guest_Sourcepath -Scriptdir $IN_Guest_CD_Scriptdir
+$IN_Node_ScriptDir\install-program.ps1 -Program $LatestJava -ArgumentList '/s' -SourcePath $IN_Guest_Sourcepath -Scriptdir $IN_Guest_CD_Scriptdir
+$IN_Node_ScriptDir\install-program.ps1 -Program $LatestReader -ArgumentList '/sPB /rs' -SourcePath $IN_Guest_Sourcepath -Scriptdir $IN_Guest_CD_Scriptdir
+$ScenarioScriptdir\install-nwserver.ps1 -nw_ver $nw_ver -SourcePath $IN_Guest_Sourcepath -Scriptdir $IN_Guest_CD_Scriptdir
 $ScenarioScriptdir\nsruserlist.ps1 -SourcePath $IN_Guest_Sourcepath -Scriptdir $IN_Guest_CD_Scriptdir
 $ScenarioScriptdir\create-nsrdevice.ps1 -AFTD AFTD1 -SourcePath $IN_Guest_Sourcepath -Scriptdir $IN_Guest_CD_Scriptdir
 New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name '99-$next_phase' -Value '$PSHOME\powershell.exe -Command `". $IN_Guest_CD_Scriptdir\$Scripts\run-$next_phase.ps1`"'
