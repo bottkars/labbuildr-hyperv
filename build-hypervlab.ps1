@@ -34,7 +34,7 @@ param (
 	[Parameter(ParameterSetName = "update",Mandatory = $false, HelpMessage = "this will update labbuildr from latest git commit")][switch]$Update,
     <#
     run build-lab update    #>
-	[Parameter(ParameterSetName = "update",Mandatory = $false, HelpMessage = "select a branch to update from")][ValidateSet('develop','testing','master')]$branch  = "master",
+	[Parameter(ParameterSetName = "update",Mandatory = $false, HelpMessage = "select a branch to update from")][ValidateSet('develop','testing','master')]$branch  = "develop",
     [Parameter(ParameterSetName = "update",Mandatory = $false, HelpMessage = "this will force update labbuildr")]
     [switch]$force,
         <# 
@@ -2158,57 +2158,10 @@ Set-Content "$Isodir\$Scripts\run-$Current_phase.ps1" -Value $Content -Force
 		    If ($CloneOK)
             {
             check-task -task "start-customize" -nodename $NodeName -sleep $Sleep
-
-            $EXnew = $True
+            }
             <##
             }
             
-        if ($EXnew)
-        {
-        foreach ($EXNODE in ($EXStartNode..($EXNodes+$EXStartNode-1)))
-            {
-            $Nodename = "$EX_Version"+"N"+"$EXNODE"
-            $CloneVMX = (get-vmx $Nodename).config
-            # 
-			test-user -whois Administrator
-            status "Waiting for Pass 4 (e16 Installed) for $Nodename"
-            #$EXSetupStart = Get-Date
-			    While ($FileOK = (&$vmrun -gu $BuildDomain\Administrator -gp Password123! fileExistsInGuest $CloneVMX c:\$Scripts\exchange.pass) -ne "The file exists.")
-			    {
-				    sleep $Sleep
-				    #runtime $EXSetupStart "Exchange"
-			    } #end while
-			    Write-Host
-                    do {
-                        $ToolState = Get-VMXToolsState -config $CloneVMX
-                         Write-Verbose $ToolState.State
-                        }
-                    until ($ToolState.state -match "running")
-            write-Verbose "Performing e16 Post Install Tasks:"
-    		invoke-vmxpowershell -config $CloneVMX -Guestuser $Adminuser -Guestpassword $Adminpassword -ScriptPath $Targetscriptdir -Script configure-exchange.ps1 -interactive
-     
-    
-    #  -nowait
-            if ($EXNode -eq ($EXNodes+$EXStartNode-1)) #are we last sever in Setup ?!
-                {
-                if ($DAG.IsPresent) 
-                    {
-				    write-verbose "Creating DAG"
-				    invoke-vmxpowershell -config $CloneVMX -Guestuser $Adminuser -Guestpassword $Adminpassword -ScriptPath $Targetscriptdir -activeWindow -interactive -Script create-dag.ps1 -Parameter "-DAGIP $DAGIP -AddressFamily $EXAddressFamiliy -EX_Version $EX_Version $CommonParameter"
-				    } # end if $DAG
-                if (!($nouser.ispresent))
-                    {
-                    write-verbose "Creating Accounts and Mailboxes:"
-	                do
-				        {
-					    ($cmdresult = &$vmrun -gu "$BuildDomain\Administrator" -gp Password123! runPrograminGuest  $CloneVMX -activeWindow -interactive c:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe ". 'C:\Program Files\Microsoft\Exchange Server\V15\bin\RemoteExchange.ps1'; Connect-ExchangeServer -auto; C:\$Scripts\User.ps1 -subnet $IPv4Subnet -AddressFamily $AddressFamily -IPV6Prefix $IPV6Prefix $CommonParameter") 
-					    if ($BugTest) { debug $Cmdresult }
-				        }
-				    until ($VMrunErrorCondition -notcontains $cmdresult)
-                    } #end creatuser
-            }# end if last server
-       }      
-		
         foreach ($EXNODE in ($EXStartNode..($EXNodes+$EXStartNode-1)))
             {
             $Nodename = "$EX_Version"+"N"+"$EXNODE"
@@ -2228,10 +2181,144 @@ Set-Content "$Isodir\$Scripts\run-$Current_phase.ps1" -Value $Content -Force
 			########### leaving NMM Section ###################
 		    invoke-postsection
     #>
-                }
+                
            }#end foreach exnode
        }
 } #End Switchblock Exchange
 
+if (($NW.IsPresent -and !$NoDomainCheck.IsPresent) -or $NWServer.IsPresent)
+{
+	        ###################################################
+	        # Networker Setup
+	        ###################################################
+	        $Nodeip = "$IPv4Subnet.$Gatewayhost"
+	        $Nodename = $NWNODE
+            [string]$AddonFeatures = "RSAT-ADDS, RSAT-ADDS-TOOLS, AS-HTTP-Activation, NET-Framework-45-Features"
+            $ScenarioScriptDir = "$GuestScriptdir\$NWNODE" 
+	        ###################################################
+            if ($nw_ver -ge "nw85")
+                {
+                $Size = "L"
+                }
+
+            if ($PSCmdlet.MyInvocation.BoundParameters["verbose"].IsPresent)
+                { 
+                Write-verbose "Now Pausing, Clone Process will start after keypress"
+             pause
+                }
+	        test-dcrunning
+            If ($DefaultGateway -match $Nodeip){$SetGateway = "-Gateway"}
+	        ###################################################
+	        status "Creating Networker Server $Nodename"
+            write-verbose $Nodename
+            write-verbose "Node has ip: $Nodeip"
+            Write-Verbose $IPv4Subnet
+            Write-Verbose "IPv4PrefixLength = $IPv4PrefixLength"
+            Write-Verbose "IPv6Prefix = $IPV6Prefix"
+            Write-Verbose "IPv6PrefixLength = $IPv6PrefixLength"
+            Write-Verbose "Addressfamily = $AddressFamily"
+####prepare iso
+            Remove-Item -Path "$Isodir\$Scripts" -Force -Recurse -ErrorAction SilentlyContinue | Out-Null
+            New-Item -ItemType Directory "$Isodir\$Scripts" -Force | Out-Null
+            New-Item -ItemType Directory "$Builddir\$NodePrefix" -Force | Out-Null
+            $Current_phase = "start-customize"
+            $next_phase = "phase2"
+            run-startcustomize -Current_phase $Current_phase -next_phase $next_phase
+        
+
+### phase 2
+            $previous_phase = $current_phase
+            $current_phase = $next_phase
+            $next_phase = "phase3"
+            run-phase2 -Current_phase $Current_phase -next_phase $next_phase
+
+### phase 3
+            $previous_phase = $current_phase
+            $current_phase = $next_phase
+            $next_phase = "phase4"
+            run-phase3 -Current_phase $Current_phase -next_phase $next_phase
+        
+## Phase 4
+            $previous_phase = $current_phase
+            $current_phase = $next_phase
+            $next_phase = "install_nw"
+            $Next_Phase_noreboot = $true
+            run-phase4 -Current_phase $Current_phase -next_phase $next_phase -next_phase_no_reboot
+
+## phase install_nw
+
+
+            $previous_phase = $current_phase
+            $current_phase = $next_phase
+            $next_phase = "phase_EX_SETUP"
+$Content = "###
+`$ScriptName = `$MyInvocation.MyCommand.Name
+`$Host.UI.RawUI.WindowTitle = `$ScriptName
+`$Logfile = New-Item -ItemType file `"c:\$Scripts\`$ScriptName.log`"
+$IN_Node_ScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status started
+$IN_Node_ScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
+$ScenarioScriptdir\install-program.ps1 -Program $LatestJava -ArgumentList '/s' -SourcePath $IN_Guest_Sourcepath -Scriptdir $IN_Guest_CD_Scriptdir
+$ScenarioScriptdir\install-program.ps1 -Parameter -Program $LatestReader -ArgumentList '/sPB /rs' -SourcePath $IN_Guest_Sourcepath -Scriptdir $IN_Guest_CD_Scriptdir
+$ScenarioScriptdir\install-nwserver.ps1 -Parameter -nw_ver $nw_ver -SourcePath $IN_Guest_Sourcepath -Scriptdir $IN_Guest_CD_Scriptdir
+$ScenarioScriptdir\nsruserlist.ps1 -SourcePath $IN_Guest_Sourcepath -Scriptdir $IN_Guest_CD_Scriptdir
+$ScenarioScriptdir\create-nsrdevice.ps1 -AFTD AFTD1 -SourcePath $IN_Guest_Sourcepath -Scriptdir $IN_Guest_CD_Scriptdir
+New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name '99-$next_phase' -Value '$PSHOME\powershell.exe -Command `". $IN_Guest_CD_Scriptdir\$Scripts\run-$next_phase.ps1`"'
+# restart-computer
+"
+Write-Verbose $Content
+Set-Content "$Isodir\$Scripts\run-$Current_phase.ps1" -Value $Content -Force
+   
+
+
+
+#################
+<#
+		# Setup Networker
+		invoke-vmxpowershell -config $CloneVMX -Guestuser $Adminuser -Guestpassword $Adminpassword -ScriptPath $ScenarioScriptDir -Script install-nwserver.ps1 -Parameter "-nw_ver $nw_ver $CommonParameter"-interactive
+		if (!$Gateway.IsPresent)
+            {
+            checkpoint-progress -step networker -reboot
+            }
+        write-verbose "Waiting for NSR Media Daemon to start"
+		While (([string]$UserLoggedOn = (&$vmrun -gu Administrator -gp Password123! listProcessesInGuest $CloneVMX)) -notmatch "nsrd.exe") { write-host -NoNewline "." }
+		write-verbose "Creating Networker users"
+		invoke-vmxpowershell -config $CloneVMX -Guestuser $Adminuser -Guestpassword $Adminpassword -ScriptPath $ScenarioScriptDir -Script nsruserlist.ps1 -interactive
+		status "Creating AFT Device"
+        If ($DefaultGateway -match $Nodeip){
+                write-verbose "Opening Firewall on Networker Server for your Client"
+                invoke-vmxpowershell -config $CloneVMX -Guestuser $Adminuser -Guestpassword $Adminpassword -ScriptPath $ScenarioScriptDir -Script firewall.ps1 -interactive
+        		invoke-vmxpowershell -config $CloneVMX -Guestuser $Adminuser -Guestpassword $Adminpassword -ScriptPath $ScenarioScriptDir -Script add-rras.ps1 -interactive -Parameter "-IPv4Subnet $IPv4Subnet"
+                checkpoint-progress -step rras -reboot
+
+        }
+        invoke-postsection -wait
+        invoke-vmxpowershell -config $CloneVMX -Guestuser $Adminuser -Guestpassword $Adminpassword -ScriptPath $ScenarioScriptDir -Script configure-nmc.ps1 -interactive
+		progress "Please finish NMC Setup by Double-Clicking Networker Management Console from Desktop on $NWNODE.$builddomain.local"
+	    
+#>
+
+
+####### Iso Creation        
+            $Isocreatio = make-iso -Nodename $NodeName -Builddir $Builddir -isodir $Isodir
+####### clone creation
+            if ($PSCmdlet.MyInvocation.BoundParameters["verbose"].IsPresent)
+                {
+                Write-Verbose "Press any Key to continue to Cloning"
+                pause
+                }
+
+            $CloneOK = Invoke-Expression  "$Builddir\clone-node.ps1 -MasterVHD $MasterVHDX -Nodename $NodeName -Size $Size -HVSwitch $HVSwitch $CloneParameter"
+
+####### wait progress
+
+
+		    If ($CloneOK)
+            {
+            check-task -task "start-customize" -nodename $NodeName -sleep $Sleep
+            }
+
+
+
+} #Networker End
     
     
