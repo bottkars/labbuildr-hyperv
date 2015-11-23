@@ -2856,7 +2856,7 @@ Set-Content "$Isodir\$Scripts\run-$Current_phase.ps1" -Value $Content -Force
 	$Nodename = "SCOM"
     $NodePrefix = "SCOM"
     [string]$AddonFeatures = "RSAT-ADDS, RSAT-ADDS-TOOLS"
-    $ScenarioScriptDir = "$GuestScriptdir\$Scenarioname"
+    $ScenarioScriptDir = "$IN_Guest_CD_Scriptroot\$NodePrefix"
     $SQLScriptDir = "$GuestScriptdir\sql\"
     if ($Size -lt "XL")
         {
