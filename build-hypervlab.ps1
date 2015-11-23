@@ -553,10 +553,10 @@ $AddonFeatures = ("RSAT-ADDS", "RSAT-ADDS-TOOLS", "AS-HTTP-Activation", "NET-Fra
 $Gatewayhost = "11" 
 $Host.UI.RawUI.WindowTitle = "$Buildname"
 $IN_Guest_Sourcepath = "X:"
-$IN_Guest_Scriptpath = "Y:"
-$IN_Guest_CD_Scriptdir = "D:"
+$IN_Guest_Scriptroot = "Y:"
+$IN_Guest_CD_Scriptroot = "D:"
 $IN_Guest_LogDir = "C:\$Scripts"
-$IN_Node_ScriptDir = "$IN_Guest_CD_Scriptdir\Node"
+$IN_Guest_CD_Node_ScriptDir = "$IN_Guest_CD_Scriptroot\Node"
 
 ##################
 ###################################################
@@ -921,9 +921,9 @@ if (!(Test-Path `$logpath))
 `$ScriptName = `$MyInvocation.MyCommand.Name
 `$Host.UI.RawUI.WindowTitle = `$ScriptName
 `$Logfile = New-Item -ItemType file `"c:\$Scripts\`$ScriptName.log`"
-$IN_Node_ScriptDir\set-vmguesttask.ps1 -Task $Current_phase -Status started
-New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name '99-$next_phase' -Value '$PSHOME\powershell.exe -Command `". $IN_Guest_CD_Scriptdir\$Scripts\run-$next_phase.ps1`"'
-$IN_Node_ScriptDir\configure-node.ps1 -nodeip $Nodeip -IPv4subnet $IPv4subnet -nodename $Nodename -IPv4PrefixLength $IPv4PrefixLength -IPv6PrefixLength $IPv6PrefixLength -IPv6Prefix $IPv6Prefix -AddressFamily $AddressFamily $AddGateway -AddOnfeatures '$AddonFeatures' -Domain $BuildDomain $CommonParameter
+$IN_Guest_CD_Node_ScriptDir\set-vmguesttask.ps1 -Task $Current_phase -Status started
+New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name '99-$next_phase' -Value '$PSHOME\powershell.exe -Command `". $IN_Guest_CD_Scriptroot\$Scripts\run-$next_phase.ps1`"'
+$IN_Guest_CD_Node_ScriptDir\configure-node.ps1 -nodeip $Nodeip -IPv4subnet $IPv4subnet -nodename $Nodename -IPv4PrefixLength $IPv4PrefixLength -IPv6PrefixLength $IPv6PrefixLength -IPv6Prefix $IPv6Prefix -AddressFamily $AddressFamily $AddGateway -AddOnfeatures '$AddonFeatures' -Domain $BuildDomain $CommonParameter
 "
 Write-Verbose $Content
 Write-Verbose ""
@@ -949,11 +949,11 @@ $Content = "###
 `$ScriptName = `$MyInvocation.MyCommand.Name
 `$Host.UI.RawUI.WindowTitle = `$ScriptName
 `$Logfile = New-Item -ItemType file `"c:\$Scripts\`$ScriptName.log`"
-$IN_Node_ScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status started
-$IN_Node_ScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
-New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name '99-$next_phase' -Value '$PSHOME\powershell.exe -Command `". $IN_Guest_CD_Scriptdir\$Scripts\run-$next_phase.ps1`"'
+$IN_Guest_CD_Node_ScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status started
+$IN_Guest_CD_Node_ScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
+New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name '99-$next_phase' -Value '$PSHOME\powershell.exe -Command `". $IN_Guest_CD_Scriptroot\$Scripts\run-$next_phase.ps1`"'
 Set-ExecutionPolicy -ExecutionPolicy bypass -Force
-$IN_Node_ScriptDir\add-todomain.ps1 -Domain $BuildDomain -domainsuffix $domainsuffix -subnet $IPv4subnet -IPV6Subnet $IPv6Prefix -AddressFamily $AddressFamily -scriptdir $IN_Guest_CD_Scriptdir
+$IN_Guest_CD_Node_ScriptDir\add-todomain.ps1 -Domain $BuildDomain -domainsuffix $domainsuffix -subnet $IPv4subnet -IPV6Subnet $IPv6Prefix -AddressFamily $AddressFamily -scriptdir $IN_Guest_CD_Scriptroot
 "
 Write-Verbose ""
 Write-Verbose "$Content"
@@ -973,18 +973,18 @@ $Content = "###
 `$ScriptName = `$MyInvocation.MyCommand.Name
 `$Host.UI.RawUI.WindowTitle = `$ScriptName
 `$Logfile = New-Item -ItemType file `"c:\$Scripts\`$ScriptName.log`"
-$IN_Node_ScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status started
-New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name '99-$next_phase' -Value '$PSHOME\powershell.exe -Command `". $IN_Guest_CD_Scriptdir\$Scripts\run-$next_phase.ps1`"'
-$IN_Node_ScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
+$IN_Guest_CD_Node_ScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status started
+New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name '99-$next_phase' -Value '$PSHOME\powershell.exe -Command `". $IN_Guest_CD_Scriptroot\$Scripts\run-$next_phase.ps1`"'
+$IN_Guest_CD_Node_ScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
 Set-ExecutionPolicy -ExecutionPolicy bypass -Force
-$IN_Node_ScriptDir\powerconf.ps1 -Scriptdir $IN_Guest_CD_Scriptdir
-$IN_Node_ScriptDir\set-uac.ps1 -Scriptdir $IN_Guest_CD_Scriptdir
-$IN_Node_ScriptDir\set-winrm.ps1 -Scriptdir $IN_Guest_CD_Scriptdir
+$IN_Guest_CD_Node_ScriptDir\powerconf.ps1 -Scriptdir $IN_Guest_CD_Scriptroot
+$IN_Guest_CD_Node_ScriptDir\set-uac.ps1 -Scriptdir $IN_Guest_CD_Scriptroot
+$IN_Guest_CD_Node_ScriptDir\set-winrm.ps1 -Scriptdir $IN_Guest_CD_Scriptroot
 "
 
         if ($nw.IsPresent)
             {
-            $Content += "$IN_Node_ScriptDir\install-nwclient.ps1 -Scriptdir $IN_Guest_CD_Scriptdir"
+            $Content += "$IN_Guest_CD_Node_ScriptDir\install-nwclient.ps1 -Scriptdir $IN_Guest_CD_Scriptroot"
             }
 
         $Content += "restart-computer"
@@ -1006,18 +1006,18 @@ $Content = "###
 `$ScriptName = `$MyInvocation.MyCommand.Name
 `$Host.UI.RawUI.WindowTitle = `$ScriptName
 `$Logfile = New-Item -ItemType file `"c:\$Scripts\`$ScriptName.log`"
-$IN_Node_ScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status started
-$IN_Node_ScriptDir\set-vmguestshare.ps1 -user $Labbuildr_share_User -password $Labbuildr_share_password -HostIP $HostIP
-$IN_Node_ScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
+$IN_Guest_CD_Node_ScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status started
+$IN_Guest_CD_Node_ScriptDir\set-vmguestshare.ps1 -user $Labbuildr_share_User -password $Labbuildr_share_password -HostIP $HostIP
+$IN_Guest_CD_Node_ScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
 "
 if ($next_phase_no_reboot)
     {
-    $Content += "$IN_Guest_CD_Scriptdir\$Scripts\run-$next_phase.ps1
+    $Content += "$IN_Guest_CD_Scriptroot\$Scripts\run-$next_phase.ps1
     "
     }
 else
     {
-    $Content += "New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name '99-$next_phase' -Value '$PSHOME\powershell.exe -Command `". $IN_Guest_CD_Scriptdir\$Scripts\run-$next_phase.ps1`"'
+    $Content += "New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name '99-$next_phase' -Value '$PSHOME\powershell.exe -Command `". $IN_Guest_CD_Scriptroot\$Scripts\run-$next_phase.ps1`"'
     "
     }
 Write-Verbose $Content
@@ -2322,7 +2322,7 @@ switch ($PsCmdlet.ParameterSetName)
         $DCName =  $BuildDomain+"DC"
         $NodeName = "DCNODE"
         $NodePrefix = "DCNode"
-        $ScenarioScriptdir = "$IN_Guest_CD_Scriptdir\$NodePrefix"
+        $ScenarioScriptdir = "$IN_Guest_CD_Scriptroot\$NodePrefix"
         $NodeIP = "$IPv4Subnet.10"
         ####prepare iso
         Remove-Item -Path "$Isodir\$Scripts" -Force -Recurse -ErrorAction SilentlyContinue | Out-Null
@@ -2341,8 +2341,8 @@ if (!(Test-Path `$logpath))
 `$ScriptName = `$MyInvocation.MyCommand.Name
 `$Host.UI.RawUI.WindowTitle = `$ScriptName
 `$Logfile = New-Item -ItemType file `"c:\$Scripts\`$ScriptName.log`"
-$IN_Node_ScriptDir\set-vmguesttask.ps1 -Task $Current_phase -Status started
-New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name '99-$next_phase' -Value '$PSHOME\powershell.exe -Command `". $IN_Guest_CD_Scriptdir\$Scripts\run-$next_phase.ps1`"'
+$IN_Guest_CD_Node_ScriptDir\set-vmguesttask.ps1 -Task $Current_phase -Status started
+New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name '99-$next_phase' -Value '$PSHOME\powershell.exe -Command `". $IN_Guest_CD_Scriptroot\$Scripts\run-$next_phase.ps1`"'
 $ScenarioScriptdir\new-dc.ps1 -dcname $DCName -Domain $BuildDomain -IPv4subnet $IPv4subnet -IPv4Prefixlength $IPv4PrefixLength -IPv6PrefixLength $IPv6PrefixLength -IPv6Prefix $IPv6Prefix -AddressFamily $AddressFamily
 "
 # $ScenarioScriptdir\new-dc.ps1 -dcname $DCName -Domain $BuildDomain -IPv4subnet $IPv4subnet -IPv4Prefixlength $IPv4PrefixLength -IPv6PrefixLength $IPv6PrefixLength -IPv6Prefix $IPv6Prefix -AddressFamily $AddressFamily #-setwsman $CommonParameter
@@ -2359,9 +2359,9 @@ Set-Content "$Isodir\$Scripts\$Current_phase.ps1" -Value $Content -Force
 `$ScriptName = `$MyInvocation.MyCommand.Name
 `$Host.UI.RawUI.WindowTitle = `$ScriptName
 `$Logfile = New-Item -ItemType file `"c:\$Scripts\`$ScriptName.log`"
-$IN_Node_ScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status started
-$IN_Node_ScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
-New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name '99-$next_phase' -Value '$PSHOME\powershell.exe -Command `". $IN_Guest_CD_Scriptdir\$Scripts\run-$next_phase.ps1`"'
+$IN_Guest_CD_Node_ScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status started
+$IN_Guest_CD_Node_ScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
+New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name '99-$next_phase' -Value '$PSHOME\powershell.exe -Command `". $IN_Guest_CD_Scriptroot\$Scripts\run-$next_phase.ps1`"'
 Set-ExecutionPolicy -ExecutionPolicy bypass -Force
 $ScenarioScriptdir\finish-domain.ps1 -domain $BuildDomain -domainsuffix $domainsuffix
 "
@@ -2379,14 +2379,14 @@ Set-Content "$Isodir\$Scripts\run-$Current_phase.ps1" -Value $Content -Force
 `$ScriptName = `$MyInvocation.MyCommand.Name
 `$Host.UI.RawUI.WindowTitle = `$ScriptName
 `$Logfile = New-Item -ItemType file `"c:\$Scripts\`$ScriptName.log`"
-$IN_Node_ScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status started
-New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name '99-$next_phase' -Value '$PSHOME\powershell.exe -Command `". $IN_Guest_CD_Scriptdir\$Scripts\run-$next_phase.ps1`"'
-$IN_Node_ScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
+$IN_Guest_CD_Node_ScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status started
+New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name '99-$next_phase' -Value '$PSHOME\powershell.exe -Command `". $IN_Guest_CD_Scriptroot\$Scripts\run-$next_phase.ps1`"'
+$IN_Guest_CD_Node_ScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
 Set-ExecutionPolicy -ExecutionPolicy bypass -Force
 $ScenarioScriptdir\dns.ps1 -IPv4subnet $IPv4Subnet -IPv4Prefixlength $IPV4PrefixLength -IPv6PrefixLength $IPv6PrefixLength -AddressFamily $AddressFamily  -IPV6Prefix $IPV6Prefix
 $ScenarioScriptdir\add-serviceuser.ps1
 $ScenarioScriptdir\pwpolicy.ps1 
-#$IN_Node_ScriptDir\set-winrm.ps1 -Scriptdir $IN_Guest_CD_Scriptdir
+#$IN_Guest_CD_Node_ScriptDir\set-winrm.ps1 -Scriptdir $IN_Guest_CD_Scriptroot
 restart-computer
 "
 Write-Verbose $Content
@@ -2401,12 +2401,12 @@ Set-Content "$Isodir\$Scripts\run-$Current_phase.ps1" -Value $Content -Force
 `$ScriptName = `$MyInvocation.MyCommand.Name
 `$Host.UI.RawUI.WindowTitle = `$ScriptName
 `$Logfile = New-Item -ItemType file `"c:\$Scripts\`$ScriptName.log`"
-$IN_Node_ScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status started
-New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name '99-$next_phase' -Value '$PSHOME\powershell.exe -Command `". $IN_Guest_CD_Scriptdir\$Scripts\run-$next_phase.ps1`"'
-$IN_Node_ScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
-$IN_Node_ScriptDir\powerconf.ps1 -Scriptdir $IN_Guest_CD_Scriptdir
-$IN_Node_ScriptDir\set-uac.ps1 -Scriptdir $IN_Guest_CD_Scriptdir
-$IN_Node_ScriptDir\set-winrm.ps1 -Scriptdir $IN_Guest_CD_Scriptdir
+$IN_Guest_CD_Node_ScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status started
+New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name '99-$next_phase' -Value '$PSHOME\powershell.exe -Command `". $IN_Guest_CD_Scriptroot\$Scripts\run-$next_phase.ps1`"'
+$IN_Guest_CD_Node_ScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
+$IN_Guest_CD_Node_ScriptDir\powerconf.ps1 -Scriptdir $IN_Guest_CD_Scriptroot
+$IN_Guest_CD_Node_ScriptDir\set-uac.ps1 -Scriptdir $IN_Guest_CD_Scriptroot
+$IN_Guest_CD_Node_ScriptDir\set-winrm.ps1 -Scriptdir $IN_Guest_CD_Scriptroot
 restart-computer 
 "
         Write-Verbose $Content
@@ -2422,11 +2422,11 @@ restart-computer
 `$ScriptName = `$MyInvocation.MyCommand.Name
 `$Host.UI.RawUI.WindowTitle = `$ScriptName
 `$Logfile = New-Item -ItemType file `"c:\$Scripts\`$ScriptName.log`"
-$IN_Node_ScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
-$IN_Node_ScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status started
-$ScenarioScriptdir\check-domain.ps1 -Scriptdir $IN_Guest_CD_Scriptdir
-$IN_Node_ScriptDir\set-vmguestshare.ps1 -user $Labbuildr_share_User -password $Labbuildr_share_password -HostIP $HostIP
-$IN_Node_ScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status finished
+$IN_Guest_CD_Node_ScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
+$IN_Guest_CD_Node_ScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status started
+$ScenarioScriptdir\check-domain.ps1 -Scriptdir $IN_Guest_CD_Scriptroot
+$IN_Guest_CD_Node_ScriptDir\set-vmguestshare.ps1 -user $Labbuildr_share_User -password $Labbuildr_share_password -HostIP $HostIP
+$IN_Guest_CD_Node_ScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status finished
 #New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name '99-$next_phase' -Value '$PSHOME\powershell.exe -Command `". $Isodir\$Scripts\run-$next_phase.ps1`"'
 "
         Write-Verbose $Content
@@ -2530,7 +2530,7 @@ check-task -task "phase$n" -nodename $NodeName -sleep $Sleep
         $Nodeprefix = "Node"
         $NamePrefix = "GEN"
 		$Nodename = "$NamePrefix$NodePrefix$Node"
-        $ScenarioScriptdir = "$IN_Guest_CD_Scriptdir\$NodePrefix"
+        $ScenarioScriptdir = "$IN_Guest_CD_Scriptroot\$NodePrefix"
         $ClusterIP = "$IPv4Subnet.$Node_range"
 	    Write-Verbose $IPv4Subnet
         write-verbose $Nodename
@@ -2574,16 +2574,16 @@ $AddContent = @()
             {
             if ($Cluster.IsPresent)
                 {
-                $AddContent += "$IN_Node_ScriptDir\create-cluster.ps1 -Nodeprefix '$NamePrefix' -ClusterName $ClusterName -IPAddress '$ClusterIP' -IPV6Prefix $IPV6Prefix -IPv6PrefixLength $IPv6PrefixLength -AddressFamily $AddressFamily $CommonParameter -Scriptdir $IN_Guest_CD_Scriptdir 
+                $AddContent += "$IN_Guest_CD_Node_ScriptDir\create-cluster.ps1 -Nodeprefix '$NamePrefix' -ClusterName $ClusterName -IPAddress '$ClusterIP' -IPV6Prefix $IPV6Prefix -IPv6PrefixLength $IPv6PrefixLength -AddressFamily $AddressFamily $CommonParameter -Scriptdir $IN_Guest_CD_Scriptroot 
 "
                 if ($SpacesDirect.IsPresent)
                     {
-                    $AddContent += "$IN_Node_ScriptDir\new-s2dpool.ps1 -Scriptdir $IN_Guest_CD_Scriptdir 
+                    $AddContent += "$IN_Guest_CD_Node_ScriptDir\new-s2dpool.ps1 -Scriptdir $IN_Guest_CD_Scriptroot 
 "
                     }
                 }
             }
-        $AddContent += "$IN_Node_ScriptDir\set-vmguesttask.ps1 -Task $Current_phase -Status finished
+        $AddContent += "$IN_Guest_CD_Node_ScriptDir\set-vmguesttask.ps1 -Task $Current_phase -Status finished
 "
         # Write-Verbose $AddContent
         Add-Content "$Isodir\$Scripts\run-$Current_phase.ps1" -Value $AddContent -Force
@@ -2671,7 +2671,7 @@ $AddContent = @()
 			$Nodeip = "$IPv4Subnet.12$EXNODE"
 			$Nodename = "$EX_Version"+"N"+"$EXNODE"
             $NodePrefix = $EX_Version
-			$ScenarioScriptdir = "$IN_Guest_CD_Scriptdir\$NodePrefix"
+			$ScenarioScriptdir = "$IN_Guest_CD_Scriptroot\$NodePrefix"
 		    $SourceScriptDir = "$Builddir\$Scripts\$EX_Version\"
             $AddonFeatures = "RSAT-ADDS, RSAT-ADDS-TOOLS, AS-HTTP-Activation, NET-Framework-45-Features"
             $AddonFeatures = "$AddonFeatures, AS-HTTP-Activation, Desktop-Experience, NET-Framework-45-Features, RPC-over-HTTP-proxy, RSAT-Clustering, RSAT-Clustering-CmdInterface, RSAT-Clustering-Mgmt, RSAT-Clustering-PowerShell, Web-Mgmt-Console, WAS-Process-Model, Web-Asp-Net45, Web-Basic-Auth, Web-Client-Auth, Web-Digest-Auth, Web-Dir-Browsing, Web-Dyn-Compression, Web-Http-Errors, Web-Http-Logging, Web-Http-Redirect, Web-Http-Tracing, Web-ISAPI-Ext, Web-ISAPI-Filter, Web-Lgcy-Mgmt-Console, Web-Metabase, Web-Mgmt-Console, Web-Mgmt-Service, Web-Net-Ext45, Web-Request-Monitor, Web-Server, Web-Stat-Compression, Web-Static-Content, Web-Windows-Auth, Web-WMI, Windows-Identity-Foundation"
@@ -2727,11 +2727,11 @@ $Content = "###
 `$ScriptName = `$MyInvocation.MyCommand.Name
 `$Host.UI.RawUI.WindowTitle = `$ScriptName
 `$Logfile = New-Item -ItemType file `"c:\$Scripts\`$ScriptName.log`"
-$IN_Node_ScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status started
-$IN_Node_ScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
+$IN_Guest_CD_Node_ScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status started
+$IN_Guest_CD_Node_ScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
 $ScenarioScriptdir\prepare-disks.ps1
-$ScenarioScriptdir\install-exchangeprereqs.ps1 -SourcePath $IN_Guest_Sourcepath -Scriptdir $IN_Guest_CD_Scriptdir
-New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name '99-$next_phase' -Value '$PSHOME\powershell.exe -Command `". $IN_Guest_CD_Scriptdir\$Scripts\run-$next_phase.ps1`"'
+$ScenarioScriptdir\install-exchangeprereqs.ps1 -SourcePath $IN_Guest_Sourcepath -Scriptdir $IN_Guest_CD_Scriptroot
+New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name '99-$next_phase' -Value '$PSHOME\powershell.exe -Command `". $IN_Guest_CD_Scriptroot\$Scripts\run-$next_phase.ps1`"'
 restart-computer
 "
 Write-Verbose $Content
@@ -2747,10 +2747,10 @@ $Content = "###
 `$ScriptName = `$MyInvocation.MyCommand.Name
 `$Host.UI.RawUI.WindowTitle = `$ScriptName
 `$Logfile = New-Item -ItemType file `"c:\$Scripts\`$ScriptName.log`"
-New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name '99-$next_phase' -Value '$PSHOME\powershell.exe -Command `". $IN_Guest_CD_Scriptdir\$Scripts\run-$next_phase.ps1`"'
-$IN_Node_ScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status started
-$IN_Node_ScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
-$ScenarioScriptdir\install-exchange.ps1 -ex_cu $e16_cu -SourcePath $IN_Guest_Sourcepath -Scriptdir $IN_Guest_CD_Scriptdir
+New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name '99-$next_phase' -Value '$PSHOME\powershell.exe -Command `". $IN_Guest_CD_Scriptroot\$Scripts\run-$next_phase.ps1`"'
+$IN_Guest_CD_Node_ScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status started
+$IN_Guest_CD_Node_ScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
+$ScenarioScriptdir\install-exchange.ps1 -ex_cu $e16_cu -SourcePath $IN_Guest_Sourcepath -Scriptdir $IN_Guest_CD_Scriptroot
 "
 Write-Verbose $Content
 Set-Content "$Isodir\$Scripts\run-$Current_phase.ps1" -Value $Content -Force
@@ -2766,9 +2766,9 @@ $Content = "###
 `$ScriptName = `$MyInvocation.MyCommand.Name
 `$Host.UI.RawUI.WindowTitle = `$ScriptName
 `$Logfile = New-Item -ItemType file `"c:\$Scripts\`$ScriptName.log`"
-$IN_Node_ScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status started
-$IN_Node_ScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
-$ScenarioScriptdir\configure-exchange.ps1 -EX_Version $EX_Version -SourcePath $IN_Guest_Sourcepath -Scriptdir $IN_Guest_CD_Scriptdir
+$IN_Guest_CD_Node_ScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status started
+$IN_Guest_CD_Node_ScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
+$ScenarioScriptdir\configure-exchange.ps1 -EX_Version $EX_Version -SourcePath $IN_Guest_Sourcepath -Scriptdir $IN_Guest_CD_Scriptroot
 "
 
 # dag phase fo last server
@@ -2777,13 +2777,13 @@ $ScenarioScriptdir\configure-exchange.ps1 -EX_Version $EX_Version -SourcePath $I
         if ($DAG.IsPresent) 
             {
 			write-verbose "Creating DAG"
-            $Content += "$ScenarioScriptdir\create-dag.ps1 -DAGIP $DAGIP -AddressFamily $EXAddressFamiliy -EX_Version $EX_Version -SourcePath $IN_Guest_Sourcepath -Scriptdir $IN_Guest_CD_Scriptdir
+            $Content += "$ScenarioScriptdir\create-dag.ps1 -DAGIP $DAGIP -AddressFamily $EXAddressFamiliy -EX_Version $EX_Version -SourcePath $IN_Guest_Sourcepath -Scriptdir $IN_Guest_CD_Scriptroot
 "
 			} # end if $DAG
         if (!($nouser.ispresent))
             {
             write-verbose "Creating Accounts and Mailboxes:"
-            $Content += "c:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe `". 'C:\Program Files\Microsoft\Exchange Server\V15\bin\RemoteExchange.ps1'; Connect-ExchangeServer -auto; $ScenarioScriptdir\User.ps1 -subnet $IPv4Subnet -AddressFamily $AddressFamily -IPV6Prefix $IPV6Prefix -SourcePath $IN_Guest_Sourcepath -Scriptdir $IN_Guest_CD_Scriptdir`"
+            $Content += "c:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe `". 'C:\Program Files\Microsoft\Exchange Server\V15\bin\RemoteExchange.ps1'; Connect-ExchangeServer -auto; $ScenarioScriptdir\User.ps1 -subnet $IPv4Subnet -AddressFamily $AddressFamily -IPV6Prefix $IPV6Prefix -SourcePath $IN_Guest_Sourcepath -Scriptdir $IN_Guest_CD_Scriptroot`"
 "
             } #end creatuser
     }# end if last server
@@ -2916,15 +2916,15 @@ $Content = "###
 `$ScriptName = `$MyInvocation.MyCommand.Name
 `$Host.UI.RawUI.WindowTitle = `$ScriptName
 `$Logfile = New-Item -ItemType file `"c:\$Scripts\`$ScriptName.log`"
-$IN_Node_ScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status started
-$IN_Node_ScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
-$ScenarioScriptdir\install-sql.ps1 -SQLVER $SQLVER -DefaultDBpath $CommonParameter -SourcePath $IN_Guest_Sourcepath -Scriptdir $IN_Guest_CD_Scriptdir
-$ScenarioScriptdir\INSTALL-Scom.ps1 -SCOM_VER $SCOM_VER $CommonParameter -SourcePath $IN_Guest_Sourcepath -Scriptdir $IN_Guest_CD_Scriptdir
-#$IN_Node_ScriptDir\install-program.ps1 -Program $LatestJava -ArgumentList '/s' -SourcePath $IN_Guest_Sourcepath -Scriptdir $IN_Guest_CD_Scriptdir
-#$IN_Node_ScriptDir\install-program.ps1 -Program $LatestReader -ArgumentList '/sPB /rs' -SourcePath $IN_Guest_Sourcepath -Scriptdir $IN_Guest_CD_Scriptdir
-#$IN_Node_ScriptDir\set-autologon -user nwadmin -SourcePath $IN_Guest_Sourcepath -Scriptdir $IN_Guest_CD_Scriptdir
-#$IN_Node_ScriptDir\Add-DomainUserToLocalGroup.ps1 -user nwadmin -group 'Remote Desktop Users' -SourcePath $IN_Guest_Sourcepath -Scriptdir $IN_Guest_CD_Scriptdir
-#New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name '99-$next_phase' -Value '$PSHOME\powershell.exe -Command `". $IN_Guest_CD_Scriptdir\$Scripts\run-$next_phase.ps1`"'
+$IN_Guest_CD_Node_ScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status started
+$IN_Guest_CD_Node_ScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
+$ScenarioScriptdir\install-sql.ps1 -SQLVER $SQLVER -DefaultDBpath $CommonParameter -SourcePath $IN_Guest_Sourcepath -Scriptdir $IN_Guest_CD_Scriptroot
+$ScenarioScriptdir\INSTALL-Scom.ps1 -SCOM_VER $SCOM_VER $CommonParameter -SourcePath $IN_Guest_Sourcepath -Scriptdir $IN_Guest_CD_Scriptroot
+#$IN_Guest_CD_Node_ScriptDir\install-program.ps1 -Program $LatestJava -ArgumentList '/s' -SourcePath $IN_Guest_Sourcepath -Scriptdir $IN_Guest_CD_Scriptroot
+#$IN_Guest_CD_Node_ScriptDir\install-program.ps1 -Program $LatestReader -ArgumentList '/sPB /rs' -SourcePath $IN_Guest_Sourcepath -Scriptdir $IN_Guest_CD_Scriptroot
+#$IN_Guest_CD_Node_ScriptDir\set-autologon -user nwadmin -SourcePath $IN_Guest_Sourcepath -Scriptdir $IN_Guest_CD_Scriptroot
+#$IN_Guest_CD_Node_ScriptDir\Add-DomainUserToLocalGroup.ps1 -user nwadmin -group 'Remote Desktop Users' -SourcePath $IN_Guest_Sourcepath -Scriptdir $IN_Guest_CD_Scriptroot
+#New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name '99-$next_phase' -Value '$PSHOME\powershell.exe -Command `". $IN_Guest_CD_Scriptroot\$Scripts\run-$next_phase.ps1`"'
 # restart-computer
 "
 Write-Verbose $Content
@@ -2966,7 +2966,7 @@ if (($NW.IsPresent -and !$NoDomainCheck.IsPresent) -or $NWServer.IsPresent)
 	        $Nodename = $NWNODE
             $NodePrefix = $NWNODE
             [string]$AddonFeatures = "RSAT-ADDS, RSAT-ADDS-TOOLS, AS-HTTP-Activation, NET-Framework-45-Features"
-            $ScenarioScriptdir = "$IN_Guest_CD_Scriptdir\$NodePrefix"
+            $ScenarioScriptdir = "$IN_Guest_CD_Scriptroot\$NodePrefix"
 	        ###################################################
             if ($nw_ver -ge "nw85")
                 {
@@ -3028,17 +3028,17 @@ $Content = "###
 `$ScriptName = `$MyInvocation.MyCommand.Name
 `$Host.UI.RawUI.WindowTitle = `$ScriptName
 `$Logfile = New-Item -ItemType file `"c:\$Scripts\`$ScriptName.log`"
-$IN_Node_ScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status started
-$IN_Node_ScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
-$IN_Node_ScriptDir\install-program.ps1 -Program $LatestJava -ArgumentList '/s' -SourcePath $IN_Guest_Sourcepath -Scriptdir $IN_Guest_CD_Scriptdir
-#$IN_Node_ScriptDir\install-program.ps1 -Program $LatestReader -ArgumentList '/sPB /rs' -SourcePath $IN_Guest_Sourcepath -Scriptdir $IN_Guest_CD_Scriptdir
-$IN_Node_ScriptDir\set-autologon -user nwadmin -SourcePath $IN_Guest_Sourcepath -Scriptdir $IN_Guest_CD_Scriptdir
-$IN_Node_ScriptDir\Add-DomainUserToLocalGroup.ps1 -user nwadmin -group 'Remote Desktop Users' -SourcePath $IN_Guest_Sourcepath -Scriptdir $IN_Guest_CD_Scriptdir
-$ScenarioScriptdir\install-nwserver.ps1 -nw_ver $nw_ver -SourcePath $IN_Guest_Sourcepath -Scriptdir $IN_Guest_CD_Scriptdir
-$ScenarioScriptdir\nsruserlist.ps1 -SourcePath $IN_Guest_Sourcepath -Scriptdir $IN_Guest_CD_Scriptdir
-$ScenarioScriptdir\create-nsrdevice.ps1 -AFTD AFTD1 -SourcePath $IN_Guest_Sourcepath -Scriptdir $IN_Guest_CD_Scriptdir
-#$ScenarioScriptdir\configure-nmc.ps1 -SourcePath $IN_Guest_Sourcepath -Scriptdir $IN_Guest_CD_Scriptdir
-New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name '99-$next_phase' -Value '$PSHOME\powershell.exe -Command `". $IN_Guest_CD_Scriptdir\$Scripts\run-$next_phase.ps1`"'
+$IN_Guest_CD_Node_ScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status started
+$IN_Guest_CD_Node_ScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
+$IN_Guest_CD_Node_ScriptDir\install-program.ps1 -Program $LatestJava -ArgumentList '/s' -SourcePath $IN_Guest_Sourcepath -Scriptdir $IN_Guest_CD_Scriptroot
+#$IN_Guest_CD_Node_ScriptDir\install-program.ps1 -Program $LatestReader -ArgumentList '/sPB /rs' -SourcePath $IN_Guest_Sourcepath -Scriptdir $IN_Guest_CD_Scriptroot
+$IN_Guest_CD_Node_ScriptDir\set-autologon -user nwadmin -SourcePath $IN_Guest_Sourcepath -Scriptdir $IN_Guest_CD_Scriptroot
+$IN_Guest_CD_Node_ScriptDir\Add-DomainUserToLocalGroup.ps1 -user nwadmin -group 'Remote Desktop Users' -SourcePath $IN_Guest_Sourcepath -Scriptdir $IN_Guest_CD_Scriptroot
+$ScenarioScriptdir\install-nwserver.ps1 -nw_ver $nw_ver -SourcePath $IN_Guest_Sourcepath -Scriptdir $IN_Guest_CD_Scriptroot
+$ScenarioScriptdir\nsruserlist.ps1 -SourcePath $IN_Guest_Sourcepath -Scriptdir $IN_Guest_CD_Scriptroot
+$ScenarioScriptdir\create-nsrdevice.ps1 -AFTD AFTD1 -SourcePath $IN_Guest_Sourcepath -Scriptdir $IN_Guest_CD_Scriptroot
+#$ScenarioScriptdir\configure-nmc.ps1 -SourcePath $IN_Guest_Sourcepath -Scriptdir $IN_Guest_CD_Scriptroot
+New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name '99-$next_phase' -Value '!$PSHOME\powershell.exe -Command `". $IN_Guest_CD_Scriptroot\$Scripts\run-$next_phase.ps1`"'
 restart-computer
 "
 Write-Verbose $Content
@@ -3057,10 +3057,10 @@ $Content = "###
 `$Host.UI.RawUI.WindowTitle = `$ScriptName
 #`$Logfile = New-Item -ItemType file `"c:\$Scripts\`$ScriptName.log`"
 # set-vmguesttask disabled for user
-# $IN_Node_ScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status started
-# $IN_Node_ScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
-$IN_Node_ScriptDir\set-vmguestshare.ps1 -user $Labbuildr_share_User -password $Labbuildr_share_password -HostIP $HostIP
-$ScenarioScriptdir\configure-nmc.ps1 -SourcePath $IN_Guest_Sourcepath -Scriptdir $IN_Guest_CD_Scriptdir
+# $IN_Guest_CD_Node_ScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status started
+# $IN_Guest_CD_Node_ScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
+$IN_Guest_CD_Node_ScriptDir\set-vmguestshare.ps1 -user $Labbuildr_share_User -password $Labbuildr_share_password -HostIP $HostIP
+$ScenarioScriptdir\configure-nmc.ps1 -SourcePath $IN_Guest_Sourcepath -Scriptdir $IN_Guest_CD_Scriptroot
 "
 Write-Verbose $Content
 Set-Content "$Isodir\$Scripts\run-$Current_phase.ps1" -Value $Content -Force
