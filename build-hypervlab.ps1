@@ -2847,7 +2847,7 @@ Set-Content "$Isodir\$Scripts\run-$Current_phase.ps1" -Value $Content -Force
        }#End Switchblock Exchange
 
 
-"SCOM"
+    "SCOM"
 {
 	###################################################
 	# SCOM Setup
@@ -2928,23 +2928,6 @@ Set-Content "$Isodir\$Scripts\run-$Current_phase.ps1" -Value $Content -Force
 ######
 
 
-## phase install_nw_done
-
-
-            $previous_phase = $current_phase
-            $current_phase = $next_phase
-            $next_phase = "phase_finished"
-$Content = "###
-`$ScriptName = `$MyInvocation.MyCommand.Name
-`$Host.UI.RawUI.WindowTitle = `$ScriptName
-`$Logfile = New-Item -ItemType file `"c:\$Scripts\`$ScriptName.log`"
-$IN_Node_ScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status started
-$IN_Node_ScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
-$IN_Node_ScriptDir\set-vmguestshare.ps1 -user $Labbuildr_share_User -password $Labbuildr_share_password -HostIP $HostIP
-$ScenarioScriptdir\configure-nmc.ps1 -SourcePath $IN_Guest_Sourcepath -Scriptdir $IN_Guest_CD_Scriptdir
-"
-Write-Verbose $Content
-Set-Content "$Isodir\$Scripts\run-$Current_phase.ps1" -Value $Content -Force
 
 
 ####### Iso Creation        
@@ -2958,6 +2941,11 @@ Set-Content "$Isodir\$Scripts\run-$Current_phase.ps1" -Value $Content -Force
 
             $CloneOK = Invoke-Expression  "$Builddir\clone-node.ps1 -MasterVHD $MasterVHDX -Nodename $NodeName -Size $Size -HVSwitch $HVSwitch $CloneParameter"
 
+
+		    If ($CloneOK)
+            {
+            check-task -task "start-customize" -nodename $NodeName -sleep $Sleep
+            }
 
 
 	
