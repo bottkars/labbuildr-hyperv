@@ -2521,7 +2521,7 @@ if (($NW.IsPresent -and !$NoDomainCheck.IsPresent) -or $NWServer.IsPresent)
                 }
 
 
-	        test-dcrunning
+	        $DC_test_ok =  test-dcrunning
             If ($DefaultGateway -match $Nodeip){$SetGateway = "-Gateway"}
 	        ###################################################
 	        status "Creating Networker Server $Nodename"
@@ -2556,7 +2556,7 @@ if (($NW.IsPresent -and !$NoDomainCheck.IsPresent) -or $NWServer.IsPresent)
 ## Phase 4
             $previous_phase = $current_phase
             $current_phase = $next_phase
-            $next_phase = "install_nw"
+            $next_phase = "phase_install_nw"
             $Next_Phase_noreboot = $true
             run-phase4 -Current_phase $Current_phase -next_phase $next_phase -next_phase_no_reboot
 
