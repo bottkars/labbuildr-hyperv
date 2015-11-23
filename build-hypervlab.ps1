@@ -106,7 +106,8 @@ param (
     #>
 	[Parameter(ParameterSetName = "SCOM", Mandatory = $true)][switch][alias('SC_OM')]$SCOM,
     [Parameter(ParameterSetName = "SCOM", Mandatory = $false)]
-    [ValidateSet('SC2012_R2_SCOM','SCTP3_SCOM','SCTP4_SCOM')]$SCOM_VER = "SC2012_R2_SCOM",
+    [ValidateSet('SC2012_R2_SCOM','SCTP3_SCOM','SCTP4_SCOM')]
+    $SCOM_VER = "SC2012_R2_SCOM",
     <#
 
 
@@ -1984,7 +1985,7 @@ if ($SCOM.IsPresent)
                 Start-Process "$Sourcedir\$FileName" -ArgumentList "/SP- /dir=$Sourcedir\$SCOM_VER /SILENT" -Wait
                 }
 
-    workorder "We are going to Install SCOM with $SCOM_VER in Domain $BuildDomain with Subnet $MySubnet using VMnet$VMnet and $SQLVER"
+    # workorder "We are going to Install SCOM with $SCOM_VER in Domain $BuildDomain with Subnet $MySubnet using VMnet$VMnet and $SQLVER"
     # exit
     }# end SCOMPREREQ
 #######
@@ -2214,7 +2215,9 @@ if ($SQL.IsPresent -or $AlwaysOn.IsPresent)
 
 ##end Autodownloaders
 ##########################################
-if ($nw.IsPresent -and !$NoDomainCheck.IsPresent) { workorder "Networker $nw_ver Node will be installed" }
+if ($nw.IsPresent -and !$NoDomainCheck.IsPresent) 
+    { #workorder "Networker $nw_ver Node will be installed" 
+    }
 write-verbose "Checking Environment"
 if ($NW.IsPresent -or $NWServer.IsPresent)
 {
