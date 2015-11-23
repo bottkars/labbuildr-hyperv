@@ -103,6 +103,13 @@ param (
     <# How many Blank Nodes#>
 	[Parameter(ParameterSetName = "Blanknodes", Mandatory = $false)][ValidateRange(1, 12)][alias('bns')]$BlankNodes = "1",
 
+    #>
+	[Parameter(ParameterSetName = "SCOM", Mandatory = $true)][switch][alias('SC_OM')]$SCOM,
+    [Parameter(ParameterSetName = "SCOM", Mandatory = $false)]
+    [ValidateSet('SC2012_R2_SCOM','SCTP3_SCOM','SCTP4_SCOM')]$SCOM_VER = "SC2012_R2_SCOM",
+    <#
+
+
     <# Do we want Additional Disks / of additional 100GB Disks for ScaleIO. The disk will be made ready for ScaleIO usage in Guest OS#>	
 	[Parameter(ParameterSetName = "Blanknodes", Mandatory = $false)]
     [Parameter(ParameterSetName = "Hyperv", Mandatory = $false)][ValidateRange(1, 6)][int][alias('ScaleioDisks')]$Disks,
@@ -165,6 +172,21 @@ param (
     [Parameter(ParameterSetName = "NWserver", Mandatory = $false)]
     [Parameter(ParameterSetName = "DConly", Mandatory = $false)]
     [switch][alias('gw')]$Gateway,
+    <#
+    'SQL2012SP1',SQL2012SP2,SQL2012SP1SLIP, 'SQL2014'
+    SQL version to be installed
+    Needs to have:
+    [sources]\SQL2012SP1 or
+    [sources]\SQL2014
+    #>
+    [Parameter(ParameterSetName = "Sharepoint",Mandatory = $false)]
+	[Parameter(ParameterSetName = "SQL", Mandatory = $false)]
+	[Parameter(ParameterSetName = "AAG", Mandatory = $false)]
+	[Parameter(ParameterSetName = "Hyperv", Mandatory = $false)]
+	[Parameter(ParameterSetName = "SCOM", Mandatory = $false)]
+	[Parameter(ParameterSetName = "SCVMM", Mandatory = $false)]
+	[ValidateSet('SQL2014SP1slip','SQL2012','SQL2012SP1','SQL2012SP2','SQL2012SP1SLIP','SQL2014')]$SQLVER,
+
 
  #   [Parameter(Mandatory = $false, HelpMessage = "Enter a valid VMware network Number vmnet between 1 and 19 ")]
 <# This stores the defaul config in defaults.xml#>
@@ -179,6 +201,8 @@ param (
     [Parameter(ParameterSetName = "Panorama", Mandatory = $false)]
     [Parameter(ParameterSetName = "SRM", Mandatory = $false)]
     [Parameter(ParameterSetName = "Sharepoint", Mandatory = $false)]
+    [Parameter(ParameterSetName = "SCOM", Mandatory = $false)]
+	[Parameter(ParameterSetName = "SCVMM", Mandatory = $false)]
 	[switch]$savedefaults,
 
 <# reads the Default Config from defaults.xml
@@ -210,6 +234,8 @@ param (
     [Parameter(ParameterSetName = "Panorama", Mandatory = $false)]
     [Parameter(ParameterSetName = "SRM", Mandatory = $false)]
     [Parameter(ParameterSetName = "Sharepoint", Mandatory = $false)]
+	[Parameter(ParameterSetName = "SCOM", Mandatory = $false)]
+	[Parameter(ParameterSetName = "SCVMM", Mandatory = $false)]
 	[switch]$defaults,
 
 <#
@@ -232,6 +258,8 @@ Machine Sizes
     [Parameter(ParameterSetName = "SOFS", Mandatory = $false)]
     [Parameter(ParameterSetName = "Panorama", Mandatory = $false)]
     [Parameter(ParameterSetName = "SRM", Mandatory = $false)]
+	[Parameter(ParameterSetName = "SCOM", Mandatory = $false)]
+	[Parameter(ParameterSetName = "SCVMM", Mandatory = $false)]
 	[ValidateSet('XS', 'S', 'M', 'L', 'XL', 'TXL', 'XXL', 'XXXL')]$Size = "M",
 	
 <# Specify your own Domain name#>
@@ -246,6 +274,8 @@ Machine Sizes
     [Parameter(ParameterSetName = "SOFS", Mandatory = $false)]
     [Parameter(ParameterSetName = "Panorama", Mandatory = $false)]
     [Parameter(ParameterSetName = "SRM", Mandatory = $false)]
+	[Parameter(ParameterSetName = "SCOM", Mandatory = $false)]
+	[Parameter(ParameterSetName = "SCVMM", Mandatory = $false)]
     [Parameter(ParameterSetName = "Sharepoint", Mandatory = $false)]
 	[ValidateLength(1,15)][ValidatePattern("^[a-zA-Z\s]+$")][string]$BuildDomain,
 	
@@ -261,6 +291,8 @@ Machine Sizes
     [Parameter(ParameterSetName = "E16", Mandatory = $false)]
 	[Parameter(ParameterSetName = "SQL", Mandatory = $false)]
     [Parameter(ParameterSetName = "SOFS", Mandatory = $false)]
+	[Parameter(ParameterSetName = "SCOM", Mandatory = $false)]
+	[Parameter(ParameterSetName = "SCVMM", Mandatory = $false)]
     [Parameter(ParameterSetName = "Sharepoint", Mandatory = $false)]
 	[switch]$NMM,
     <#
@@ -273,6 +305,8 @@ Version Of Networker Modules
     [Parameter(ParameterSetName = "E16", Mandatory = $false)]
 	[Parameter(ParameterSetName = "SQL", Mandatory = $false)]
     [Parameter(ParameterSetName = "SOFS", Mandatory = $false)]
+	[Parameter(ParameterSetName = "SCOM", Mandatory = $false)]
+	[Parameter(ParameterSetName = "SCVMM", Mandatory = $false)]
     [Parameter(ParameterSetName = "Sharepoint", Mandatory = $false)]
 	[ValidateSet('nmm8211','nmm8212','nmm8214','nmm8216','nmm8217','nmm8218','nmm822','nmm821','nmm300', 'nmm301', 'nmm2012', 'nmm3012', 'nmm82','nmm85','nmm85.BR1','nmm85.BR2','nmm85.BR3','nmm85.BR4','nmm90.DA','nmm9001')]
     $nmm_ver,
@@ -289,6 +323,8 @@ Version Of Networker Modules
 	[Parameter(ParameterSetName = "Isilon")]
     [Parameter(ParameterSetName = "Panorama", Mandatory = $false)]
     [Parameter(ParameterSetName = "SRM", Mandatory = $false)]
+	[Parameter(ParameterSetName = "SCOM", Mandatory = $false)]
+	[Parameter(ParameterSetName = "SCVMM", Mandatory = $false)]
     [Parameter(ParameterSetName = "Sharepoint", Mandatory = $false)]
 	[switch]$NW,
     <#
@@ -308,6 +344,8 @@ mus be extracted to [sourcesdir]\[nw_ver], ex. c:\sources\nw82
     [Parameter(ParameterSetName = "Sharepoint", Mandatory = $false)]
     [Parameter(ParameterSetName = "SRM", Mandatory = $false)]
     [Parameter(ParameterSetName = "Panorama", Mandatory = $false)]
+	[Parameter(ParameterSetName = "SCOM", Mandatory = $false)]
+	[Parameter(ParameterSetName = "SCVMM", Mandatory = $false)]
     [ValidateSet('nw822','nw8218','nw8217','nw8216','nw8215','nw8214','nw8213','nw8212','nw8211','nw821','nw8205','nw8204','nw8203','nw8202','nw82','nw8116','nw8115','nw8114', 'nw8113','nw8112', 'nw811',  'nw8105','nw8104','nw8102', 'nw81','nw85','nw85.BR1','nw85.BR2','nw85.BR3','nw85.BR4','nw90.DA','nw9001','nwunknown')]
     $nw_ver,
 
@@ -327,6 +365,8 @@ This should be used in Distributed scenario´s
 	[Parameter(ParameterSetName = "Isilon", Mandatory = $false)]
     [Parameter(ParameterSetName = "Panorama", Mandatory = $false)]
     [Parameter(ParameterSetName = "SRM", Mandatory = $false)]
+	[Parameter(ParameterSetName = "SCOM", Mandatory = $false)]
+	[Parameter(ParameterSetName = "SCVMM", Mandatory = $false)]
     [Parameter(ParameterSetName = "Sharepoint", Mandatory = $false)]
     [switch]$NoDomainCheck,
 <# Specify your own Class-C Subnet in format xxx.xxx.xxx.xxx #>
@@ -357,6 +397,8 @@ Valid values 'IPv4','IPv6','IPv4IPv6'
 	[Parameter(ParameterSetName = "Isilon", Mandatory = $false)]
     [Parameter(ParameterSetName = "Panorama", Mandatory = $false)]
     [Parameter(ParameterSetName = "Sharepoint",Mandatory = $false)]
+	[Parameter(ParameterSetName = "SCOM", Mandatory = $false)]
+	[Parameter(ParameterSetName = "SCVMM", Mandatory = $false)]
     [Parameter(ParameterSetName = "SRM", Mandatory = $false)]
     [Validateset('IPv4','IPv6','IPv4IPv6')]$AddressFamily, 
 
@@ -372,6 +414,8 @@ Valid values 'IPv4','IPv6','IPv4IPv6'
 	[Parameter(ParameterSetName = "Isilon", Mandatory = $false)]
     [Parameter(ParameterSetName = "Panorama", Mandatory = $false)]
     [Parameter(ParameterSetName = "Sharepoint",Mandatory = $false)]
+	[Parameter(ParameterSetName = "SCOM", Mandatory = $false)]
+	[Parameter(ParameterSetName = "SCVMM", Mandatory = $false)]
     [Parameter(ParameterSetName = "SRM", Mandatory = $false)]
     [ValidateScript({$_ -match [IPAddress]$_ })]$IPV6Prefix,
 
@@ -388,6 +432,8 @@ Valid values 'IPv4','IPv6','IPv4IPv6'
     [Parameter(ParameterSetName = "SOFS", Mandatory = $false)]
     [Parameter(ParameterSetName = "Panorama", Mandatory = $false)]
     [Parameter(ParameterSetName = "SRM", Mandatory = $false)]
+	[Parameter(ParameterSetName = "SCOM", Mandatory = $false)]
+	[Parameter(ParameterSetName = "SCVMM", Mandatory = $false)]
     [Parameter(ParameterSetName = "Sharepoint",Mandatory = $false)]
     $IPv6PrefixLength,
     <# wait for deployment phases to finish befor next clone#>
@@ -401,6 +447,8 @@ Valid values 'IPv4','IPv6','IPv4IPv6'
 	[Parameter(ParameterSetName = "SQL", Mandatory = $false)]
     [Parameter(ParameterSetName = "Panorama", Mandatory = $false)]
     [Parameter(ParameterSetName = "SRM", Mandatory = $false)]
+	[Parameter(ParameterSetName = "SCOM", Mandatory = $false)]
+	[Parameter(ParameterSetName = "SCVMM", Mandatory = $false)]
     [Parameter(ParameterSetName = "Sharepoint", Mandatory = $false)]
 	[switch]$wait,
 
@@ -1866,6 +1914,303 @@ if ($Exchange2016.IsPresent)
 
 }
 
+############## SCOM Section
+if ($SCOM.IsPresent)
+  {
+    Write-Warning "Entering SCOM Prereq Section"
+    [switch]$SQL=$true
+    $Prereqdir = "$SCOM_VER"+"prereq"
+    Write-Verbose "We are now going to Test SCOM Prereqs"
+    
+            $DownloadUrls= (
+            'http://download.microsoft.com/download/F/B/7/FB728406-A1EE-4AB5-9C56-74EB8BDDF2FF/ReportViewer.msi',
+            "http://download.microsoft.com/download/F/E/D/FEDB200F-DE2A-46D8-B661-D019DFE9D470/ENU/x64/SQLSysClrTypes.msi"
+            )
+    
+            Foreach ($URL in $DownloadUrls)
+                {
+                $FileName = Split-Path -Leaf -Path $Url
+                Write-Verbose "Testing $FileName in $Prereqdir"
+                if (!(test-path  "$Sourcedir\$Prereqdir\$FileName"))
+                    {
+                    Write-Verbose "Trying Download"
+                    if (!(get-prereq -DownLoadUrl $URL -destination  "$Sourcedir\$Prereqdir\$FileName"))
+                        { 
+                        write-warning "Error Downloading file $Url, Please check connectivity"
+                        exit
+                        }
+                    }
+                }
+    
+    switch ($SCOM_VER)
+    {
+        "SC2012_R2_SCOM"
+            {
+            if ($SQLVER -gt "SQL2012SP1")
+                {
+                Write-Warning "SCOM can only be installed on SQL2012, Setting to SQL2012SP1"
+                $SQLVER = "SQL2012SP1"
+                }# end sqlver
+
+            
+            $URL = "http://care.dlservice.microsoft.com/dl/download/evalx/sc2012r2/$SCOM_VER.exe"
+            }
+        
+        "SCTP3_SCOM"
+            {
+            $URL = "http://care.dlservice.microsoft.com/dl/download/B/0/7/B07BF90E-2CC8-4538-A7D2-83BB074C49F5/SCTP3_SCOM_EN.exe"
+            }
+
+        "SCTP4_SCOM"
+            {
+            <#
+            see gist tp4 for url´s
+            #>
+            $URL = "http://care.dlservice.microsoft.com/dl/download/3/3/3/333022FC-3BB1-4406-8572-ED07950151D4/SCTP4_SCOM_EN.exe"
+            }
+
+    }# end switch
+    $FileName = Split-Path -Leaf -Path $Url
+    Write-Verbose "Testing $SCOM_VER\"
+    if (!(test-path  "$Sourcedir\$SCOM_VER"))
+                {
+                Write-Verbose "Trying Download"
+                if (!(get-prereq -DownLoadUrl $URL -destination  "$Sourcedir\$FileName"))
+                    { 
+                    write-warning "Error Downloading file $Url, Please check connectivity"
+                    exit
+                    }
+                write-Warning "We are going to Extract $FileName, this may take a while"
+                Start-Process "$Sourcedir\$FileName" -ArgumentList "/SP- /dir=$Sourcedir\$SCOM_VER /SILENT" -Wait
+                }
+
+    workorder "We are going to Install SCOM with $SCOM_VER in Domain $BuildDomain with Subnet $MySubnet using VMnet$VMnet and $SQLVER"
+    # exit
+    }# end SCOMPREREQ
+#######
+
+##############
+
+if ($SQL.IsPresent -or $AlwaysOn.IsPresent)
+    {
+
+    $SQL2012_inst = "http://download.microsoft.com/download/4/C/7/4C7D40B9-BCF8-4F8A-9E76-06E9B92FE5AE/ENU/x64/SQLFULL_x64_ENU_Install.exe"
+    $SQL2012_lang = "http://download.microsoft.com/download/4/C/7/4C7D40B9-BCF8-4F8A-9E76-06E9B92FE5AE/ENU/x64/SQLFULL_x64_ENU_Lang.box"
+    $SQL2012_core = "http://download.microsoft.com/download/4/C/7/4C7D40B9-BCF8-4F8A-9E76-06E9B92FE5AE/ENU/x64/SQLFULL_x64_ENU_Core.box"
+    $SQL2012_box = "http://download.microsoft.com/download/3/B/D/3BD9DD65-D3E3-43C3-BB50-0ED850A82AD5/SQLServer2012SP1-FullSlipstream-x64-ENU.box"
+    $SQL2012SP1SLIP_INST = "http://download.microsoft.com/download/3/B/D/3BD9DD65-D3E3-43C3-BB50-0ED850A82AD5/SQLServer2012SP1-FullSlipstream-x64-ENU.exe"
+    $SQL2012SP1SLIP_box= "http://download.microsoft.com/download/3/B/D/3BD9DD65-D3E3-43C3-BB50-0ED850A82AD5/SQLServer2012SP1-FullSlipstream-x64-ENU.box"
+    $SQL2012_SP1 = "http://download.microsoft.com/download/3/B/D/3BD9DD65-D3E3-43C3-BB50-0ED850A82AD5/SQLServer2012SP1-KB2674319-x64-ENU.exe"
+    $SQL2012_SP2 = "http://download.microsoft.com/download/D/F/7/DF7BEBF9-AA4D-4CFE-B5AE-5C9129D37EFD/SQLServer2012SP2-KB2958429-x64-ENU.exe"
+    $SQL2014_ZIP = "http://care.dlservice.microsoft.com/dl/download/evalx/sqlserver2014/x64/SQLServer2014_x64_enus.zip"
+    $SQL2014SP1SLIP_INST = "http://care.dlservice.microsoft.com/dl/download/2/F/8/2F8F7165-BB21-4D1E-B5D8-3BD3CE73C77D/SQLServer2014SP1-FullSlipstream-x64-ENU.exe"
+    $SQL2014SP1SLIP_box= "http://care.dlservice.microsoft.com/dl/download/2/F/8/2F8F7165-BB21-4D1E-B5D8-3BD3CE73C77D/SQLServer2014SP1-FullSlipstream-x64-ENU.box"
+
+    $AAGURL = "https://community.emc.com/servlet/JiveServlet/download/38-111250/AWORKS.zip"
+    $URL = $AAGURL
+    $FileName = Split-Path -Leaf -Path $Url
+    Write-Verbose "Testing $FileName in $Sourcedir"
+    if (!(test-path  "$Sourcedir\Aworks\AdventureWorks2012.bak"))
+        {
+        Write-Verbose "Trying Download"
+        if (!(get-prereq -DownLoadUrl $URL -destination  "$Sourcedir\$FileName"))
+            { 
+            write-warning "Error Downloading file $Url, Please check connectivity"
+            exit
+            }
+        #New-Item -ItemType Directory -Path "$Sourcedir\Aworks" -Force
+        Extract-Zip -zipfilename $Sourcedir\$FileName -destination $Sourcedir
+        }
+    Write-Verbose "We are now going to Test $SQLVER"
+    Switch ($SQLVER)
+        {
+            "SQL2012"
+            {
+            if (!(Test-Path "$Sourcedir\SQLFULL_x64_ENU\SETUP.EXE"))
+                {
+                foreach ($url in ($SQL2012_inst,$SQL2012_lang,$SQL2012_core))
+                    {
+                    $FileName = Split-Path -Leaf -Path $Url
+                    Write-Verbose "Testing $FileName in $Sourcedir"
+                    if (!(test-path  "$Sourcedir\$FileName"))
+                        {
+                        Write-Verbose "Trying Download"
+                        if (!(get-prereq -DownLoadUrl $URL -destination  "$Sourcedir\$FileName"))
+                            { 
+                            write-warning "Error Downloading file $Url, Please check connectivity"
+                            exit
+                            }
+                        }
+                    }
+                Write-Warning "Creating $SQLVER Installtree, this might take a while"
+                $FileName = Split-Path -Leaf $SQL2012_inst
+                Start-Process $Sourcedir\$FileName -ArgumentList "/X /q" -Wait    
+                }
+
+            }
+            "SQL2012SP1"
+            {
+            #Getting SP1
+            $url = $SQL2012_SP1
+            $FileName = Split-Path -Leaf -Path $Url
+            $Destination = "$Sourcedir\$SQLVER\$FileName"
+            Write-Verbose "Testing $Destination"
+                if (!(test-path  "$Destination"))
+                    {
+                    Write-Verbose "Trying Download"
+                    if (!(get-prereq -DownLoadUrl $URL -destination $Destination))
+                        { 
+                            write-warning "Error Downloading file $Url, Please check connectivity"
+                            exit
+                            }
+                        }
+            #first check for 2012
+            if (!(Test-Path "$Sourcedir\SQLFULL_x64_ENU\SETUP.EXE"))
+                {
+                foreach ($url in ($SQL2012_inst,$SQL2012_lang,$SQL2012_core))
+                    {
+                    $FileName = Split-Path -Leaf -Path $Url
+                    Write-Verbose "Testing $FileName in $Sourcedir"
+                    if (!(test-path  "$Sourcedir\$FileName"))
+                        {
+                        Write-Verbose "Trying Download"
+                        if (!(get-prereq -DownLoadUrl $URL -destination  "$Sourcedir\$FileName"))
+                            { 
+                            write-warning "Error Downloading file $Url, Please check connectivity"
+                            exit
+                            }
+                        }
+                    }
+                Write-Warning "Creating $SQLVER Installtree, this might take a while"
+                $FileName = Split-Path -Leaf $SQL2012_inst
+                Start-Process $Sourcedir\$FileName -ArgumentList "/X /q" -Wait    
+                }
+
+            # end 2012
+
+            }
+            "SQL2012SP2"
+            {
+            #first check for 2012
+            if (!(Test-Path "$Sourcedir\SQLFULL_x64_ENU\SETUP.EXE"))
+                {
+                foreach ($url in ($SQL2012_inst,$SQL2012_lang,$SQL2012_core))
+                    {
+                    $FileName = Split-Path -Leaf -Path $Url
+                    Write-Verbose "Testing $FileName in $Sourcedir"
+                    if (!(test-path  "$Sourcedir\$FileName"))
+                        {
+                        Write-Verbose "Trying Download"
+                        if (!(get-prereq -DownLoadUrl $URL -destination  "$Sourcedir\$FileName"))
+                            { 
+                            write-warning "Error Downloading file $Url, Please check connectivity"
+                            exit
+                            }
+                        }
+                    }
+                Write-Warning "Creating $SQLVER Installtree, this might take a while"
+                $FileName = Split-Path -Leaf $SQL2012_inst
+                Start-Process $Sourcedir\$FileName -ArgumentList "/X /q" -Wait    
+                }
+
+            # end 2012
+
+            #### Getting Sp2
+            $url = $SQL2012_SP2
+            $FileName = Split-Path -Leaf -Path $Url
+            $Destination = "$Sourcedir\$SQLVER\$FileName"
+            Write-Verbose "Testing $Destination"
+            if (!(test-path  "$Destination"))
+                {
+                Write-Verbose "Trying Download"
+                if (!(get-prereq -DownLoadUrl $URL -destination $Destination))
+                    { 
+                    write-warning "Error Downloading file $Url, Please check connectivity"
+                    exit
+                    }
+                }
+
+            }
+            "SQL2012SP1Slip"
+            {
+            if (!(Test-Path $Sourcedir\$SQLVER\setup.exe))
+                {
+                foreach ($url in ($SQL2012SP1SLIP_box,$SQL2012SP1SLIP_INST))
+                    {
+                    $FileName = Split-Path -Leaf -Path $Url
+                    Write-Verbose "Testing $FileName in $Sourcedir"
+                    if (!(test-path  "$Sourcedir\$FileName"))
+                        {
+                        Write-Verbose "Trying Download"
+                        if (!(get-prereq -DownLoadUrl $URL -destination  "$Sourcedir\$FileName"))
+                            {  
+                            write-warning "Error Downloading file $Url, Please check connectivity"
+                            exit
+                            }
+                        }
+                    }
+                    Write-Warning "Creating $SQLVER Installtree, this might take a while"
+                    Start-Process $Sourcedir\$FileName -ArgumentList "/X:$Sourcedir\$SQLVER /q" -Wait
+                }
+            }
+
+            "SQL2014"
+            {
+            if (!(Test-Path $Sourcedir\$SQLVER\setup.exe))
+            {
+            foreach ($url in ($SQL2014_ZIP))
+                {
+                $FileName = Split-Path -Leaf -Path $Url
+                Write-Verbose "Testing $FileName in $Prereqdir"
+                ### Test if the 2014 ENU´s are there
+                if (!(test-path  "$Sourcedir\SQLServer2014-x64-ENU.exe"))
+                    {
+                    ## Test if we already have the ZIP
+                    if (!(test-path  "$Sourcedir\$FileName"))
+                        {
+                        Write-Verbose "Trying Download"
+                        if (!(get-prereq -DownLoadUrl $URL -destination  "$Sourcedir\$FileName"))
+                            { 
+                            write-warning "Error Downloading file $Url, Please check connectivity"
+                            exit
+                            }
+                    }
+                 Extract-Zip -zipfilename $Sourcedir\$FileName -destination $Sourcedir
+                 Remove-Item $Sourcedir\$FileName 
+                 Move-Item $Sourcedir\enus\* $Sourcedir\
+                 Remove-Item $Sourcedir\enus
+                 }
+                # New-Item -ItemType Directory $Sourcedir\$SQLVER
+                Write-Warning "Creating $SQLVER Installtree, this might take a while"
+                Start-Process "$Sourcedir\SQLServer2014-x64-ENU.exe" -ArgumentList "/X:$Sourcedir\$SQLVER /q" -Wait 
+                }
+            
+            }
+            }
+            "SQL2014SP1slip"
+            {
+            if (!(Test-Path $Sourcedir\$SQLVER\setup.exe))
+                {
+                foreach ($url in ($SQL2014SP1SLIP_box,$SQL2014SP1SLIP_INST))
+                    {
+                    $FileName = Split-Path -Leaf -Path $Url
+                    Write-Verbose "Testing $FileName in $Sourcedir"
+                    if (!(test-path  "$Sourcedir\$FileName"))
+                        {
+                        Write-Verbose "Trying Download"
+                        if (!(get-prereq -DownLoadUrl $URL -destination  "$Sourcedir\$FileName"))
+                            {  
+                            write-warning "Error Downloading file $Url, Please check connectivity"
+                            exit
+                            }
+                        }
+                    }
+                    Write-Warning "Creating $SQLVER Installtree, this might take a while"
+                    Start-Process $Sourcedir\$FileName -ArgumentList "/X:$Sourcedir\$SQLVER /q" -Wait
+                }
+            }
+          } #end switch
+    }#end $SQLEXPRESS
 
 ##end Autodownloaders
 ##########################################
@@ -2496,8 +2841,126 @@ Set-Content "$Isodir\$Scripts\run-$Current_phase.ps1" -Value $Content -Force
     #>
                 
            }#end foreach exnode
-       }
-} #End Switchblock Exchange
+       }#End Switchblock Exchange
+
+
+"SCOM"
+{
+	###################################################
+	# SCOM Setup
+	###################################################
+	$Nodeip = "$IPv4Subnet.18"
+	$Nodename = "SCOM"
+    $NodePrefix = "SCOM"
+    [string]$AddonFeatures = "RSAT-ADDS, RSAT-ADDS-TOOLS"
+    $ScenarioScriptDir = "$GuestScriptdir\$Scenarioname"
+    $SQLScriptDir = "$GuestScriptdir\sql\"
+
+	###################################################
+	status $Commentline
+	status "Creating $SCOM_VER Server $Nodename"
+  	Write-Verbose $IPv4Subnet
+    write-verbose $Nodename
+    write-verbose $Nodeip
+    if ($PSCmdlet.MyInvocation.BoundParameters["verbose"].IsPresent)
+        { 
+        Write-verbose "Now Pausing, Clone Process will start after keypress"
+        pause
+        }
+
+	$DC_test_ok = test-dcrunning
+
+#########################
+####prepare iso
+            Remove-Item -Path "$Isodir\$Scripts" -Force -Recurse -ErrorAction SilentlyContinue | Out-Null
+            New-Item -ItemType Directory "$Isodir\$Scripts" -Force | Out-Null
+            New-Item -ItemType Directory "$Builddir\$NodePrefix" -Force | Out-Null
+            $Current_phase = "start-customize"
+            $next_phase = "phase2"
+            run-startcustomize -Current_phase $Current_phase -next_phase $next_phase
+        
+
+### phase 2
+            $previous_phase = $current_phase
+            $current_phase = $next_phase
+            $next_phase = "phase3"
+            run-phase2 -Current_phase $Current_phase -next_phase $next_phase
+
+### phase 3
+            $previous_phase = $current_phase
+            $current_phase = $next_phase
+            $next_phase = "phase4"
+            run-phase3 -Current_phase $Current_phase -next_phase $next_phase
+        
+## Phase 4
+            $previous_phase = $current_phase
+            $current_phase = $next_phase
+            $next_phase = "phase_install_$($Nodeprefix)"
+            $Next_Phase_noreboot = $true
+            run-phase4 -Current_phase $Current_phase -next_phase $next_phase -next_phase_no_reboot
+
+## phase install
+
+
+            $previous_phase = $current_phase
+            $current_phase = $next_phase
+            $next_phase = "phase_install_$($Nodeprefix)_done"
+$Content = "###
+`$ScriptName = `$MyInvocation.MyCommand.Name
+`$Host.UI.RawUI.WindowTitle = `$ScriptName
+`$Logfile = New-Item -ItemType file `"c:\$Scripts\`$ScriptName.log`"
+$IN_Node_ScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status started
+$IN_Node_ScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
+$ScenarioScriptdir\install-sql.ps1 -SQLVER $SQLVER -DefaultDBpath $CommonParameter -SourcePath $IN_Guest_Sourcepath -Scriptdir $IN_Guest_CD_Scriptdir
+$ScenarioScriptdir\INSTALL-Scom.ps1 -SCOM_VER $SCOM_VER $CommonParameter -SourcePath $IN_Guest_Sourcepath -Scriptdir $IN_Guest_CD_Scriptdir
+#$IN_Node_ScriptDir\install-program.ps1 -Program $LatestJava -ArgumentList '/s' -SourcePath $IN_Guest_Sourcepath -Scriptdir $IN_Guest_CD_Scriptdir
+#$IN_Node_ScriptDir\install-program.ps1 -Program $LatestReader -ArgumentList '/sPB /rs' -SourcePath $IN_Guest_Sourcepath -Scriptdir $IN_Guest_CD_Scriptdir
+#$IN_Node_ScriptDir\set-autologon -user nwadmin -SourcePath $IN_Guest_Sourcepath -Scriptdir $IN_Guest_CD_Scriptdir
+#$IN_Node_ScriptDir\Add-DomainUserToLocalGroup.ps1 -user nwadmin -group 'Remote Desktop Users' -SourcePath $IN_Guest_Sourcepath -Scriptdir $IN_Guest_CD_Scriptdir
+#New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name '99-$next_phase' -Value '$PSHOME\powershell.exe -Command `". $IN_Guest_CD_Scriptdir\$Scripts\run-$next_phase.ps1`"'
+# restart-computer
+"
+Write-Verbose $Content
+Set-Content "$Isodir\$Scripts\run-$Current_phase.ps1" -Value $Content -Force
+######
+
+
+## phase install_nw_done
+
+
+            $previous_phase = $current_phase
+            $current_phase = $next_phase
+            $next_phase = "phase_finished"
+$Content = "###
+`$ScriptName = `$MyInvocation.MyCommand.Name
+`$Host.UI.RawUI.WindowTitle = `$ScriptName
+`$Logfile = New-Item -ItemType file `"c:\$Scripts\`$ScriptName.log`"
+$IN_Node_ScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status started
+$IN_Node_ScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
+$IN_Node_ScriptDir\set-vmguestshare.ps1 -user $Labbuildr_share_User -password $Labbuildr_share_password -HostIP $HostIP
+$ScenarioScriptdir\configure-nmc.ps1 -SourcePath $IN_Guest_Sourcepath -Scriptdir $IN_Guest_CD_Scriptdir
+"
+Write-Verbose $Content
+Set-Content "$Isodir\$Scripts\run-$Current_phase.ps1" -Value $Content -Force
+
+
+####### Iso Creation        
+            $Isocreatio = make-iso -Nodename $NodeName -Builddir $Builddir -isodir $Isodir
+####### clone creation
+            if ($PSCmdlet.MyInvocation.BoundParameters["verbose"].IsPresent)
+                {
+                Write-Verbose "Press any Key to continue to Cloning"
+                pause
+                }
+
+            $CloneOK = Invoke-Expression  "$Builddir\clone-node.ps1 -MasterVHD $MasterVHDX -Nodename $NodeName -Size $Size -HVSwitch $HVSwitch $CloneParameter"
+
+
+
+	
+}#SCOM
+
+} 
 
 if (($NW.IsPresent -and !$NoDomainCheck.IsPresent) -or $NWServer.IsPresent)
 {
@@ -2556,7 +3019,7 @@ if (($NW.IsPresent -and !$NoDomainCheck.IsPresent) -or $NWServer.IsPresent)
 ## Phase 4
             $previous_phase = $current_phase
             $current_phase = $next_phase
-            $next_phase = "phase_install_nw"
+            $next_phase = "phase_install_$($Nodeprefix)"
             $Next_Phase_noreboot = $true
             run-phase4 -Current_phase $Current_phase -next_phase $next_phase -next_phase_no_reboot
 
@@ -2565,7 +3028,7 @@ if (($NW.IsPresent -and !$NoDomainCheck.IsPresent) -or $NWServer.IsPresent)
 
             $previous_phase = $current_phase
             $current_phase = $next_phase
-            $next_phase = "phase_nw_done"
+            $next_phase = "phase_$($Nodeprefix)_done"
 $Content = "###
 `$ScriptName = `$MyInvocation.MyCommand.Name
 `$Host.UI.RawUI.WindowTitle = `$ScriptName
@@ -2598,8 +3061,9 @@ $Content = "###
 `$ScriptName = `$MyInvocation.MyCommand.Name
 `$Host.UI.RawUI.WindowTitle = `$ScriptName
 `$Logfile = New-Item -ItemType file `"c:\$Scripts\`$ScriptName.log`"
-$IN_Node_ScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status started
-$IN_Node_ScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
+# set-vmguesttask disabled for user
+# $IN_Node_ScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status started
+# $IN_Node_ScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
 $IN_Node_ScriptDir\set-vmguestshare.ps1 -user $Labbuildr_share_User -password $Labbuildr_share_password -HostIP $HostIP
 $ScenarioScriptdir\configure-nmc.ps1 -SourcePath $IN_Guest_Sourcepath -Scriptdir $IN_Guest_CD_Scriptdir
 "
