@@ -2855,7 +2855,7 @@ Set-Content "$Isodir\$Scripts\run-$Current_phase.ps1" -Value $Content -Force
 	$Nodeip = "$IPv4Subnet.18"
 	$Nodename = "SCOM"
     $NodePrefix = "SCOM"
-    [string]$AddonFeatures = "RSAT-ADDS, RSAT-ADDS-TOOLS"
+    [string]$AddonFeatures = "RSAT-ADDS, RSAT-ADDS-TOOLS, NET-Framework-45-Features"
     $ScenarioScriptDir = "$IN_Guest_CD_Scriptroot\$NodePrefix"
     $SQLScriptDir = "$GuestScriptdir\sql\"
     if ($Size -lt "XL")
@@ -2918,7 +2918,7 @@ $Content = "###
 `$Logfile = New-Item -ItemType file `"c:\$Scripts\`$ScriptName.log`"
 $IN_Guest_CD_Node_ScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status started
 $IN_Guest_CD_Node_ScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
-$ScenarioScriptdir\install-sql.ps1 -SQLVER $SQLVER -DefaultDBpath $CommonParameter -SourcePath $IN_Guest_Sourcepath -Scriptdir $IN_Guest_CD_Scriptroot
+$IN_Guest_Scriptroot\SQL\install-sql.ps1 -SQLVER $SQLVER -DefaultDBpath $CommonParameter -SourcePath $IN_Guest_Sourcepath -Scriptdir $IN_Guest_CD_Scriptroot
 $ScenarioScriptdir\INSTALL-Scom.ps1 -SCOM_VER $SCOM_VER $CommonParameter -SourcePath $IN_Guest_Sourcepath -Scriptdir $IN_Guest_CD_Scriptroot
 #$IN_Guest_CD_Node_ScriptDir\install-program.ps1 -Program $LatestJava -ArgumentList '/s' -SourcePath $IN_Guest_Sourcepath -Scriptdir $IN_Guest_CD_Scriptroot
 #$IN_Guest_CD_Node_ScriptDir\install-program.ps1 -Program $LatestReader -ArgumentList '/sPB /rs' -SourcePath $IN_Guest_Sourcepath -Scriptdir $IN_Guest_CD_Scriptroot
