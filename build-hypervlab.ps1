@@ -1535,7 +1535,7 @@ try
     }
 catch
     {
-    Write-Warning "Hyper-V $Scripts_share_name Scripts Share not found, creating new"
+    Write-Warning "labbuildr-hyperv Scripts Share $Scripts_share_name not found, creating new"
     $SMBSHARE_Scripts = New-SmbShare -name $Scripts_share_name -path $Scripts_share_path -Temporary
     }
 if (!$SMBSHARE_Scripts)
