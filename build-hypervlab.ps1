@@ -473,14 +473,18 @@ $Scripts_share_name = ((Split-Path -NoQualifier $Scripts_share_path) -replace "\
 
 try 
     {
-    get-smbshare $Scripts_share_name -erroraction stop
+    $SMBSHARE_Scripts = get-smbshare $Scripts_share_name -erroraction stop
     }
 catch
     {
     write warning "Hyper-V $Scripts_share_name Scripts Share not found, creating new"
-    New-SmbShare -name $Scripts_share_name -path $Scripts_share_path -Temporary
+    $SMBSHARE_Scripts = New-SmbShare -name $Scripts_share_name -path $Scripts_share_path -Temporary
     }
-pause
+if (!$SMBSHARE_Scripts)
+    {
+    Write-Warning "Could not create or find Scripts sher, exiting now"
+    break
+    }
 
 try
     {
