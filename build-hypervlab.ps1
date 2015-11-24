@@ -1,10 +1,10 @@
 ﻿<#
 .Synopsis
-   labbuildr-flex allows you to create Virtual Machines with VMware Workstation from Predefined Scenarios.
+   labbuildr-hyperv allows you to create Virtual Machines with Hyper-V from Predefined Scenarios.
    Scenarios include Exchange 2013, SQL, Hyper-V, SCVMM .. .
-   labbuildr-flex runs on EMC VLAB Flex Environment
+   labbuildr-hyperv runs on Windows 8.1 or greater with Hyper-V
 .DESCRIPTION
-   labbuildr is a Self Installing Lab tool for Building VMware Virtual Machines on VMware Workstation
+   labbuildr is a Self Installing Lab tool for Building Virtual Machines
       
       Copyright 2015 Karsten Bott
 
