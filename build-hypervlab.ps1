@@ -467,7 +467,20 @@ $IPv4PrefixLength = '24'
 $myself = $Myself.TrimEnd(".ps1")
 $Starttime = Get-Date
 $Builddir = $PSScriptRoot
+$Scripts = "Scripts"
+$Scripts_share_path = Join-Path $Builddir $Scripts
+$Scripts_share_name = ((Split-Path -NoQualifier $Scripts_share_path) -replace "\\","_")
 
+try 
+    {
+    get-smbshare $Scripts_share_name
+    }
+catch
+    {
+    write warning "Hyper-V $Scripts_share_name Scripts Share not found, creating new"
+    New-SmbShare -name $Scripts_share_name -path $Scripts_share_path -Temporary
+    }
+pause
 
 try
     {
@@ -542,7 +555,6 @@ $Edition = "Piranha"
 $Sleep = 10
 [string]$Sources = "Sources"
 $Sourcedirdefault = "c:\Sources"
-$Scripts = "Scripts"
 $Sourceslink = "https://my.syncplicity.com/share/wmju8cvjzfcg04i/sources"
 $Buildname = Split-Path -Leaf $Builddir
 $Scenarioname = "default"
@@ -1005,7 +1017,7 @@ $Content = "###
 `$Host.UI.RawUI.WindowTitle = `$ScriptName
 `$Logfile = New-Item -ItemType file `"c:\$Scripts\`$ScriptName.log`"
 $IN_Guest_CD_Node_ScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status started
-$IN_Guest_CD_Node_ScriptDir\set-vmguestshare.ps1 -user $Labbuildr_share_User -password $Labbuildr_share_password -HostIP $HostIP
+$IN_Guest_CD_Node_ScriptDir\set-vmguestshare.ps1 -user $Labbuildr_share_User -password $Labbuildr_share_password -HostIP $HostIP -Scripts_share_name $Scripts_share_name
 $IN_Guest_CD_Node_ScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
 "
 if ($next_phase_no_reboot)
@@ -2423,7 +2435,7 @@ restart-computer
 $IN_Guest_CD_Node_ScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
 $IN_Guest_CD_Node_ScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status started
 $ScenarioScriptdir\check-domain.ps1 -Scriptdir $IN_Guest_CD_Scriptroot
-$IN_Guest_CD_Node_ScriptDir\set-vmguestshare.ps1 -user $Labbuildr_share_User -password $Labbuildr_share_password -HostIP $HostIP
+$IN_Guest_CD_Node_ScriptDir\set-vmguestshare.ps1 -user $Labbuildr_share_User -password $Labbuildr_share_password -HostIP $HostIP -Scripts_share_name $Scripts_share_name
 $IN_Guest_CD_Node_ScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status finished
 #New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name '99-$next_phase' -Value '$PSHOME\powershell.exe -Command `". $Isodir\$Scripts\run-$next_phase.ps1`"'
 "
@@ -3057,7 +3069,7 @@ $Content = "###
 # set-vmguesttask disabled for user
 # $IN_Guest_CD_Node_ScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status started
 # $IN_Guest_CD_Node_ScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
-$IN_Guest_CD_Node_ScriptDir\set-vmguestshare.ps1 -user $Labbuildr_share_User -password $Labbuildr_share_password -HostIP $HostIP
+$IN_Guest_CD_Node_ScriptDir\set-vmguestshare.ps1 -user $Labbuildr_share_User -password $Labbuildr_share_password -HostIP $HostIP -Scripts_share_name $Scripts_share_name
 $ScenarioScriptdir\configure-nmc.ps1 -SourcePath $IN_Guest_Sourcepath -Scriptdir $IN_Guest_CD_Scriptroot
 "
 Write-Verbose $Content
