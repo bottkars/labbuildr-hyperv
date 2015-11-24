@@ -20,7 +20,7 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 .LINK
-   https://github.com/bottkars/labbuildr-flex
+   https://github.com/bottkars/labbuildr-hyperv/wiki/
 #>
 [CmdletBinding(DefaultParametersetName = "version",
     SupportsShouldProcess=$true,
@@ -132,9 +132,7 @@ param (
 	[Parameter(ParameterSetName = "Hyperv", Mandatory = $false)]
 	[Parameter(ParameterSetName = "Blanknodes", Mandatory = $false)]
 	[switch]$Cluster,
-
-
-        <# Wich version of OS Master should be installed
+    <# Wich version of OS Master should be installed
     '2012R2FallUpdate','2016TP3','2016TP4'
     #>
     [Parameter(ParameterSetName = "Sharepoint",Mandatory = $false)]
