@@ -473,7 +473,7 @@ $Scripts_share_name = ((Split-Path -NoQualifier $Scripts_share_path) -replace "\
 
 try 
     {
-    get-smbshare $Scripts_share_name
+    get-smbshare $Scripts_share_name -erroraction stop
     }
 catch
     {
