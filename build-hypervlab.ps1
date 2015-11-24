@@ -2345,6 +2345,11 @@ switch ($PsCmdlet.ParameterSetName)
         $NodePrefix = "DCNode"
         $ScenarioScriptdir = "$IN_Guest_CD_Scriptroot\$NodePrefix"
         $NodeIP = "$IPv4Subnet.10"
+        $CloneParameter = $CommonParameter
+        If ($vlanID)
+            {
+            $CloneParameter = "$CloneParameter -vlanid $vlanID"
+            }
         ####prepare iso
         Remove-Item -Path "$Isodir\$Scripts" -Force -Recurse -ErrorAction SilentlyContinue | Out-Null
         New-Item -ItemType Directory "$Isodir\$Scripts" -Force | Out-Null
@@ -2467,14 +2472,8 @@ $IN_Guest_CD_Node_ScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status fin
             Write-Verbose "Press any Key to continue to Cloning"
             pause
             }
-        If ($vlanID)
-            {
-            Invoke-Expression  "$Builddir\clone-node.ps1 -MasterVHD $MasterVHDX -Nodename $NodeName -Size L -HVSwitch $HVSwitch -vlanid $vlanID $CommonParameter"
-            }
-        else
-            {
-            Invoke-Expression  "$Builddir\clone-node.ps1 -MasterVHD $MasterVHDX -Nodename $NodeName -Size L -HVSwitch $HVSwitch $CommonParameter"
-            }
+        $CloneOK = Invoke-Expression  "$Builddir\clone-node.ps1 -MasterVHD $MasterVHDX -Nodename $NodeName -Size L -HVSwitch $HVSwitch $CloneParameter"
+
 
 ####### wait progress
         $SecurePassword = $Adminpassword | ConvertTo-SecureString -AsPlainText -Force
