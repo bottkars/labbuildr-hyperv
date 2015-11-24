@@ -1,14 +1,24 @@
-﻿param (
+﻿[CmdletBinding(SupportsShouldProcess=$true,
+    ConfirmImpact="Medium")]
+param (
 $vmname)
+$Builddir = $PSScriptRoot
 try
     {
-    get-vm $vmname -ErrorAction Stop 
+    $VM = get-vm $vmname -ErrorAction Stop 
     }
 catch
     {
     write-host "VM Not Found"
     exit
-    }  
-get-vm $vmname -ErrorAction Stop | Stop-VM -Force -TurnOff
-get-vm $vmname | Remove-VM -Force
-Remove-Item ".\$vmname" -Force -Recurse
+    }
+
+####are we in labbuildr path and not force ?
+
+if ((($VM.Path -replace "\\","/") -match (($Builddir.path) -replace "\\","/")) -or ($PSCmdlet.MyInvocation.BoundParameters["verbose"].IsPresent))
+    {
+    $vm | Stop-VM -Force -TurnOff
+    $vm | Remove-VM -Force
+    Remove-Item $VM.Path -Force -Recurse
+    }
+      
