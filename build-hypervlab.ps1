@@ -2462,7 +2462,7 @@ $IN_Guest_CD_Node_ScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status fin
 
         
 ####### Iso Creation        
-        make-iso -Nodename $NodeName -Builddir $Builddir -isodir $Isodir
+        $IsoOK = make-iso -Nodename $NodeName -Builddir $Builddir -isodir $Isodir
 
 
 
