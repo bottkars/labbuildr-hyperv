@@ -471,20 +471,6 @@ $Scripts = "Scripts"
 $Scripts_share_path = Join-Path $Builddir $Scripts
 $Scripts_share_name = ((Split-Path -NoQualifier $Scripts_share_path) -replace "\\","_")
 
-try 
-    {
-    $SMBSHARE_Scripts = get-smbshare $Scripts_share_name -erroraction stop
-    }
-catch
-    {
-    write warning "Hyper-V $Scripts_share_name Scripts Share not found, creating new"
-    $SMBSHARE_Scripts = New-SmbShare -name $Scripts_share_name -path $Scripts_share_path -Temporary
-    }
-if (!$SMBSHARE_Scripts)
-    {
-    Write-Warning "Could not create or find Scripts sher, exiting now"
-    break
-    }
 
 try
     {
@@ -1543,14 +1529,35 @@ else
         }
      }
 
-if (!(get-smbshare -name "$Scripts" -erroraction SilentlyContinue))
+try 
+    {
+    $SMBSHARE_Scripts = get-smbshare $Scripts_share_name -erroraction stop
+    }
+catch
+    {
+    write warning "Hyper-V $Scripts_share_name Scripts Share not found, creating new"
+    $SMBSHARE_Scripts = New-SmbShare -name $Scripts_share_name -path $Scripts_share_path -Temporary
+    }
+if (!$SMBSHARE_Scripts)
+    {
+    Write-Warning "Could not create or find Scripts share, exiting now"
+    break
+    }
+
+
+if (!($SMBShare_Sources = get-smbshare -name "Sources" -erroraction SilentlyContinue ))
         {
-        new-smbshare -name "$Scripts" -path "$Builddir\$Scripts"
+        write warning "Labbuildr Sources Share not found, creating new"
+        $SMBShare_Sources = new-smbshare -name "Sources" -path "$Sourcedir" 
         }
-if (!(get-smbshare -name "Sources" -erroraction SilentlyContinue ))
-        {
-        new-smbshare -name "Sources" -path "$Sourcedir" 
-        }
+
+if (!$SMBShare_Sources)
+    {
+    Write-Warning "Could not create or find Sources share, exiting now"
+    break
+    }
+
+
 
 if (!$Master)
 

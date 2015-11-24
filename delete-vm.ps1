@@ -19,6 +19,6 @@ if ((($VM.Path -replace "\\","/") -match (($Builddir.path) -replace "\\","/")) -
     {
     $vm | Stop-VM -Force -TurnOff
     $vm | Remove-VM -Force
-    Remove-Item $VM.Path -Force -Recurse
+    Remove-Item $VM.Path -Force -Recurse 
     }
       
