@@ -84,28 +84,23 @@ $numvcpus = "4"
 }
 }
 
-try
-    {
-    $VM = get-vm $Nodename -ErrorAction SilentlyContinue
-    }
-catch
-    {}
 
-if ($VM)
-    {
-    if (($VM.Path -replace "\\","/") -match (($CloneVMPath) -replace "\\","/"))
-        {
-        Write-Warning "VM Already exists in $CloneVMPath"
-        break
-        }
-    }
 
 write-host "Creating Differencing disk from $MasterVHD in $Nodename"
-$VHD = New-VHD –Path “$CloneVMPath\Disk_0.vhdx” –ParentPath “$MasterVHD” 
+try
+    {
+    $VHD = New-VHD –Path “$CloneVMPath\Disk_0.vhdx” –ParentPath “$MasterVHD” -ErrorAction stop
+    }
+catch
+    {
+    Write-Error "The VHD already Exists in $CloneVMPath"
+    $_
+    break
+    }
 if (!$VHD)
     {
     Write-Warning "Error creating VHD"
-    exit
+    break
     }
 $CloneVM = New-VM -Name $Nodename -Path "$Builddir" -Memory $start_memsize  -VHDPath $vhd.path -SwitchName $HVSwitch -Generation 2
 $CloneVM | Set-VMMemory -DynamicMemoryEnabled $true -MinimumBytes $min_memsize -StartupBytes $start_memsize -MaximumBytes $max_memsize -Priority 80 -Buffer 25
