@@ -93,12 +93,21 @@ try
     }
 catch
     {
-    Write-Warning "The VHD already Exists in $CloneVMPath"
+    Write-Warning "The VHD for $Nodename already Exists in $CloneVMPath"
+    # $_
+    break
+    }
+try
+    {
+    $CloneVM = New-VM -Name $Nodename -Path "$Builddir" -Memory $start_memsize  -VHDPath $vhd.path -SwitchName $HVSwitch -Generation 2 -ErrorAction stop
+    }
+catch
+    {
+    Write-Warning "The VM $Nodename already Exists in $CloneVMPath"
     # $_
     break
     }
 
-$CloneVM = New-VM -Name $Nodename -Path "$Builddir" -Memory $start_memsize  -VHDPath $vhd.path -SwitchName $HVSwitch -Generation 2
 $CloneVM | Set-VMMemory -DynamicMemoryEnabled $true -MinimumBytes $min_memsize -StartupBytes $start_memsize -MaximumBytes $max_memsize -Priority 80 -Buffer 25
 $CloneVM | Add-VMDvdDrive -Path "$CloneVMPath\build.iso"
 $CloneVM | Set-VMProcessor -Count $numvcpus
@@ -126,5 +135,6 @@ try
 catch
     {
     Write-Warning "Error Starting Node"
+    break
     }
 return $true
