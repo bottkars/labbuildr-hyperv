@@ -89,7 +89,7 @@ $numvcpus = "4"
 write-host "Creating Differencing disk from $MasterVHD in $Nodename"
 try
     {
-    $VHD = New-VHD –Path “$CloneVMPath\Disk_0.vhdx” –ParentPath “$MasterVHD” -ErrorAction stop
+    $VHD = New-VHD –Path “$CloneVMPath\Disk_0.vhdx” –ParentPath “$MasterVHD” -ErrorAction SilentlyContinue
     }
 catch
     {
@@ -97,11 +97,7 @@ catch
     $_
     break
     }
-if (!$VHD)
-    {
-    Write-Warning "Error creating VHD"
-    break
-    }
+
 $CloneVM = New-VM -Name $Nodename -Path "$Builddir" -Memory $start_memsize  -VHDPath $vhd.path -SwitchName $HVSwitch -Generation 2
 $CloneVM | Set-VMMemory -DynamicMemoryEnabled $true -MinimumBytes $min_memsize -StartupBytes $start_memsize -MaximumBytes $max_memsize -Priority 80 -Buffer 25
 $CloneVM | Add-VMDvdDrive -Path "$CloneVMPath\build.iso"
