@@ -1598,6 +1598,14 @@ write-verbose "After Masterconfig !!!! "
 
 ########
 
+### Common CloneParameters
+$CloneParameter = $CommonParameter
+If ($vlanID)
+    {
+    $CloneParameter = "$CloneParameter -vlanid $vlanID"
+    }
+
+
 ########
 
 
@@ -2346,11 +2354,6 @@ switch ($PsCmdlet.ParameterSetName)
         $NodePrefix = "DCNode"
         $ScenarioScriptdir = "$IN_Guest_CD_Scriptroot\$NodePrefix"
         $NodeIP = "$IPv4Subnet.10"
-        $CloneParameter = $CommonParameter
-        If ($vlanID)
-            {
-            $CloneParameter = "$CloneParameter -vlanid $vlanID"
-            }
         ####prepare iso
         Remove-Item -Path "$Isodir\$Scripts" -Force -Recurse -ErrorAction SilentlyContinue | Out-Null
         New-Item -ItemType Directory "$Isodir\$Scripts" -Force | Out-Null
@@ -2492,7 +2495,7 @@ check-task -task "phase$n" -nodename $NodeName -sleep $Sleep
 
 	"Blanknodes" {
         test-dcrunning
-        $CloneParameter = $CommonParameter
+
         if ($SpacesDirect.IsPresent )
             {
             If ($Master -lt "2016")
@@ -2515,10 +2518,6 @@ check-task -task "phase$n" -nodename $NodeName -sleep $Sleep
         if ($Disks)
             {
 		    $cloneparameter = "$CloneParameter -AddDisks -disks $Disks"
-            }
-        If ($vlanID)
-            {
-            $CloneParameter = "$CloneParameter -vlanid $vlanID"
             }
         $AddonFeatures = "RSAT-ADDS, RSAT-ADDS-TOOLS, AS-HTTP-Activation, NET-Framework-45-Features"
         if ($Cluster.IsPresent) 
@@ -2647,7 +2646,6 @@ $AddContent = @()
    	"E16"{
         test-dcrunning
         Write-Verbose "Starting $EX_Version $e16_cu Setup"
-        $CloneParameter = $CommonParameter
         If ($Disks -lt 3)
             {
             $Disks = 3
@@ -2655,10 +2653,6 @@ $AddContent = @()
         if ($Disks)
             {
 		    $cloneparameter = "$CloneParameter -AddDisks -disks $Disks"
-            }
-        If ($vlanID)
-            {
-            $CloneParameter = "$CloneParameter -vlanid $vlanID"
             }
 
         if ($AddressFamily -notmatch 'ipv4')
@@ -2993,13 +2987,6 @@ if (($NW.IsPresent -and !$NoDomainCheck.IsPresent) -or $NWServer.IsPresent)
                 {
                 $Size = "L"
                 }
-            $CloneParameter = $CommonParameter
-            If ($vlanID)
-                {
-                $CloneParameter = "$CloneParameter -vlanid $vlanID"
-                }
-
-
 	        $DC_test_ok =  test-dcrunning
             If ($DefaultGateway -match $Nodeip){$SetGateway = "-Gateway"}
 	        ###################################################
