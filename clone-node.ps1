@@ -86,7 +86,7 @@ $numvcpus = "4"
 
 try
     {
-    $VM = get-vm $Nodename | where path -match $CloneVMPath -ErrorAction SilentlyContinue
+    $VM = get-vm $Nodename -ErrorAction SilentlyContinue
     }
 catch
     {}
