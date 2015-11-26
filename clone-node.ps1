@@ -89,12 +89,12 @@ $numvcpus = "4"
 write-host "Creating Differencing disk from $MasterVHD in $Nodename"
 try
     {
-    $VHD = New-VHD –Path “$CloneVMPath\Disk_0.vhdx” –ParentPath “$MasterVHD” -ErrorAction SilentlyContinue
+    $VHD = New-VHD –Path “$CloneVMPath\Disk_0.vhdx” –ParentPath “$MasterVHD” -ErrorAction Stop
     }
 catch
     {
-    Write-Error "The VHD already Exists in $CloneVMPath"
-    $_
+    Write-Warning "The VHD already Exists in $CloneVMPath"
+    # $_
     break
     }
 
