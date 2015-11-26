@@ -84,10 +84,24 @@ $numvcpus = "4"
 }
 }
 
+try
+    {
+    $VM = get-vm $Nodename | where path -match $CloneVMPath -ErrorAction SilentlyContinue
+    }
+catch
+    {}
 
+if ($VM)
+    {
+    if (($VM.Path -replace "\\","/") -match (($CloneVMPath) -replace "\\","/"))
+        {
+        Write-Warning "VM Already exists in $CloneVMPath"
+        break
+        }
+    }
 
 write-host "Creating Differencing disk from $MasterVHD in $Nodename"
-$VHD = New-VHD –Path “$Builddir\$Nodename\Disk_0.vhdx” –ParentPath “$MasterVHD” 
+$VHD = New-VHD –Path “$CloneVMPath\Disk_0.vhdx” –ParentPath “$MasterVHD” 
 if (!$VHD)
     {
     Write-Warning "Error creating VHD"
@@ -95,14 +109,14 @@ if (!$VHD)
     }
 $CloneVM = New-VM -Name $Nodename -Path "$Builddir" -Memory $start_memsize  -VHDPath $vhd.path -SwitchName $HVSwitch -Generation 2
 $CloneVM | Set-VMMemory -DynamicMemoryEnabled $true -MinimumBytes $min_memsize -StartupBytes $start_memsize -MaximumBytes $max_memsize -Priority 80 -Buffer 25
-$CloneVM | Add-VMDvdDrive -Path "$Builddir\$Nodename\build.iso"
+$CloneVM | Add-VMDvdDrive -Path "$CloneVMPath\build.iso"
 $CloneVM | Set-VMProcessor -Count $numvcpus
 if ($AddDisks)
     {
     Write-Verbose "Adding Disks"
     foreach ($disk in (1..$Disks))
         {
-        $VHD = New-VHD -Dynamic -SizeBytes $Disksize -Path "$Builddir\$Nodename\Disk_$Disk.vhdx"
+        $VHD = New-VHD -Dynamic -SizeBytes $Disksize -Path "$CloneVMPath\Disk_$Disk.vhdx"
         # $VHD | Set-VMHardDiskDrive -MaximumIOPS 200   -     
         $CloneVM | Add-VMHardDiskDrive -path $VHD.path -ControllerType SCSI -ControllerNumber 0  #-MaximumIOPS 200
         }
