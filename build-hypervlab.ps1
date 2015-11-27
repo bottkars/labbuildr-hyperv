@@ -99,9 +99,9 @@ param (
 	[switch][alias('nsr')]$NWServer,
 
     <# Starting Node for Blank Nodes#>
-    [Parameter(ParameterSetName = "Blanknodes", Mandatory = $false)][ValidateRange(1, 12)][alias('bs')]$Blankstart = "1",
+    [Parameter(ParameterSetName = "Blanknodes", Mandatory = $false)][ValidateRange(1, 12)][alias('bs')][int]$Blankstart = "1",
     <# How many Blank Nodes#>
-	[Parameter(ParameterSetName = "Blanknodes", Mandatory = $false)][ValidateRange(1, 12)][alias('bns')]$BlankNodes = "1",
+	[Parameter(ParameterSetName = "Blanknodes", Mandatory = $false)][ValidateRange(1, 12)][alias('bns')][int]$BlankNodes = "1",
 
     #>
 	[Parameter(ParameterSetName = "SCOM", Mandatory = $true)][switch][alias('SC_OM')]$SCOM,
