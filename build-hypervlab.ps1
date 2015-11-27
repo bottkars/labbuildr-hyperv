@@ -943,7 +943,7 @@ param (
 [string]$Current_phase
 )
 $Content = @()
-$Content = "###
+$Content = "### $Current_phase
 `$ScriptName = `$MyInvocation.MyCommand.Name
 `$Host.UI.RawUI.WindowTitle = `$ScriptName
 `$Logfile = New-Item -ItemType file `"c:\$Scripts\`$ScriptName.log`"
@@ -967,7 +967,7 @@ param (
 [string]$Current_phase
 )
 $Content = @()
-$Content = "###
+$Content = "### $Current_phase
 `$ScriptName = `$MyInvocation.MyCommand.Name
 `$Host.UI.RawUI.WindowTitle = `$ScriptName
 `$Logfile = New-Item -ItemType file `"c:\$Scripts\`$ScriptName.log`"
@@ -1002,7 +1002,7 @@ param (
 [switch]$next_phase_no_reboot
 )
 $Content = @()
-$Content = "###
+$Content = "### $Current_phase
 `$ScriptName = `$MyInvocation.MyCommand.Name
 `$Host.UI.RawUI.WindowTitle = `$ScriptName
 `$Logfile = New-Item -ItemType file `"c:\$Scripts\`$ScriptName.log`"
@@ -2582,7 +2582,7 @@ check-task -task "phase$n" -nodename $NodeName -sleep $Sleep
 ## Phase 4
             $previous_phase = $current_phase
             $current_phase = $next_phase
-            $next_phase = "phase_EX_PRE"
+            $next_phase = "phase_finis_node"
             $Next_Phase_noreboot = $true
             run-phase4 -Current_phase $Current_phase -next_phase $next_phase -next_phase_no_reboot
 ## phase_customize
@@ -2590,7 +2590,7 @@ check-task -task "phase$n" -nodename $NodeName -sleep $Sleep
             $current_phase = $next_phase
             $next_phase = "phase_Customize"
 
-$Content = "###
+$Content = "### $Current_phase
 `$ScriptName = `$MyInvocation.MyCommand.Name
 `$Host.UI.RawUI.WindowTitle = `$ScriptName
 `$Logfile = New-Item -ItemType file `"c:\$Scripts\`$ScriptName.log`"
