@@ -108,13 +108,10 @@ param (
     [Parameter(ParameterSetName = "SCOM", Mandatory = $false)]
     [ValidateSet('SC2012_R2_SCOM','SCTP3_SCOM','SCTP4_SCOM')]
     $SCOM_VER = "SC2012_R2_SCOM",
-    <#
-
-
     <# Do we want Additional Disks / of additional 100GB Disks for ScaleIO. The disk will be made ready for ScaleIO usage in Guest OS#>	
 	[Parameter(ParameterSetName = "Blanknodes", Mandatory = $false)]
     [Parameter(ParameterSetName = "Hyperv", Mandatory = $false)][ValidateRange(1, 6)][int][alias('ScaleioDisks')]$Disks,
-<# select vmnet, number from 1 to 19#>                                        	
+    <# select vmnet, number from 1 to 19#>                                        	
 	[Parameter(ParameterSetName = "Hyperv", Mandatory = $false)]
 	[Parameter(ParameterSetName = "AAG", Mandatory = $false)]
 	[Parameter(ParameterSetName = "E15", Mandatory = $false)]
@@ -985,10 +982,12 @@ $IN_Guest_CD_Node_ScriptDir\set-winrm.ps1 -Scriptdir $IN_Guest_CD_Scriptroot
 
         if ($nw.IsPresent)
             {
-            $Content += "$IN_Guest_CD_Node_ScriptDir\install-nwclient.ps1 -Scriptdir $IN_Guest_CD_Scriptroot"
+            $Content += "$IN_Guest_CD_Node_ScriptDir\install-nwclient.ps1 -Scriptdir $IN_Guest_CD_Scriptroot
+"
             }
 
-        $Content += "restart-computer"
+        $Content += "restart-computer
+"
     
         Write-Verbose $Content
         Set-Content "$Isodir\$Scripts\run-$Current_phase.ps1" -Value $Content -Force
@@ -2562,33 +2561,42 @@ check-task -task "phase$n" -nodename $NodeName -sleep $Sleep
         Write-Verbose "Pre ClusterIP: $ClusterIP"
         Write-Verbose "Cloneparameter $CloneParameter"
         ####prepare iso
-        Remove-Item -Path "$Isodir\$Scripts" -Force -Recurse -ErrorAction SilentlyContinue | Out-Null
-        New-Item -ItemType Directory "$Isodir\$Scripts" -Force | Out-Null
-        New-Item -ItemType Directory "$Builddir\$NodePrefix" -Force | Out-Null
-        $Current_phase = "start-customize"
-        $next_phase = "phase2"
-        run-startcustomize -Current_phase $Current_phase -next_phase $next_phase
-        
-
+            Remove-Item -Path "$Isodir\$Scripts" -Force -Recurse -ErrorAction SilentlyContinue | Out-Null
+            New-Item -ItemType Directory "$Isodir\$Scripts" -Force | Out-Null
+            New-Item -ItemType Directory "$Builddir\$NodePrefix" -Force | Out-Null
+            $Current_phase = "start-customize"
+            $next_phase = "phase2"
+            run-startcustomize -Current_phase $Current_phase -next_phase $next_phase
 ### phase 2
-       $previous_phase = $current_phase
-       $current_phase = $next_phase
-       $next_phase = "phase3"
-       run-phase2 -Current_phase $Current_phase -next_phase $next_phase
+            $previous_phase = $current_phase
+            $current_phase = $next_phase
+            $next_phase = "phase3"
+            run-phase2 -Current_phase $Current_phase -next_phase $next_phase
 
 ### phase 3
-       $previous_phase = $current_phase
-       $current_phase = $next_phase
-       $next_phase = "phase4"
-       run-phase4 -Current_phase $Current_phase -next_phase $next_phase
+            $previous_phase = $current_phase
+            $current_phase = $next_phase
+            $next_phase = "phase4"
+            run-phase3 -Current_phase $Current_phase -next_phase $next_phase
         
 ## Phase 4
-       $previous_phase = $current_phase
-       $current_phase = $next_phase
-       $next_phase = "phase5"
-       run-phase5 -Current_phase $Current_phase -next_phase $next_phase
+            $previous_phase = $current_phase
+            $current_phase = $next_phase
+            $next_phase = "phase_EX_PRE"
+            $Next_Phase_noreboot = $true
+            run-phase4 -Current_phase $Current_phase -next_phase $next_phase -next_phase_no_reboot
+## phase_customize
+            $previous_phase = $current_phase
+            $current_phase = $next_phase
+            $next_phase = "phase_Customize"
 
-
+$Content = "###
+`$ScriptName = `$MyInvocation.MyCommand.Name
+`$Host.UI.RawUI.WindowTitle = `$ScriptName
+`$Logfile = New-Item -ItemType file `"c:\$Scripts\`$ScriptName.log`"
+$IN_Guest_CD_Node_ScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status started
+$IN_Guest_CD_Node_ScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
+"
 $AddContent = @()
         if ($Node -eq $Blank_End)
             {
@@ -2605,15 +2613,11 @@ $AddContent = @()
             }
         $AddContent += "$IN_Guest_CD_Node_ScriptDir\set-vmguesttask.ps1 -Task $Current_phase -Status finished
 "
-        # Write-Verbose $AddContent
-        Add-Content "$Isodir\$Scripts\run-$Current_phase.ps1" -Value $AddContent -Force
-## end Phase4          
-        
-        if ($PSCmdlet.MyInvocation.BoundParameters["verbose"].IsPresent)
-            { 
-            Write-verbose "Now Pausing"
-            pause
-            }
+$Content += $AddContent
+
+Write-Verbose $Content
+Set-Content "$Isodir\$Scripts\run-$Current_phase.ps1" -Value $Content -Force
+####
 
 
 ####### Iso Creation        
