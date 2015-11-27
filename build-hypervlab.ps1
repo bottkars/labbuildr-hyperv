@@ -2535,7 +2535,7 @@ check-task -task "phase$n" -nodename $NodeName -sleep $Sleep
                 }
             }
         $Blank_End = ($Blankstart+$BlankNodes-1)
-        Write-Verbose "We will deplo $Nodes Nodes from $Blankstart to $Blank_End"
+        Write-Verbose "We will deploy $Nodes Nodes from $Blankstart to $Blank_End"
 		foreach ($Node in ($Blankstart..$Blank_End))
 		{
 			
