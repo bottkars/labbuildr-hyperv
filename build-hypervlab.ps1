@@ -1052,6 +1052,8 @@ switch ($PsCmdlet.ParameterSetName)
         $RepoLocation = "bottkars"
         $Latest_local_git = $Latest_labbuildr_hyperv_git
         $Destination = "$Builddir"
+
+        Write-Host -ForegroundColor Magenta "Trying update using $branch"
         update-fromGit -Repo $Repo -RepoLocation $RepoLocation -branch $branch -latest_local_Git $Latest_local_git -Destination $Destination
         if (Test-Path "$Builddir\deletefiles.txt")
 		    {
