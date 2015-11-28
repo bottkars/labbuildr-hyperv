@@ -1099,11 +1099,15 @@ switch ($PsCmdlet.ParameterSetName)
                     {
                     Status "Git Release $Latest_labbuildr_hyperv_git"
                     }
-                Status "scripts version $major-$verscipts $Edition"
                 if ($Latest_labbuildr_scripts_git)
                     {
-                    Status "Git Release $Latest_labbuildr_scripts_git"
+                    Status "Scripts Git Release $Latest_labbuildr_scripts_git"
                     }
+                if ($Latest_labtools_git)
+                    {
+                    Status "Labtools Git Release $Latest_labtools_git"
+                    }
+
                 Write-Output '   Copyright 2014 Karsten Bott
 
    Licensed under the Apache License, Version 2.0 (the "License");
