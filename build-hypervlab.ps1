@@ -598,9 +598,9 @@ function update-fromGit
             }
         Catch
             {
-            Write-Warning "Error connecting to gid, maybe limit exceeded ? "
-            $_
-            break
+            Write-Warning "Error connecting to git, maybe connection limit exceeded ? "
+             #$_
+            exit
             }
         [datetime]$latest_OnGit = $request.Headers.'Last-Modified'
                 Write-Verbose "We have $repo version $latest_local_Git, $latest_OnGit is online !"
