@@ -602,8 +602,15 @@ function update-fromGit
             }
         Catch
             {
-            Write-Warning "Error connecting to git, maybe connection limit exceeded ? "
-             #$_
+            Write-Warning "Error connecting to git"
+            if ($_.Exception.Response.StatusCode -match "Forbidden")
+                {
+                Write-Warning "Status inidicates that Connection Limit is exceeded"
+                }
+            # $_.Exception.Response.StatusCode
+            # $_.Exception.response
+            # $_.Exception.response.Headers.Status
+            # $_
             exit
             }
         [datetime]$latest_OnGit = $request.Headers.'Last-Modified'
