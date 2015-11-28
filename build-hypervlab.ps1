@@ -474,6 +474,10 @@ try
     {
     $Current_labbuildr_hyperv_branch = $branch
     }
+If (!$PSCmdlet.MyInvocation.BoundParameters["verbose"].IsPresent)
+    {
+    $branch = $Current_labbuildr_hyperv_branch
+    }
 try
     {
     [datetime]$Latest_labbuildr_hyperv_git = Get-Content  ($Builddir + "\labbuildr-hyperv-$branch.gitver") -ErrorAction Stop
