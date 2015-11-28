@@ -1096,7 +1096,7 @@ switch ($PsCmdlet.ParameterSetName)
         }# end shortcut
     "Version"
         {
-				Write-Host -ForegroundColor Magenta "labbuildr HyperV version $major-$verlabbuildr_HyperV$Edition on branch $Current_labbuildr_hyperv_branch"
+				Write-Host -ForegroundColor Magenta "labbuildr-HyperV version $major-$verlabbuildr_HyperV$Edition on branch $Current_labbuildr_hyperv_branch"
                 if ($Latest_labbuildr_hyperv_git)
                     {
                     Status "Git Release $Latest_labbuildr_hyperv_git"
