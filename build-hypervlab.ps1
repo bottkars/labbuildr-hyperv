@@ -1097,7 +1097,7 @@ switch ($PsCmdlet.ParameterSetName)
         }# end shortcut
     "Version"
         {
-				Status "labbuildr HyperV version $major-$verlabbuildr_HyperV $Edition on $Current_branch"
+				Status "labbuildr HyperV version $major-$verlabbuildr_HyperV $Edition on $Current_labbuildr_hyperv_branch"
                 if ($Latest_labbuildr_hyperv_git)
                     {
                     Status "Git Release $Latest_labbuildr_hyperv_git"
