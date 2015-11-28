@@ -592,7 +592,16 @@ function update-fromGit
         Write-Verbose "Using update-fromgit function for $repo"
         $Uri = "https://api.github.com/repos/$RepoLocation/$repo/commits/$branch"
         $Zip = ("https://github.com/$RepoLocation/$repo/archive/$branch.zip").ToLower()
-        $request = Invoke-WebRequest -UseBasicParsing -Uri $Uri -Method Head
+        try
+            {
+            $request = Invoke-WebRequest -UseBasicParsing -Uri $Uri -Method Head -ErrorAction Stop
+            }
+        Catch
+            {
+            Write-Warning "Error connecting to gid, maybe limit exceeded ? "
+            $_
+            break
+            }
         [datetime]$latest_OnGit = $request.Headers.'Last-Modified'
                 Write-Verbose "We have $repo version $latest_local_Git, $latest_OnGit is online !"
                 if ($latest_local_Git -lt $latest_OnGit -or $force.IsPresent )
