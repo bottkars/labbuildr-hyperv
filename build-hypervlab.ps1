@@ -146,7 +146,6 @@ param (
     [Parameter(ParameterSetName = "SCOM", Mandatory = $false)]
     [Parameter(ParameterSetName = "SRM", Mandatory = $false)]
     [ValidateSet('2016TP4','2016TP3','2012R2FallUpdate')]$Master,
-
     <#do we want a special path to the Masters ? #>
     [Parameter(ParameterSetName = "Sharepoint",Mandatory = $false)]
 	[Parameter(ParameterSetName = "Hyperv", Mandatory = $false)]
@@ -182,8 +181,6 @@ param (
 	[Parameter(ParameterSetName = "SCOM", Mandatory = $false)]
 	[Parameter(ParameterSetName = "SCVMM", Mandatory = $false)]
 	[ValidateSet('SQL2014SP1slip','SQL2012','SQL2012SP1','SQL2012SP2','SQL2012SP1SLIP','SQL2014')]$SQLVER,
-
-
  #   [Parameter(Mandatory = $false, HelpMessage = "Enter a valid VMware network Number vmnet between 1 and 19 ")]
 <# This stores the defaul config in defaults.xml#>
 	[Parameter(ParameterSetName = "Hyperv", Mandatory = $false)]
@@ -1097,7 +1094,7 @@ switch ($PsCmdlet.ParameterSetName)
         }# end shortcut
     "Version"
         {
-				Status "labbuildr HyperV version $major-$verlabbuildr_HyperV $Edition on $Current_labbuildr_hyperv_branch"
+				Status "labbuildr HyperV version $major-$verlabbuildr_HyperV$Edition on $Current_labbuildr_hyperv_branch"
                 if ($Latest_labbuildr_hyperv_git)
                     {
                     Status "Git Release $Latest_labbuildr_hyperv_git"
