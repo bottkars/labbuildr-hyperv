@@ -471,6 +471,14 @@ $Scripts_share_name = ((Split-Path -NoQualifier $Scripts_share_path) -replace "\
 
 try
     {
+    $Current_labbuildr_hyperv_branch = Get-Content  ($Builddir + "\labbuildr-hyperv.branch") -ErrorAction Stop
+    }
+    catch
+    {
+    $Current_labbuildr_hyperv_branch = $branch
+    }
+try
+    {
     [datetime]$Latest_labbuildr_hyperv_git = Get-Content  ($Builddir + "\labbuildr-hyperv-$branch.gitver") -ErrorAction Stop
     }
     catch
@@ -1077,6 +1085,7 @@ switch ($PsCmdlet.ParameterSetName)
         $Latest_local_git = $Latest_labtools_git
         $Destination = "$Builddir\labtools"
         update-fromGit -Repo $Repo -RepoLocation $RepoLocation -branch $branch -latest_local_Git $Latest_local_git -Destination $Destination -delete
+        Set-Content -Value $branch -Path (Join-Path $Builddir "labbuildr-hyperv.branch")
 
         return
     }# end Updatefromgit
@@ -1088,7 +1097,7 @@ switch ($PsCmdlet.ParameterSetName)
         }# end shortcut
     "Version"
         {
-				Status "labbuildr HyperV version $major-$verlabbuildr_HyperV $Edition on $branch"
+				Status "labbuildr HyperV version $major-$verlabbuildr_HyperV $Edition on $Current_branch"
                 if ($Latest_labbuildr_hyperv_git)
                     {
                     Status "Git Release $Latest_labbuildr_hyperv_git"
