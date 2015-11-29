@@ -1754,7 +1754,7 @@ if ($NWServer.IsPresent -or $NMM.IsPresent -or $NW.IsPresent)
         {
 
         Write-Warning "We need to get $NW_ver, trying Automated Download"
-        $NW_download_ok  =  receive-LABNetworker -nw_ver $nw_ver -arch win_x64 -Destination $NW_Sourcedir -unzip $CommonParameter
+        $NW_download_ok  =  receive-LABNetworker -nw_ver $nw_ver -arch win_x64 -Destination $NW_Sourcedir -unzip # $CommonParameter
         <#
         if ($nw_ver -notin ('nw822','nw821','nw82'))
             {
