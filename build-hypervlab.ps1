@@ -575,7 +575,6 @@ function convert-iptosubnet
 	return, $Subnet
 } #enc convert iptosubnet
 
-
 function update-fromGit
 {
 
@@ -614,7 +613,7 @@ function update-fromGit
 					        {
 						    $newDir = New-Item -ItemType Directory -Path "$Updatepath" | out-null
                             }
-                    Write-Output "We found a newer Version for $repo on Git Dated $($request.Headers.'Last-Modified')"
+                    Write-Host "We found a newer Version for $repo on Git Dated $($request.Headers.'Last-Modified')"
                     if ($delete.IsPresent)
                         {
                         Write-Verbose "Cleaning $Destination"
