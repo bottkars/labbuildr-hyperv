@@ -559,12 +559,10 @@ $IN_Guest_CD_Scriptroot = "D:"
 $IN_Guest_LogDir = "C:\$Scripts"
 $IN_Guest_CD_Node_ScriptDir = "$IN_Guest_CD_Scriptroot\Node"
 $IN_Guest_UNC_Node_ScriptDir = "$IN_Guest_UNC_Scriptroot\Node"
-
 ##################
 ###################################################
 # main function go here
 ###################################################
-
 ####
 ####
 function convert-iptosubnet
@@ -1528,6 +1526,13 @@ $config += ("<Hostkey>$($Default.HostKey)</Hostkey>")
 $config += ("</config>")
 $config | Set-Content $defaultsfile
 }
+########
+#
+#
+########
+$NW_Sourcedir = Join-Path $Sourcedir "Networker"
+
+
 if ($PSCmdlet.MyInvocation.BoundParameters["verbose"].IsPresent -and $savedefaults.IsPresent )
     {
     Write-Verbose  "Defaults after Save"
@@ -1728,7 +1733,7 @@ if ($NWServer.IsPresent -or $NW.IsPresent)
 if ($NWServer.IsPresent -or $NMM.IsPresent -or $NW.IsPresent)
     {
 
-    if ((Test-Path "$Sourcedir/$nw_ver/win_x64/networkr/networker.msi") -or (Test-Path "$Sourcedir/$nw_ver/win_x64/networkr/lgtoclnt-8.5.0.0.exe"))
+    if ((Test-Path "$NW_Sourcedir/$nw_ver/win_x64/networkr/networker.msi") -or (Test-Path "$NW_Sourcedir/$nw_ver/win_x64/networkr/lgtoclnt-8.5.0.0.exe"))
         {
         Write-Verbose "Networker $nw_ver found"
         }
@@ -1736,6 +1741,8 @@ if ($NWServer.IsPresent -or $NMM.IsPresent -or $NW.IsPresent)
         {
 
         Write-Warning "We need to get $NW_ver, trying Automated Download"
+        $NW_download_ok  =  receive-LABNetworker -nw_ver $nw_ver -arch win_x64 -Destination $NW_Sourcedir -Verbose
+        <#
         if ($nw_ver -notin ('nw822','nw821','nw82'))
             {
             $nwdotver = $nw_ver -replace "nw",""
@@ -1765,6 +1772,11 @@ if ($NWServer.IsPresent -or $NMM.IsPresent -or $NW.IsPresent)
             Write-Verbose $Zipfilename     
             Expand-LABZip -zipfilename "$Zipfilename" -destination "$Destinationdir" -verbose
             }
+            }
+        #>
+        if ($NW_download_ok)
+            {
+            Write-Host -ForegroundColor Magenta "Received $nw_ver"
             }
         else
             {
