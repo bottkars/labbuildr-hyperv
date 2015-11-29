@@ -674,7 +674,7 @@ function test-source
 			if (!($SourceFiles -contains $Version))
 			{
 				write-Host "$Sourcedir does not contain $Version"
-				debug "Please Download and extraxt $Version to $Sourcedir\$Version"
+				Write-Warning "Please Download and extraxt $Version to $Sourcedir\$Version"
 				$Sourceerror = $true
 			}
 			else { write-verbose "found $Version, good..." }
@@ -1702,7 +1702,7 @@ if (!($DConly.IsPresent))
 	if (($NMM.IsPresent) -and ($Blanknode -eq $false)) { $Sourcever += $nmm_ver }
 	if ($NWServer.IsPresent -or $NW.IsPresent -or $NMM.IsPresent ) 
         { 
-        $Sourcever += $nw_ver 
+        #$Sourcever += $nw_ver 
         }
 	if ($SQL.IsPresent -or $AlwaysOn.IsPresent) 
         {
