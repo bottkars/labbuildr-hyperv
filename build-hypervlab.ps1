@@ -451,9 +451,6 @@ Valid values 'IPv4','IPv6','IPv4IPv6'
 #requires -version 3.0
 #requires -module labtools 
 ###################################################
-## COnstants to be moved to Params
-
-
 ###################################################
 [string]$Myself = $MyInvocation.MyCommand
 #$AddressFamily = 'IPv4'
@@ -464,8 +461,6 @@ $Builddir = $PSScriptRoot
 $Scripts = "Scripts"
 $Scripts_share_path = Join-Path $Builddir $Scripts
 $Scripts_share_name = ((Split-Path -NoQualifier $Scripts_share_path) -replace "\\","_")
-
-
 try
     {
     $Current_labbuildr_hyperv_branch = Get-Content  ($Builddir + "\labbuildr-hyperv.branch") -ErrorAction Stop
@@ -474,7 +469,7 @@ try
     {
     $Current_labbuildr_hyperv_branch = $branch
     }
-If (!$PSCmdlet.MyInvocation.BoundParameters["verbose"].IsPresent)
+If (!$PSCmdlet.MyInvocation.BoundParameters["branch"].IsPresent)
     {
     $branch = $Current_labbuildr_hyperv_branch
     }
@@ -607,10 +602,6 @@ function update-fromGit
                 {
                 Write-Warning "Status inidicates that Connection Limit is exceeded"
                 }
-            # $_.Exception.Response.StatusCode
-            # $_.Exception.response
-            # $_.Exception.response.Headers.Status
-            # $_
             exit
             }
         [datetime]$latest_OnGit = $request.Headers.'Last-Modified'
