@@ -1064,7 +1064,7 @@ switch ($PsCmdlet.ParameterSetName)
         $Destination = "$Builddir"
 
         Write-Host -ForegroundColor Magenta "Trying update using branch $branch"
-        update-fromGit -Repo $Repo -RepoLocation $RepoLocation -branch $branch -latest_local_Git $Latest_local_git -Destination $Destination
+        $Has_update = update-fromGit -Repo $Repo -RepoLocation $RepoLocation -branch $branch -latest_local_Git $Latest_local_git -Destination $Destination
         if (Test-Path "$Builddir\deletefiles.txt")
 		    {
 			$deletefiles = get-content "$Builddir\deletefiles.txt"
@@ -1087,7 +1087,7 @@ switch ($PsCmdlet.ParameterSetName)
         $RepoLocation = "bottkars"
         $Latest_local_git = $Latest_labbuildr_scripts_git
         $Destination = "$Builddir\$Scripts"
-        update-fromGit -Repo $Repo -RepoLocation $RepoLocation -branch $branch -latest_local_Git $Latest_local_git -Destination $Destination -delete
+        $Has_update = update-fromGit -Repo $Repo -RepoLocation $RepoLocation -branch $branch -latest_local_Git $Latest_local_git -Destination $Destination -delete
         ####
         $Repo = "labtools"
         $RepoLocation = "bottkars"
@@ -1108,9 +1108,6 @@ switch ($PsCmdlet.ParameterSetName)
             pause
             ./profile.ps1
             }
-
-
-
         return
     }# end Updatefromgit
     "Shortcut"
