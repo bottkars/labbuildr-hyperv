@@ -588,6 +588,7 @@ function update-fromGit
             [string]$Destination,
             [switch]$delete
             )
+        $Isnew = $false
         Write-Verbose "Using update-fromgit function for $repo"
         $Uri = "https://api.github.com/repos/$RepoLocation/$repo/commits/$branch"
         $Zip = ("https://github.com/$RepoLocation/$repo/archive/$branch.zip").ToLower()
@@ -628,10 +629,8 @@ function update-fromGit
                     {
                     Status "No update required for $repo on $branch, already newest version "                    
                     }
-
+return $Isnew
 }
-#####
-
 function Extract-Zip
 {
 	param ([string]$zipfilename, [string] $destination)
@@ -1093,9 +1092,24 @@ switch ($PsCmdlet.ParameterSetName)
         $Repo = "labtools"
         $RepoLocation = "bottkars"
         $Latest_local_git = $Latest_labtools_git
-        $Destination = "$Builddir\labtools"
-        update-fromGit -Repo $Repo -RepoLocation $RepoLocation -branch $branch -latest_local_Git $Latest_local_git -Destination $Destination -delete
+        $Destination = "$Builddir\$Repo"
+        if ($Has_update = update-fromGit -Repo $Repo -RepoLocation $RepoLocation -branch $branch -latest_local_Git $Latest_local_git -Destination $Destination -delete)
+            {
+            $ReloadProfile = $True
+            }
+        ##
         Set-Content -Value $branch -Path (Join-Path $Builddir "labbuildr-hyperv.branch")
+
+        if ($ReloadProfile)
+            {
+            Remove-Item .\Update -Recurse -Confirm:$false
+			status "Update Done"
+            status "press any key for reloading Modules"
+            pause
+            ./profile.ps1
+            }
+
+
 
         return
     }# end Updatefromgit
