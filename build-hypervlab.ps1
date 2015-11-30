@@ -2965,6 +2965,7 @@ Set-Content "$Isodir\$Scripts\run-$Current_phase.ps1" -Value $Content -Force
     $IN_Guest_UNC_ScenarioScriptDir = "$IN_Guest_UNC_Scriptroot\$NodePrefix"
     [string]$AddonFeatures = "RSAT-ADDS, RSAT-ADDS-TOOLS" 
     $ScenarioScriptDir = "$IN_Guest_CD_Scriptroot\$NodePrefix"
+    $Size = "TXL"
 	###################################################
 	Write-Host -ForegroundColor Magenta "Creating SRM Server $Nodename"
   	Write-Verbose $IPv4Subnet
