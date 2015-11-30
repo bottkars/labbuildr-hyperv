@@ -102,8 +102,16 @@ param (
     [Parameter(ParameterSetName = "Blanknodes", Mandatory = $false)][ValidateRange(1, 12)][alias('bs')][int]$Blankstart = "1",
     <# How many Blank Nodes#>
 	[Parameter(ParameterSetName = "Blanknodes", Mandatory = $false)][ValidateRange(1, 12)][alias('bns')][int]$BlankNodes = "1",
-
+    <#
+    Selects the EMC ViPR SRM Binary Install
+    
     #>
+	[Parameter(ParameterSetName = "SRM", Mandatory = $true)][switch][alias('srm')]$ViPRSRM,
+    [Parameter(ParameterSetName = "SRM")]
+    [ValidateSet('3.7.0.0','3.6.0.3')]
+    $SRM_VER='3.7.0.0',
+    <# SCOM Scenario
+    IP-Addresses: .18#>
 	[Parameter(ParameterSetName = "SCOM", Mandatory = $true)][switch][alias('SC_OM')]$SCOM,
     [Parameter(ParameterSetName = "SCOM", Mandatory = $false)]
     [ValidateSet('SC2012_R2_SCOM','SCTP3_SCOM','SCTP4_SCOM')]
@@ -474,6 +482,8 @@ $Builddir = $PSScriptRoot
 $Scripts = "Scripts"
 $Scripts_share_path = Join-Path $Builddir $Scripts
 $Scripts_share_name = ((Split-Path -NoQualifier $Scripts_share_path) -replace "\\","_")
+#$Sources_share_path = Join-Path $Sourcedir
+
 try
     {
     $Current_labbuildr_hyperv_branch = Get-Content  ($Builddir + "\labbuildr-hyperv.branch") -ErrorAction Stop
@@ -1032,7 +1042,7 @@ $Content = "### $Current_phase
 `$Host.UI.RawUI.WindowTitle = `$ScriptName
 `$Logfile = New-Item -ItemType file `"c:\$Scripts\`$ScriptName.log`"
 $IN_Guest_CD_Node_ScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status started
-$IN_Guest_CD_Node_ScriptDir\set-vmguestshare.ps1 -user $Labbuildr_share_User -password $Labbuildr_share_password -HostIP $HostIP -Scripts_share_name $Scripts_share_name
+$IN_Guest_CD_Node_ScriptDir\set-vmguestshare.ps1 -user $Labbuildr_share_User -password $Labbuildr_share_password -HostIP $HostIP -Scripts_share_name $Scripts_share_name -Sources_share_name $Sources_share_name
 $IN_Guest_CD_Node_ScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
 "
 if ($next_phase_no_reboot)
@@ -1595,12 +1605,34 @@ if (!$SMBSHARE_Scripts)
     break
     }
 
+<#
+$Sources_share_name = ((Split-Path -NoQualifier $Builddir) -replace "\\","_")
 
-if (!($SMBShare_Sources = get-smbshare -name "Sources" -erroraction SilentlyContinue ))
+
+#>
+$Sources_share_name =  ((split-path -NoQualifier $Builddir) -replace "\\","_")+"_$Sources"
+if (!($SMBShare_Sources = get-smbshare -name $Sources_share_name -erroraction SilentlyContinue ))
         {
         Write-Warning "Labbuildr Sources Share not found, creating new"
-        $SMBShare_Sources = new-smbshare -name "Sources" -path "$Sourcedir" 
+        $SMBShare_Sources = new-smbshare -name $Sources_share_name -path "$Sourcedir" 
         }
+elseif (($SMBShare_Sources.Path -replace "\\","/") -eq ($SMBShare_Sources_path -replace "\\","/" ))
+    {
+    Write-Verbose "Removing existing Share $Sources_share_name"
+    Remove-SmbShare $Sources_share_name
+    $SMBShare_Sources = new-smbshare -name $Sources_share_name -path "$Sourcedir" 
+    } 
+     <#
+     
+     $Scripts_share_path = Join-Path $Builddir $Scripts
+$Scripts_share_name = ((Split-Path -NoQualifier $Scripts_share_path) -replace "\\","_")
+#= Join-Path $Sourcedir
+
+     
+     
+     #>
+
+  #  }
 
 if (!$SMBShare_Sources)
     {
@@ -2510,7 +2542,7 @@ restart-computer
 $IN_Guest_CD_Node_ScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
 $IN_Guest_CD_Node_ScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status started
 $ScenarioScriptdir\check-domain.ps1 -Scriptdir $IN_Guest_CD_Scriptroot
-$IN_Guest_CD_Node_ScriptDir\set-vmguestshare.ps1 -user $Labbuildr_share_User -password $Labbuildr_share_password -HostIP $HostIP -Scripts_share_name $Scripts_share_name
+$IN_Guest_CD_Node_ScriptDir\set-vmguestshare.ps1 -user $Labbuildr_share_User -password $Labbuildr_share_password -HostIP $HostIP -Scripts_share_name $Scripts_share_name -Sources_share_name $Sources_share_name
 $IN_Guest_CD_Node_ScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status finished
 #New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name '99-$next_phase' -Value '$PSHOME\powershell.exe -Command `". $Isodir\$Scripts\run-$next_phase.ps1`"'
 "
@@ -2922,6 +2954,127 @@ Set-Content "$Isodir\$Scripts\run-$Current_phase.ps1" -Value $Content -Force
        }#End Switchblock Exchange
 
 
+"SRM"
+{
+	###################################################
+	# SRM Setup
+	###################################################
+	$Nodeip = "$IPv4Subnet.17"
+	$NodePrefix = "ViPRSRM"
+    $Nodename = $NodePrefix
+    $IN_Guest_UNC_ScenarioScriptDir = "$IN_Guest_UNC_Scriptroot\$NodePrefix"
+    [string]$AddonFeatures = "RSAT-ADDS, RSAT-ADDS-TOOLS" 
+    $ScenarioScriptDir = "$IN_Guest_CD_Scriptroot\$NodePrefix"
+	###################################################
+	Write-Host -ForegroundColor Magenta "Creating SRM Server $Nodename"
+  	Write-Verbose $IPv4Subnet
+    write-verbose $Nodename
+    write-verbose $Nodeip
+	$DC_test_ok = test-dcrunning
+
+#########################
+####prepare iso
+            Remove-Item -Path "$Isodir\$Scripts" -Force -Recurse -ErrorAction SilentlyContinue | Out-Null
+            New-Item -ItemType Directory "$Isodir\$Scripts" -Force | Out-Null
+            New-Item -ItemType Directory "$Builddir\$NodePrefix" -Force | Out-Null
+            $Current_phase = "start-customize"
+            $next_phase = "phase2"
+            run-startcustomize -Current_phase $Current_phase -next_phase $next_phase
+        
+
+### phase 2
+            $previous_phase = $current_phase
+            $current_phase = $next_phase
+            $next_phase = "phase3"
+            run-phase2 -Current_phase $Current_phase -next_phase $next_phase
+
+### phase 3
+            $previous_phase = $current_phase
+            $current_phase = $next_phase
+            $next_phase = "phase4"
+            run-phase3 -Current_phase $Current_phase -next_phase $next_phase
+        
+## Phase 4
+            $previous_phase = $current_phase
+            $current_phase = $next_phase
+            $next_phase = "phase_install_$($Nodeprefix)"
+            $Next_Phase_noreboot = $true
+            run-phase4 -Current_phase $Current_phase -next_phase $next_phase -next_phase_no_reboot
+
+## phase install
+<#
+        if ($NW.IsPresent)
+            {
+            write-verbose "Install NWClient"
+		    invoke-vmxpowershell -config $CloneVMX -Guestuser $Adminuser -Guestpassword $Adminpassword -ScriptPath $IN_Guest_UNC_NodeScriptDir -Script install-nwclient.ps1 -interactive -Parameter $nw_ver
+            }
+        invoke-postsection -wait
+        write-verbose "Building SRM Server"
+	    invoke-vmxpowershell -config $CloneVMX -Guestuser $Adminuser -Guestpassword $Adminpassword -ScriptPath $IN_Guest_UNC_ScenarioScriptDir -Script INSTALL-SRM.ps1 -interactive -parameter "-SRM_VER $SRM_VER $CommonParameter"
+        Write-Host -ForegroundColor White "You cn now Connect to http://$($Nodeip):58080/APG/ with admin/changeme"
+#>
+
+            $previous_phase = $current_phase
+            $current_phase = $next_phase
+            $next_phase = "phase_install_$($Nodeprefix)_done"
+$Content = "###
+`$ScriptName = `$MyInvocation.MyCommand.Name
+`$Host.UI.RawUI.WindowTitle = `$ScriptName
+`$Logfile = New-Item -ItemType file `"c:\$Scripts\`$ScriptName.log`"
+$IN_Guest_CD_Node_ScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status started
+$IN_Guest_CD_Node_ScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
+$ScenarioScriptdir\INSTALL-SRM.ps1 -SRM_VER $SRM_VER $CommonParameter -SourcePath $IN_Guest_UNC_Sourcepath\$NodePrefix -Scriptdir $IN_Guest_CD_Scriptroot
+$IN_Guest_CD_Node_ScriptDir\set-autologon -user $scenario_admin -SourcePath $IN_Guest_UNC_Sourcepath -Scriptdir $IN_Guest_CD_Scriptroot
+$IN_Guest_CD_Node_ScriptDir\Add-DomainUserToLocalGroup.ps1 -user $scenario_admin -group 'Remote Desktop Users' -SourcePath $IN_Guest_UNC_Sourcepath -Scriptdir $IN_Guest_CD_Scriptroot
+New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name '99-$next_phase' -Value '$PSHOME\powershell.exe -Command `". $IN_Guest_CD_Scriptroot\$Scripts\run-$next_phase.ps1`"'
+restart-computer
+"
+Write-Verbose $Content
+Set-Content "$Isodir\$Scripts\run-$Current_phase.ps1" -Value $Content -Force
+######
+
+
+## phase install_SRM_done
+
+
+            $previous_phase = $current_phase
+            $current_phase = $next_phase
+            $next_phase = "phase_finished"
+$Content = "###
+`$ScriptName = `$MyInvocation.MyCommand.Name
+`$Host.UI.RawUI.WindowTitle = `$ScriptName
+`$Logfile = New-Item -ItemType file `"c:\$Scripts\`$ScriptName.log`"
+$IN_Guest_CD_Node_ScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status started
+$IN_Guest_CD_Node_ScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
+$IN_Guest_CD_Node_ScriptDir\set-vmguestshare.ps1 -user $Labbuildr_share_User -password $Labbuildr_share_password -HostIP $HostIP -Scripts_share_name $Scripts_share_name -Sources_share_name $Sources_share_name
+http://$($Nodeip):58080/APG/
+"
+Write-Verbose $Content
+Set-Content "$Isodir\$Scripts\run-$Current_phase.ps1" -Value $Content -Force
+
+####### Iso Creation        
+            $Isocreatio = make-iso -Nodename $NodeName -Builddir $Builddir -isodir $Isodir
+####### clone creation
+            if ($PSCmdlet.MyInvocation.BoundParameters["verbose"].IsPresent)
+                {
+                Write-Verbose "Press any Key to continue to Cloning"
+                pause
+                }
+
+            $CloneOK = Invoke-Expression  "$Builddir\clone-node.ps1 -MasterVHD $MasterVHDX -Nodename $NodeName -Size $Size -HVSwitch $HVSwitch $CloneParameter"
+
+
+		    If ($CloneOK)
+            {
+            check-task -task "start-customize" -nodename $NodeName -sleep $Sleep
+            }
+
+	
+
+} #SRM End#>
+
+
+
     "SCOM"
 {
 	###################################################
@@ -3127,7 +3280,7 @@ $Content = "###
 # set-vmguesttask disabled for user
 # $IN_Guest_CD_Node_ScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status started
 # $IN_Guest_CD_Node_ScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
-$IN_Guest_CD_Node_ScriptDir\set-vmguestshare.ps1 -user $Labbuildr_share_User -password $Labbuildr_share_password -HostIP $HostIP -Scripts_share_name $Scripts_share_name
+$IN_Guest_CD_Node_ScriptDir\set-vmguestshare.ps1 -user $Labbuildr_share_User -password $Labbuildr_share_password -HostIP $HostIP -Scripts_share_name $Scripts_share_name -Sources_share_name $Sources_share_name
 $ScenarioScriptdir\configure-nmc.ps1 -SourcePath $IN_Guest_UNC_Sourcepath -Scriptdir $IN_Guest_CD_Scriptroot
 "
 Write-Verbose $Content
