@@ -3025,10 +3025,10 @@ $Content = "###
 $IN_Guest_CD_Node_ScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status started
 $IN_Guest_CD_Node_ScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
 $ScenarioScriptdir\INSTALL-SRM.ps1 -SRM_VER $SRM_VER $CommonParameter -SourcePath $IN_Guest_UNC_Sourcepath\$NodePrefix -Scriptdir $IN_Guest_CD_Scriptroot
-$IN_Guest_CD_Node_ScriptDir\set-autologon -user $scenario_admin -SourcePath $IN_Guest_UNC_Sourcepath -Scriptdir $IN_Guest_CD_Scriptroot
-$IN_Guest_CD_Node_ScriptDir\Add-DomainUserToLocalGroup.ps1 -user $scenario_admin -group 'Remote Desktop Users' -SourcePath $IN_Guest_UNC_Sourcepath -Scriptdir $IN_Guest_CD_Scriptroot
+# $IN_Guest_CD_Node_ScriptDir\set-autologon -user $scenario_admin -SourcePath $IN_Guest_UNC_Sourcepath -Scriptdir $IN_Guest_CD_Scriptroot
+#$IN_Guest_CD_Node_ScriptDir\Add-DomainUserToLocalGroup.ps1 -user $scenario_admin -group 'Remote Desktop Users' -SourcePath $IN_Guest_UNC_Sourcepath -Scriptdir $IN_Guest_CD_Scriptroot
 New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name '99-$next_phase' -Value '$PSHOME\powershell.exe -Command `". $IN_Guest_CD_Scriptroot\$Scripts\run-$next_phase.ps1`"'
-restart-computer
+#restart-computer
 "
 Write-Verbose $Content
 Set-Content "$Isodir\$Scripts\run-$Current_phase.ps1" -Value $Content -Force
@@ -3047,7 +3047,7 @@ $Content = "###
 `$Logfile = New-Item -ItemType file `"c:\$Scripts\`$ScriptName.log`"
 $IN_Guest_CD_Node_ScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status started
 $IN_Guest_CD_Node_ScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
-$IN_Guest_CD_Node_ScriptDir\set-vmguestshare.ps1 -user $Labbuildr_share_User -password $Labbuildr_share_password -HostIP $HostIP -Scripts_share_name $Scripts_share_name -Sources_share_name $Sources_share_name
+# $IN_Guest_CD_Node_ScriptDir\set-vmguestshare.ps1 -user $Labbuildr_share_User -password $Labbuildr_share_password -HostIP $HostIP -Scripts_share_name $Scripts_share_name -Sources_share_name $Sources_share_name
 http://$($Nodeip):58080/APG/
 "
 Write-Verbose $Content
