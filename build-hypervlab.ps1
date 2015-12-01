@@ -1553,7 +1553,6 @@ $config | Set-Content $defaultsfile
 #
 #
 ########
-$NW_Sourcedir = Join-Path $Sourcedir "Networker"
 
 
 if ($PSCmdlet.MyInvocation.BoundParameters["verbose"].IsPresent -and $savedefaults.IsPresent )
@@ -1604,6 +1603,7 @@ if (!$SMBSHARE_Scripts)
     Write-Warning "Could not create or find Scripts share, exiting now"
     break
     }
+
 
 <#
 $Sources_share_name = ((Split-Path -NoQualifier $Builddir) -replace "\\","_")
@@ -1713,7 +1713,7 @@ if (!(test-path $Builddir\bin\mkisofs.exe -ErrorAction SilentlyContinue))
 
 
 ####### Building required Software Versions Tabs
-
+$NW_Sourcedir = Join-Path $Sourcedir "Networker"
 $Sourcever = @()
 
 # $Sourcever = @("$nw_ver","$nmm_ver","E2013$ex_cu","$WAIKVER","$SQL2012R2")
@@ -1760,6 +1760,8 @@ if (!($DConly.IsPresent))
         $Scenario = 4
 	}
 } # end not dconly
+
+
 if ($NWServer.IsPresent -or $NW.IsPresent)
     {
     $url = "ftp://ftp.adobe.com/pub/adobe/reader/win/Acrobat2015/1500630033/AcroRdr20151500630033_MUI.exe"
