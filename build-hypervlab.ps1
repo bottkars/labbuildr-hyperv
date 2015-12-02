@@ -2061,6 +2061,22 @@ if ($SCOM.IsPresent)
 
 #######
 
+############## SCOM Section
+if ($SCVMM.IsPresent)
+  {
+    Write-Warning "Entering SCVMM Prereq Section"
+    [switch]$SQL=$true
+    $Prereqdir = "prereq"
+    If (!(Receive-LABSysCtrInstallers -SC_Version $SC_Version -Component SCVMM -Destination $Sourcedir -unzip))
+        {
+        Write-warning "We could not receive scom"
+        return
+        }
+
+    }# end SCOMPREREQ
+
+#######
+
 ##############
 
 if ($SQL.IsPresent -or $AlwaysOn.IsPresent)
