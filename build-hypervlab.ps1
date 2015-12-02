@@ -743,8 +743,8 @@ function test-dcrunning
         }
     catch 
         {
-        Write-Warning "No dc installed for $Builddir labbuildr environment"
-        break
+        Write-Warning "No dc installed for $Builddir labbuildr environment, we need to build one first"
+        return $False
         }
     $Running_Domain = get-vmguesttask -Node DCNode -Task Domain
     $Running_IP = get-vmguesttask -Node dcnode -Task IPAddress
@@ -1455,6 +1455,7 @@ try
     {
     $HostIP_Address = Get-NetIPAddress -InterfaceAlias "vEthernet ($HVSwitch)" -AddressFamily IPv4
     $HostIP = $HostIP_Address.IPAddress
+    Write-Verbose "we use $HostIP for communication with Guest"
     }
 catch
     {
@@ -2040,14 +2041,12 @@ if ($SCOM.IsPresent)
     Write-Warning "Entering SCOM Prereq Section"
     [switch]$SQL=$true
     $Prereqdir = "prereq"
-    If (!(Receive-LABSysCtrInstallers -SC_Version $SC_Version -Component SCOM -Destination $Sourcedir ))
+    If (!(Receive-LABSysCtrInstallers -SC_Version $SC_Version -Component SCOM -Destination $Sourcedir -unzip))
         {
         Write-warning "We could not receive scom"
         return
         }
-    return
-    pause
-    
+
     }# end SCOMPREREQ
 
 #######
@@ -2368,13 +2367,7 @@ if (!($SourceOK = test-source -SourceVer $Sourcever -SourceDir $Sourcedir))
 if ($DefaultGateway) {$AddGateway  = "-DefaultGateway $DefaultGateway"}
 If ($VMnet -ne "VMnet2") { debug "Setting different Network is untested and own Risk !" }
 
-
-##########
-switch ($PsCmdlet.ParameterSetName)
-
-    {
-    
-    "DCOnly"
+if (!(test-dcrunning) -and (!$NoDomainCheck.IsPresent)) 
         {        
 	    ###################################################
 	    #
@@ -2523,8 +2516,12 @@ check-task -task "phase$n" -nodename $NodeName -sleep $Sleep
 
 
     }
-        }#end dconly
+        }#end dc
 
+##########
+switch ($PsCmdlet.ParameterSetName)
+
+    {
 	"Blanknodes" {
         test-dcrunning
 
@@ -3019,9 +3016,131 @@ Set-Content "$Isodir\$Scripts\run-$Current_phase.ps1" -Value $Content -Force
 
 } #SRM End#>
 
+"SCVMM"
+{
+	###################################################
+	# scvmm Setup
+	###################################################
+	$Nodeip = "$IPv4Subnet.18"
+	$Nodename = "scvmm"
+    $NodePrefix = "scvmm"
+    [string]$AddonFeatures = "RSAT-ADDS, RSAT-ADDS-TOOLS, NET-Framework-45-Features"
+    $ScenarioScriptDir = "$IN_Guest_CD_Scriptroot\$NodePrefix"
+    $SQLScriptDir = "$GuestScriptdir\sql\"
+    if ($Size -lt "XL")
+        {
+        $Size = "XL"
+        }
+
+	###################################################
+	status $Commentline
+	status "Creating $scvmm_VER Server $Nodename"
+  	Write-Verbose $IPv4Subnet
+    write-verbose $Nodename
+    write-verbose $Nodeip
+    if ($PSCmdlet.MyInvocation.BoundParameters["verbose"].IsPresent)
+        { 
+        Write-verbose "Now Pausing, Clone Process will start after keypress"
+        pause
+        }
+
+	$DC_test_ok = test-dcrunning
+
+#########################
+####prepare iso
+            Remove-Item -Path "$Isodir\$Scripts" -Force -Recurse -ErrorAction SilentlyContinue | Out-Null
+            New-Item -ItemType Directory "$Isodir\$Scripts" -Force | Out-Null
+            New-Item -ItemType Directory "$Builddir\$NodePrefix" -Force | Out-Null
+            $Current_phase = "start-customize"
+            $next_phase = "phase2"
+            run-startcustomize -Current_phase $Current_phase -next_phase $next_phase
+        
+
+### phase 2
+            $previous_phase = $current_phase
+            $current_phase = $next_phase
+            $next_phase = "phase3"
+            run-phase2 -Current_phase $Current_phase -next_phase $next_phase
+
+### phase 3
+            $previous_phase = $current_phase
+            $current_phase = $next_phase
+            $next_phase = "phase4"
+            run-phase3 -Current_phase $Current_phase -next_phase $next_phase
+        
+## Phase 4
+            $previous_phase = $current_phase
+            $current_phase = $next_phase
+            $next_phase = "phase_install_$($Nodeprefix)"
+            $Next_Phase_noreboot = $true
+            run-phase4 -Current_phase $Current_phase -next_phase $next_phase -next_phase_no_reboot
+
+## phase install
 
 
-    "SCOM"
+            $previous_phase = $current_phase
+            $current_phase = $next_phase
+            $next_phase = "phase_install_$($Nodeprefix)_done"
+$Content = "###
+`$ScriptName = `$MyInvocation.MyCommand.Name
+`$Host.UI.RawUI.WindowTitle = `$ScriptName
+`$Logfile = New-Item -ItemType file `"c:\$Scripts\`$ScriptName.log`"
+$IN_Guest_CD_Node_ScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status started
+$IN_Guest_CD_Node_ScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
+$IN_Guest_UNC_Scriptroot\SQL\install-sql.ps1 -SQLVER $SQLVER -DefaultDBpath $CommonParameter -SourcePath $IN_Guest_UNC_Sourcepath -Scriptdir $IN_Guest_CD_Scriptroot
+$ScenarioScriptdir\install-vmmprereq.ps1 -Parameter -sc_version $SC_Version $CommonParameter -SourcePath $IN_Guest_UNC_Sourcepath -Scriptdir $IN_Guest_CD_Scriptroot
+$ScenarioScriptdir\INSTALL-vmm.ps1 -SC_Version $SC_Version $CommonParameter -SourcePath $IN_Guest_UNC_Sourcepath -Scriptdir $IN_Guest_CD_Scriptroot
+#$IN_Guest_CD_Node_ScriptDir\set-autologon -user nwadmin -SourcePath $IN_Guest_UNC_Sourcepath -Scriptdir $IN_Guest_CD_Scriptroot
+#$IN_Guest_CD_Node_ScriptDir\Add-DomainUserToLocalGroup.ps1 -user nwadmin -group 'Remote Desktop Users' -SourcePath $IN_Guest_UNC_Sourcepath -Scriptdir $IN_Guest_CD_Scriptroot
+#New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name '99-$next_phase' -Value '$PSHOME\powershell.exe -Command `". $IN_Guest_CD_Scriptroot\$Scripts\run-$next_phase.ps1`"'
+# restart-computer
+"
+Write-Verbose $Content
+Set-Content "$Isodir\$Scripts\run-$Current_phase.ps1" -Value $Content -Force
+######
+
+
+
+
+####### Iso Creation        
+            $Isocreatio = make-iso -Nodename $NodeName -Builddir $Builddir -isodir $Isodir
+####### clone creation
+            if ($PSCmdlet.MyInvocation.BoundParameters["verbose"].IsPresent)
+                {
+                Write-Verbose "Press any Key to continue to Cloning"
+                pause
+                }
+
+            $CloneOK = Invoke-Expression  "$Builddir\clone-node.ps1 -MasterVHD $MasterVHDX -Nodename $NodeName -Size $Size -HVSwitch $HVSwitch $CloneParameter"
+
+
+		    If ($CloneOK)
+            {
+            check-task -task "start-customize" -nodename $NodeName -sleep $Sleep
+            }
+
+
+	
+
+<#
+			write-verbose "Building SCVMM Setup Configruration"
+			invoke-vmxpowershell -config $CloneVMX -Guestuser $Adminuser -Guestpassword $Adminpassword -ScriptPath $IN_Guest_UNC_ScenarioScriptDir -Script set-vmmconfig.ps1 -interactive
+			write-verbose "Installing SQL Binaries"
+			invoke-vmxpowershell -config $CloneVMX -Guestuser $Adminuser -Guestpassword $Adminpassword -ScriptPath $In_Guest_UNC_SQLScriptDir -Script install-sql.ps1 -Parameter "-SQLVER $SQLVER -DefaultDBpath $CommonParameter" -interactive
+			write-verbose "Installing SCVMM PREREQS"
+			invoke-vmxpowershell -config $CloneVMX -Guestuser $Adminuser -Guestpassword $Adminpassword  -ScriptPath $IN_Guest_UNC_ScenarioScriptDir -Script install-vmmprereq.ps1 -Parameter "-scvmm_ver $scvmm_ver $CommonParameter"  -interactive
+            checkpoint-progress -step vmmprereq -reboot -Guestuser $Adminuser -Guestpassword $Adminpassword
+			write-verbose "Installing SCVMM"
+            Write-Warning "Setup of VMM and Update Rollups in progress, could take up to 20 Minutes"
+			invoke-vmxpowershell -config $CloneVMX -Guestuser $Adminuser -Guestpassword $Adminpassword  -ScriptPath $IN_Guest_UNC_ScenarioScriptDir -Script install-vmm.ps1 -Parameter "-scvmm_ver $scvmm_ver $CommonParameter" -interactive
+  #>          
+
+
+
+
+}#END SCVMM
+
+ "SCOM"
 {
 	###################################################
 	# SCOM Setup
@@ -3093,9 +3212,7 @@ $Content = "###
 $IN_Guest_CD_Node_ScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status started
 $IN_Guest_CD_Node_ScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
 $IN_Guest_UNC_Scriptroot\SQL\install-sql.ps1 -SQLVER $SQLVER -DefaultDBpath $CommonParameter -SourcePath $IN_Guest_UNC_Sourcepath -Scriptdir $IN_Guest_CD_Scriptroot
-$ScenarioScriptdir\INSTALL-Scom.ps1 -SCOM_VER $SCOM_VER $CommonParameter -SourcePath $IN_Guest_UNC_Sourcepath -Scriptdir $IN_Guest_CD_Scriptroot
-#$IN_Guest_CD_Node_ScriptDir\install-program.ps1 -Program $LatestJava -ArgumentList '/s' -SourcePath $IN_Guest_UNC_Sourcepath -Scriptdir $IN_Guest_CD_Scriptroot
-#$IN_Guest_CD_Node_ScriptDir\install-program.ps1 -Program $LatestReader -ArgumentList '/sPB /rs' -SourcePath $IN_Guest_UNC_Sourcepath -Scriptdir $IN_Guest_CD_Scriptroot
+$ScenarioScriptdir\INSTALL-Scom.ps1 -SC_Version $SC_Version $CommonParameter -SourcePath $IN_Guest_UNC_Sourcepath -Scriptdir $IN_Guest_CD_Scriptroot
 #$IN_Guest_CD_Node_ScriptDir\set-autologon -user nwadmin -SourcePath $IN_Guest_UNC_Sourcepath -Scriptdir $IN_Guest_CD_Scriptroot
 #$IN_Guest_CD_Node_ScriptDir\Add-DomainUserToLocalGroup.ps1 -user nwadmin -group 'Remote Desktop Users' -SourcePath $IN_Guest_UNC_Sourcepath -Scriptdir $IN_Guest_CD_Scriptroot
 #New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name '99-$next_phase' -Value '$PSHOME\powershell.exe -Command `". $IN_Guest_CD_Scriptroot\$Scripts\run-$next_phase.ps1`"'
