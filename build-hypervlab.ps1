@@ -1043,6 +1043,8 @@ $Content = "### $Current_phase
 `$Logfile = New-Item -ItemType file `"c:\$Scripts\`$ScriptName.log`"
 $IN_Guest_CD_Node_ScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status started
 $IN_Guest_CD_Node_ScriptDir\set-vmguestshare.ps1 -user $Labbuildr_share_User -password $Labbuildr_share_password -HostIP $HostIP -Scripts_share_name $Scripts_share_name -Sources_share_name $Sources_share_name
+$IN_Guest_CD_Node_ScriptDir\set-vmguestshare.ps1 -user $Labbuildr_share_User -password $Labbuildr_share_password -HostIP $HostIP -Scripts_share_name $Scripts_share_name -Sources_share_name $Sources_share_name
+$IN_Guest_CD_Node_ScriptDir\create-labshortcut.ps1 -scriptdir $IN_Guest_UNC_Scriptroot
 $IN_Guest_CD_Node_ScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
 "
 if ($next_phase_no_reboot)
@@ -2481,6 +2483,7 @@ $IN_Guest_CD_Node_ScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status fi
 $IN_Guest_CD_Node_ScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status started
 $ScenarioScriptdir\check-domain.ps1 -Scriptdir $IN_Guest_CD_Scriptroot
 $IN_Guest_CD_Node_ScriptDir\set-vmguestshare.ps1 -user $Labbuildr_share_User -password $Labbuildr_share_password -HostIP $HostIP -Scripts_share_name $Scripts_share_name -Sources_share_name $Sources_share_name
+$IN_Guest_CD_Node_ScriptDir\create-labshortcut.ps1 -scriptdir $IN_Guest_UNC_Scriptroot
 $IN_Guest_CD_Node_ScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status finished
 #New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name '99-$next_phase' -Value '$PSHOME\powershell.exe -Command `". $Isodir\$Scripts\run-$next_phase.ps1`"'
 "
