@@ -1697,7 +1697,7 @@ if (!(test-path $Builddir\bin\mkisofs.exe -ErrorAction SilentlyContinue))
     {
     if (!(test-path $Builddir\bin\ -ErrorAction SilentlyContinue))
         {
-        New-Item -ItemType Directory -Path $Builddir\bin\ 
+        $Bin_Dir = New-Item -ItemType Directory -Path $Builddir\bin\ 
         }
     $url = "ftp://ftp.heise.de/pub/ct/listings/0603-202.zip"
     Write-Warning "Downloading mkisofs from $URL, plese be patient"
