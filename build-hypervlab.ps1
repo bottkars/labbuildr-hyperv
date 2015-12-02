@@ -3032,9 +3032,9 @@ Set-Content "$Isodir\$Scripts\run-$Current_phase.ps1" -Value $Content -Force
 	###################################################
 	# scvmm Setup
 	###################################################
-	$Nodeip = "$IPv4Subnet.18"
-	$Nodename = "scvmm"
-    $NodePrefix = "scvmm"
+	$Nodeip = "$IPv4Subnet.19"
+	$Nodename = "SCVMM"
+    $NodePrefix = "SCVMM"
     [string]$AddonFeatures = "RSAT-ADDS, RSAT-ADDS-TOOLS, NET-Framework-45-Features"
     $ScenarioScriptDir = "$IN_Guest_CD_Scriptroot\$NodePrefix"
     $SQLScriptDir = "$GuestScriptdir\sql\"
