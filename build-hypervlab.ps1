@@ -114,8 +114,8 @@ param (
     IP-Addresses: .18#>
 	[Parameter(ParameterSetName = "SCOM", Mandatory = $true)][switch][alias('SC_OM')]$SCOM,
     [Parameter(ParameterSetName = "SCOM", Mandatory = $false)]
-    [ValidateSet('SC2012_R2_SCOM','SCTP3_SCOM','SCTP4_SCOM')]
-    $SCOM_VER = "SC2012_R2_SCOM",
+    [ValidateSet('SC2012_R2','SCTP3','SCTP4')]
+    $SC_Version = "SCTP4",
     <# Do we want Additional Disks / of additional 100GB Disks for ScaleIO. The disk will be made ready for ScaleIO usage in Guest OS#>	
 	[Parameter(ParameterSetName = "Blanknodes", Mandatory = $false)]
     [Parameter(ParameterSetName = "Hyperv", Mandatory = $false)][ValidateRange(1, 6)][int][alias('ScaleioDisks')]$Disks,
@@ -2039,74 +2039,17 @@ if ($SCOM.IsPresent)
   {
     Write-Warning "Entering SCOM Prereq Section"
     [switch]$SQL=$true
-    $Prereqdir = "$SCOM_VER"+"prereq"
-    Write-Verbose "We are now going to Test SCOM Prereqs"
+    $Prereqdir = "prereq"
+    If (!(Receive-LABSysCtrInstallers -SC_Version $SC_Version -Component SCOM -Destination $Sourcedir ))
+        {
+        Write-warning "We could not receive scom"
+        return
+        }
+    return
+    pause
     
-            $DownloadUrls= (
-            'http://download.microsoft.com/download/F/B/7/FB728406-A1EE-4AB5-9C56-74EB8BDDF2FF/ReportViewer.msi',
-            "http://download.microsoft.com/download/F/E/D/FEDB200F-DE2A-46D8-B661-D019DFE9D470/ENU/x64/SQLSysClrTypes.msi"
-            )
-    
-            Foreach ($URL in $DownloadUrls)
-                {
-                $FileName = Split-Path -Leaf -Path $Url
-                Write-Verbose "Testing $FileName in $Prereqdir"
-                if (!(test-path  "$Sourcedir\$Prereqdir\$FileName"))
-                    {
-                    Write-Verbose "Trying Download"
-                    if (!(get-prereq -DownLoadUrl $URL -destination  "$Sourcedir\$Prereqdir\$FileName"))
-                        { 
-                        write-warning "Error Downloading file $Url, Please check connectivity"
-                        exit
-                        }
-                    }
-                }
-    
-    switch ($SCOM_VER)
-    {
-        "SC2012_R2_SCOM"
-            {
-            if ($SQLVER -gt "SQL2012SP1")
-                {
-                Write-Warning "SCOM can only be installed on SQL2012, Setting to SQL2012SP1"
-                $SQLVER = "SQL2012SP1"
-                }# end sqlver
-
-            
-            $URL = "http://care.dlservice.microsoft.com/dl/download/evalx/sc2012r2/$SCOM_VER.exe"
-            }
-        
-        "SCTP3_SCOM"
-            {
-            $URL = "http://care.dlservice.microsoft.com/dl/download/B/0/7/B07BF90E-2CC8-4538-A7D2-83BB074C49F5/SCTP3_SCOM_EN.exe"
-            }
-
-        "SCTP4_SCOM"
-            {
-            <#
-            see gist tp4 for url´s
-            #>
-            $URL = "http://care.dlservice.microsoft.com/dl/download/3/3/3/333022FC-3BB1-4406-8572-ED07950151D4/SCTP4_SCOM_EN.exe"
-            }
-
-    }# end switch
-    $FileName = Split-Path -Leaf -Path $Url
-    Write-Verbose "Testing $SCOM_VER\"
-    if (!(test-path  "$Sourcedir\$SCOM_VER"))
-                {
-                Write-Verbose "Trying Download"
-                if (!(get-prereq -DownLoadUrl $URL -destination  "$Sourcedir\$FileName"))
-                    { 
-                    write-warning "Error Downloading file $Url, Please check connectivity"
-                    exit
-                    }
-                write-Warning "We are going to Extract $FileName, this may take a while"
-                Start-Process "$Sourcedir\$FileName" -ArgumentList "/SP- /dir=$Sourcedir\$SCOM_VER /SILENT" -Wait
-                }
-
-    # workorder "We are going to Install SCOM with $SCOM_VER in Domain $BuildDomain with Subnet $MySubnet using VMnet$VMnet and $SQLVER"
-    # exit
     }# end SCOMPREREQ
+
 #######
 
 ##############
