@@ -114,8 +114,11 @@ param (
     IP-Addresses: .18#>
 	[Parameter(ParameterSetName = "SCOM", Mandatory = $true)][switch][alias('SC_OM')]$SCOM,
     [Parameter(ParameterSetName = "SCOM", Mandatory = $false)]
+    [Parameter(ParameterSetName = "SCVMM", Mandatory = $false)]
     [ValidateSet('SC2012_R2','SCTP3','SCTP4')]
     $SC_Version = "SCTP4",
+    <# IP-Addresses: .19#>
+	[Parameter(ParameterSetName = "SCVMM", Mandatory = $true)][switch][alias('SC_VMM')]$SCVMM,
     <# Do we want Additional Disks / of additional 100GB Disks for ScaleIO. The disk will be made ready for ScaleIO usage in Guest OS#>	
 	[Parameter(ParameterSetName = "Blanknodes", Mandatory = $false)]
     [Parameter(ParameterSetName = "Hyperv", Mandatory = $false)][ValidateRange(1, 6)][int][alias('ScaleioDisks')]$Disks,
@@ -132,6 +135,8 @@ param (
     [Parameter(ParameterSetName = "Sharepoint",Mandatory = $false)]
     [Parameter(ParameterSetName = "Panorama", Mandatory = $false)]
     [Parameter(ParameterSetName = "SRM", Mandatory = $false)]
+    [Parameter(ParameterSetName = "SCOM", Mandatory = $false)]
+    [Parameter(ParameterSetName = "SCVMM", Mandatory = $false)]
     [ValidateSet('vmnet2','vmnet3','vmnet4','vmnet5','vmnet6','vmnet7','vmnet9','vmnet10','vmnet11','vmnet12','vmnet13','vmnet14','vmnet15','vmnet16','vmnet17','vmnet18','vmnet19')]$VMnet,
 <# Specify if Machines should be Clustered, valid for Hyper-V and Blanknodes Scenario  #>
 	[Parameter(ParameterSetName = "Hyperv", Mandatory = $false)]
@@ -152,6 +157,7 @@ param (
     [Parameter(ParameterSetName = "SOFS", Mandatory = $false)]
     [Parameter(ParameterSetName = "Panorama", Mandatory = $false)]
     [Parameter(ParameterSetName = "SCOM", Mandatory = $false)]
+    [Parameter(ParameterSetName = "SCVMM", Mandatory = $false)]
     [Parameter(ParameterSetName = "SRM", Mandatory = $false)]
     [ValidateSet('2016TP4','2016TP3','2012R2FallUpdate')]$Master,
     <#do we want a special path to the Masters ? #>
@@ -167,6 +173,8 @@ param (
     [Parameter(ParameterSetName = "SOFS", Mandatory = $false)]
     [Parameter(ParameterSetName = "Panorama", Mandatory = $false)]
     [Parameter(ParameterSetName = "SRM", Mandatory = $false)]
+    [Parameter(ParameterSetName = "SCOM", Mandatory = $false)]
+    [Parameter(ParameterSetName = "SCVMM", Mandatory = $false)]
     [ValidateScript({ Test-Path -Path $_ })]$Masterpath,
       <#
     Enable the default gateway 
@@ -186,8 +194,8 @@ param (
 	[Parameter(ParameterSetName = "SQL", Mandatory = $false)]
 	[Parameter(ParameterSetName = "AAG", Mandatory = $false)]
 	[Parameter(ParameterSetName = "Hyperv", Mandatory = $false)]
-	[Parameter(ParameterSetName = "SCOM", Mandatory = $false)]
-	[Parameter(ParameterSetName = "SCVMM", Mandatory = $false)]
+    [Parameter(ParameterSetName = "SCOM", Mandatory = $false)]
+    [Parameter(ParameterSetName = "SCVMM", Mandatory = $false)]
 	[ValidateSet('SQL2014SP1slip','SQL2012','SQL2012SP1','SQL2012SP2','SQL2012SP1SLIP','SQL2014')]$SQLVER,
  #   [Parameter(Mandatory = $false, HelpMessage = "Enter a valid VMware network Number vmnet between 1 and 19 ")]
 <# This stores the defaul config in defaults.xml#>
@@ -203,7 +211,7 @@ param (
     [Parameter(ParameterSetName = "SRM", Mandatory = $false)]
     [Parameter(ParameterSetName = "Sharepoint", Mandatory = $false)]
     [Parameter(ParameterSetName = "SCOM", Mandatory = $false)]
-	[Parameter(ParameterSetName = "SCVMM", Mandatory = $false)]
+    [Parameter(ParameterSetName = "SCVMM", Mandatory = $false)]
 	[switch]$savedefaults,
 
 <# reads the Default Config from defaults.xml
