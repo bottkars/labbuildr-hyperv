@@ -1892,7 +1892,7 @@ if ($NMM.IsPresent)
 }
 
 
-
+##### echange downloads section
 
 if ($Exchange2016.IsPresent)
 {
@@ -1958,7 +1958,7 @@ if ($SCOM.IsPresent)
 
 #######
 
-############## SCOM Section
+############## SCVMM Section
 if ($SCVMM.IsPresent)
   {
     Write-Warning "Entering SCVMM Prereq Section"
