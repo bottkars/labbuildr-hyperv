@@ -657,6 +657,7 @@ function update-fromGit
                     {
                     Status "No update required for $repo on $branch, already newest version "                    
                     }
+
 return $Isnew
 }
 function Extract-Zip
@@ -987,14 +988,6 @@ param (
 )
 $Content = @()
 $Content = "### $Current_phase
-`$ScriptName = `$MyInvocation.MyCommand.Name
-`$Host.UI.RawUI.WindowTitle = `$ScriptName
-`$Logfile = New-Item -ItemType file `"c:\$Scripts\`$ScriptName.log`"
-$IN_Guest_CD_Node_ScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status started
-$IN_Guest_CD_Node_ScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
-New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name '99-$next_phase' -Value '$PSHOME\powershell.exe -Command `". $IN_Guest_CD_Scriptroot\$Scripts\run-$next_phase.ps1`"'
-Set-ExecutionPolicy -ExecutionPolicy bypass -Force
-$IN_Guest_CD_Node_ScriptDir\add-todomain.ps1 -Domain $BuildDomain -domainsuffix $domainsuffix -subnet $IPv4subnet -IPV6Subnet $IPv6Prefix -AddressFamily $AddressFamily -scriptdir $IN_Guest_CD_Scriptroot
 "
 Write-Verbose ""
 Write-Verbose "$Content"
@@ -1128,7 +1121,7 @@ switch ($PsCmdlet.ParameterSetName)
             $ReloadProfile = $True
             }
         ##
-        Set-Content -Value $branch -Path (Join-Path $Builddir "labbuildr-hyperv.branch")
+                $branch | Set-Content -Path "$Builddir\labbuildr-hyperv.branch" -Force -Verbose
 
         if ($ReloadProfile)
             {
@@ -2307,7 +2300,7 @@ if (!(test-dcrunning) -and (!$NoDomainCheck.IsPresent))
         New-Item -ItemType Directory "$Isodir\$Scripts" -Force | Out-Null
         New-Item -ItemType Directory "$Builddir\$NodePrefix" -Force | Out-Null
         $Current_phase = "start-customize"
-        $next_phase = "phase2"
+        $next_phase = "phase3"
         $Content = @()
         $Content = "###
 `$logpath = `"c:\$Scripts`"
@@ -2519,14 +2512,14 @@ switch ($PsCmdlet.ParameterSetName)
             New-Item -ItemType Directory "$Isodir\$Scripts" -Force | Out-Null
             New-Item -ItemType Directory "$Builddir\$NodePrefix" -Force | Out-Null
             $Current_phase = "start-customize"
-            $next_phase = "phase2"
+            $next_phase = "phase3"
             run-startcustomize -Current_phase $Current_phase -next_phase $next_phase
-### phase 2
+<### phase 2
             $previous_phase = $current_phase
             $current_phase = $next_phase
             $next_phase = "phase3"
             run-phase2 -Current_phase $Current_phase -next_phase $next_phase
-
+#>
 ### phase 3
             $previous_phase = $current_phase
             $current_phase = $next_phase
@@ -2665,16 +2658,16 @@ Set-Content "$Isodir\$Scripts\run-$Current_phase.ps1" -Value $Content -Force
             New-Item -ItemType Directory "$Isodir\$Scripts" -Force | Out-Null
             New-Item -ItemType Directory "$Builddir\$NodePrefix" -Force | Out-Null
             $Current_phase = "start-customize"
-            $next_phase = "phase2"
+            $next_phase = "phase3"
             run-startcustomize -Current_phase $Current_phase -next_phase $next_phase
         
 
-### phase 2
+<### phase 2
             $previous_phase = $current_phase
             $current_phase = $next_phase
             $next_phase = "phase3"
             run-phase2 -Current_phase $Current_phase -next_phase $next_phase
-
+#>
 ### phase 3
             $previous_phase = $current_phase
             $current_phase = $next_phase
@@ -2845,16 +2838,16 @@ Set-Content "$Isodir\$Scripts\run-$Current_phase.ps1" -Value $Content -Force
             New-Item -ItemType Directory "$Isodir\$Scripts" -Force | Out-Null
             New-Item -ItemType Directory "$Builddir\$NodePrefix" -Force | Out-Null
             $Current_phase = "start-customize"
-            $next_phase = "phase2"
+            $next_phase = "phase3"
             run-startcustomize -Current_phase $Current_phase -next_phase $next_phase
         
 
-### phase 2
+<### phase 2
             $previous_phase = $current_phase
             $current_phase = $next_phase
             $next_phase = "phase3"
             run-phase2 -Current_phase $Current_phase -next_phase $next_phase
-
+#>
 ### phase 3
             $previous_phase = $current_phase
             $current_phase = $next_phase
@@ -2976,16 +2969,16 @@ Set-Content "$Isodir\$Scripts\run-$Current_phase.ps1" -Value $Content -Force
             New-Item -ItemType Directory "$Isodir\$Scripts" -Force | Out-Null
             New-Item -ItemType Directory "$Builddir\$NodePrefix" -Force | Out-Null
             $Current_phase = "start-customize"
-            $next_phase = "phase2"
+            $next_phase = "phase3"
             run-startcustomize -Current_phase $Current_phase -next_phase $next_phase
         
 
-### phase 2
+<### phase 2
             $previous_phase = $current_phase
             $current_phase = $next_phase
             $next_phase = "phase3"
             run-phase2 -Current_phase $Current_phase -next_phase $next_phase
-
+#>
 ### phase 3
             $previous_phase = $current_phase
             $current_phase = $next_phase
@@ -3100,16 +3093,16 @@ Set-Content "$Isodir\$Scripts\run-$Current_phase.ps1" -Value $Content -Force
             New-Item -ItemType Directory "$Isodir\$Scripts" -Force | Out-Null
             New-Item -ItemType Directory "$Builddir\$NodePrefix" -Force | Out-Null
             $Current_phase = "start-customize"
-            $next_phase = "phase2"
+            $next_phase = "phase3"
             run-startcustomize -Current_phase $Current_phase -next_phase $next_phase
         
 
-### phase 2
+<### phase 2
             $previous_phase = $current_phase
             $current_phase = $next_phase
             $next_phase = "phase3"
             run-phase2 -Current_phase $Current_phase -next_phase $next_phase
-
+#>
 ### phase 3
             $previous_phase = $current_phase
             $current_phase = $next_phase
@@ -3203,16 +3196,16 @@ if (($NW.IsPresent -and !$NoDomainCheck.IsPresent) -or $NWServer.IsPresent)
             New-Item -ItemType Directory "$Isodir\$Scripts" -Force | Out-Null
             New-Item -ItemType Directory "$Builddir\$NodePrefix" -Force | Out-Null
             $Current_phase = "start-customize"
-            $next_phase = "phase2"
+            $next_phase = "phase3"
             run-startcustomize -Current_phase $Current_phase -next_phase $next_phase
         
 
-### phase 2
+<### phase 2
             $previous_phase = $current_phase
             $current_phase = $next_phase
             $next_phase = "phase3"
             run-phase2 -Current_phase $Current_phase -next_phase $next_phase
-
+#>
 ### phase 3
             $previous_phase = $current_phase
             $current_phase = $next_phase
