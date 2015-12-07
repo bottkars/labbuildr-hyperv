@@ -2300,7 +2300,7 @@ if (!(test-dcrunning) -and (!$NoDomainCheck.IsPresent))
         New-Item -ItemType Directory "$Isodir\$Scripts" -Force | Out-Null
         New-Item -ItemType Directory "$Builddir\$NodePrefix" -Force | Out-Null
         $Current_phase = "start-customize"
-        $next_phase = "phase3"
+        $next_phase = "phase2"
         $Content = @()
         $Content = "###
 `$logpath = `"c:\$Scripts`"
