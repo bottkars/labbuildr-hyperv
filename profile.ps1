@@ -1,11 +1,8 @@
 ﻿set-location $PSScriptRoot
-
+<#
 $Userinterface = (Get-Host).UI.RawUI
-
 $Userinterface.BackgroundColor = "Black"
-
 $Userinterface.ForegroundColor = "Green"
-
 $size = $Userinterface.BufferSize
 $size.width=130
 $size.height=5000
@@ -15,6 +12,7 @@ $size.width=120
 $size.height=48
 $Userinterface.WindowSize = $size
 clear-host
+#>
 import-module .\labtools -Force
 $Defaults = Get-labdefaults
 
