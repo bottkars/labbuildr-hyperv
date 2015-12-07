@@ -34,7 +34,7 @@ param (
 	[Parameter(ParameterSetName = "update",Mandatory = $false, HelpMessage = "this will update labbuildr from latest git commit")][switch]$Update,
     <#
     run build-lab update    #>
-	[Parameter(ParameterSetName = "update",Mandatory = $false, HelpMessage = "select a branch to update from")][ValidateSet('develop','testing','master')]$branch  = "master",
+	[Parameter(ParameterSetName = "update",Mandatory = $false, HelpMessage = "select a branch to update from")][ValidateSet('develop','testing','master')]$branch  = "testing",
     [Parameter(ParameterSetName = "update",Mandatory = $false, HelpMessage = "this will force update labbuildr")]
     [switch]$force,
         <# 
@@ -537,7 +537,8 @@ $Labbuildr_share_password = "Password123!"
 $WAIKVER = "WAIK"
 $domainsuffix = ".local"
 $AAGDB = "AWORKS"
-$major = "5.0"
+$major = "6.0"
+$Edition = "StNicholas"
 $Default_vmnet = "vmnet2"
 $Default_vlanid = 0
 $Default_BuildDomain = "labbuildr"
@@ -573,7 +574,6 @@ $DCNODE = "DCNODE"
 $NWNODE = "NWSERVER"
 $SPver = "SP2013SP1fndtn"
 $SPPrefix = "SP2013"
-$Edition = "Piranha"
 $Sleep = 10
 [string]$Sources = "Sources"
 $Sourcedirdefault = "c:\Sources"
