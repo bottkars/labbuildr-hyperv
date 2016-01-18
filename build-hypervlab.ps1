@@ -612,7 +612,7 @@ function update-fromGit
             [string]$Repo,
             [string]$RepoLocation,
             [string]$branch,
-            [string]$latest_local_Git,
+            [datetime]$latest_local_Git,
             [string]$Destination,
             [switch]$delete
             )
