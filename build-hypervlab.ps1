@@ -2446,7 +2446,7 @@ switch ($PsCmdlet.ParameterSetName)
 
         if ($SpacesDirect.IsPresent )
             {
-            $AddonFeatures = "$AddonFeatures, File-Services, WVR"
+            $AddonFeatures = "$AddonFeatures, File-Services, Storage-Replica"
             If ($Master -lt "2016")
                 {
                 Write-Warning "Master 2016TP3 or Later is required for Spaces Direct"
@@ -2470,7 +2470,7 @@ switch ($PsCmdlet.ParameterSetName)
             }
         if ($Cluster.IsPresent) 
             {
-            $AddonFeatures = "$AddonFeatures, Failover-Clustering, RSAT-Clustering, RSAT-Clustering-AutomationServer, RSAT-Clustering-CmdInterface, WVR"
+            $AddonFeatures = "$AddonFeatures, Failover-Clustering"
             if (!$Clustername)
                 {
                 $Clustername = "GenCluster"
@@ -2535,7 +2535,7 @@ switch ($PsCmdlet.ParameterSetName)
 ## Phase 4
             $previous_phase = $current_phase
             $current_phase = $next_phase
-            $next_phase = "phase_finis_node"
+            $next_phase = "phase_finish_node"
             $Next_Phase_noreboot = $true
             run-phase4 -Current_phase $Current_phase -next_phase $next_phase -next_phase_no_reboot
 ## phase_customize
@@ -2585,8 +2585,9 @@ Set-Content "$Isodir\$Scripts\run-$Current_phase.ps1" -Value $Content -Force
         Invoke-Expression  "$Builddir\clone-node.ps1 -MasterVHD $MasterVHDX -Nodename $NodeName -Size $Size -HVSwitch $HVSwitch $CloneParameter"
 
 ####### wait progress
+ #       check-task -task "start-customize" -nodename $NodeName -sleep $Sleep
 
-        check-task -task "start-customize" -nodename $NodeName -sleep $Sleep
+        check-task -task "phase3" -nodename $NodeName -sleep $Sleep
     if ($wait)
         {
         foreach ($n in 2..4)
