@@ -511,23 +511,23 @@ $Scripts_share_name = ((Split-Path -NoQualifier $Scripts_share_path) -replace "\
 
 try
     {
-    $Current_labbuildr_hyperv_branch = Get-Content  ($Builddir + "\labbuildr-hyperv.branch") -ErrorAction Stop
+    $Current_labbuildr_branch = Get-Content  ($Builddir + "\labbuildr-hyperv.branch") -ErrorAction Stop
     }
     catch
     {
-    $Current_labbuildr_hyperv_branch = $branch
+    $Current_labbuildr_branch = $branch
     }
 If (!$PSCmdlet.MyInvocation.BoundParameters["branch"].IsPresent)
     {
-    $branch = $Current_labbuildr_hyperv_branch
+    $branch = $Current_labbuildr_branch
     }
 try
     {
-    [datetime]$Latest_labbuildr_hyperv_git = Get-Content  ($Builddir + "\labbuildr-hyperv-$branch.gitver") -ErrorAction Stop
+    [datetime]$Latest_labbuildr_git = Get-Content  ($Builddir + "\labbuildr-$branch.gitver") -ErrorAction Stop
     }
     catch
     {
-    [datetime]$Latest_labbuildr_hyperv_git = "07/11/2015"
+    [datetime]$Latest_labbuildr_git = "07/11/2015"
     }
 try
     {
@@ -1182,10 +1182,10 @@ switch ($PsCmdlet.ParameterSetName)
         }# end shortcut
     "Version"
         {
-				Write-Host -ForegroundColor Magenta "$my_repo version $major-$verlabbuildr_HyperV$Edition on branch $Current_labbuildr_hyperv_branch"
-                if ($Latest_labbuildr_hyperv_git)
+				Write-Host -ForegroundColor Magenta "$my_repo version $major-$verlabbuildr$Edition on branch $Current_labbuildr_branch"
+                if ($Latest_labbuildr_git)
                     {
-                    Status "Git Release $Latest_labbuildr_hyperv_git"
+                    Status "Git Release $Latest_labbuildr_git"
                     }
                 if ($Latest_labbuildr_scripts_git)
                     {
