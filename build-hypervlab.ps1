@@ -63,8 +63,10 @@ param (
     Default is latest
     CU Location is [Driveletter]:\sources\e2016[cuver], e.g. c:\sources\e2016Preview1
     #>
+    #>
 	[Parameter(ParameterSetName = "E16", Mandatory = $false)]
-    [ValidateSet('final')]$e16_cu,
+    [ValidateSet('cu1','final')]
+    $e16_cu,
     <#
     Determines if Exchange should be installed in a DAG
     #>
@@ -84,7 +86,8 @@ param (
     CU Location is [Driveletter]:\sources\e2013[cuver], e.g. c:\sources\e2013cu7
     #>
 	[Parameter(ParameterSetName = "E15", Mandatory = $false)]
-    [ValidateSet('cu1', 'cu2', 'cu3', 'sp1','cu5','cu6','cu7','cu8','cu9','cu10')]$ex_cu,
+    [ValidateSet('cu1', 'cu2', 'cu3', 'sp1','cu5','cu6','cu7','cu8','cu9','cu10','CU11','cu12')]
+    [alias('ex_cu')]$e15_cu,
     <# schould we prestage users ? #>	
     [Parameter(ParameterSetName = "E16", Mandatory = $false)]
     [Parameter(ParameterSetName = "E15", Mandatory = $false)][switch]$nouser,
@@ -115,8 +118,10 @@ param (
 	[Parameter(ParameterSetName = "SCOM", Mandatory = $true)][switch][alias('SC_OM')]$SCOM,
     [Parameter(ParameterSetName = "SCOM", Mandatory = $false)]
     [Parameter(ParameterSetName = "SCVMM", Mandatory = $false)]
-    [ValidateSet('SC2012_R2','SCTP3','SCTP4')]
-    $SC_Version = "SCTP4",
+    [ValidateSet(
+    'SC2012_R2',
+    'SCTP3','SCTP4','SCTP5')]
+    $SC_Version = "SC2012_R2",
     <# IP-Addresses: .19#>
 	[Parameter(ParameterSetName = "SCVMM", Mandatory = $true)][switch][alias('SC_VMM')]$SCVMM,
     <# Do we want Additional Disks / of additional 100GB Disks for ScaleIO. The disk will be made ready for ScaleIO usage in Guest OS#>	
@@ -196,7 +201,9 @@ param (
 	[Parameter(ParameterSetName = "Hyperv", Mandatory = $false)]
     [Parameter(ParameterSetName = "SCOM", Mandatory = $false)]
     [Parameter(ParameterSetName = "SCVMM", Mandatory = $false)]
-	[ValidateSet('SQL2014SP1slip','SQL2012','SQL2012SP1','SQL2012SP2','SQL2012SP1SLIP','SQL2014')]$SQLVER,
+	[ValidateSet(
+    'SQL2014SP1slip','SQL2012','SQL2012SP1','SQL2012SP2','SQL2012SP1SLIP','SQL2014','SQL2016','SQL2016_ISO'
+    )]$SQLVER,
  #   [Parameter(Mandatory = $false, HelpMessage = "Enter a valid VMware network Number vmnet between 1 and 19 ")]
 <# This stores the defaul config in defaults.xml#>
 	[Parameter(ParameterSetName = "Hyperv", Mandatory = $false)]
@@ -317,7 +324,13 @@ Version Of Networker Modules
 	[Parameter(ParameterSetName = "SCOM", Mandatory = $false)]
 	[Parameter(ParameterSetName = "SCVMM", Mandatory = $false)]
     [Parameter(ParameterSetName = "Sharepoint", Mandatory = $false)]
-	[ValidateSet('nmm8221','nmm822','nmm8211','nmm8212','nmm8214','nmm8216','nmm8217','nmm8218','nmm822','nmm821','nmm300', 'nmm301', 'nmm2012', 'nmm3013', 'nmm82','nmm85','nmm85.BR1','nmm85.BR2','nmm85.BR3','nmm85.BR4','nmm90.DA','nmm9001','nmm9002')]
+    [ValidateSet(
+    'nmm9010',
+    'nmm90.DA','nmm9001','nmm9002','nmm9003','nmm9004','nmm9005','nmm9006','nmm9007',
+    'nmm8231','nmm8232',  
+    'nmm8221','nmm8222','nmm8223','nmm8224','nmm8225',
+    'nmm8218','nmm8217','nmm8216','nmm8214','nmm8212','nmm821'
+    )]
     $nmm_ver,
 	
 <# Indicates to install Networker Server with Scenario #>
@@ -355,20 +368,24 @@ mus be extracted to [sourcesdir]\[nw_ver], ex. c:\sources\nw82
     [Parameter(ParameterSetName = "Panorama", Mandatory = $false)]
 	[Parameter(ParameterSetName = "SCOM", Mandatory = $false)]
 	[Parameter(ParameterSetName = "SCVMM", Mandatory = $false)]
-    [ValidateSet('nw90.DA','nw9001',
-    'nw8222','nw8221','nw822',
+    [ValidateSet(
+    'nw9010',
+    'nw90.DA','nw9001','nw9002','nw9003','nw9004','nw9005','nw9006','nw9007',
+    'nw8232','nw8231',
+    'nw8226','nw8225','nw8224','nw8223','nw8222','nw8221','nw822',
     'nw8218','nw8217','nw8216','nw8215','nw8214','nw8213','nw8212','nw8211','nw821',
     'nw8206','nw8205','nw8204','nw8203','nw8202','nw82',
-    'nw8136','nw8135','nw8134','nw8133','nw8132','nw8131','nw813',
+    'nw8138','nw8137','nw8136','nw8135','nw8134','nw8133','nw8132','nw8131','nw813',
     'nw8127','nw8126','nw8125','nw8124','nw8123','nw8122','nw8121','nw812',
     'nw8119','nw8118','nw8117','nw8116','nw8115','nw8114', 'nw8113','nw8112', 'nw811',
     'nw8105','nw8104','nw8103','nw8102','nw81',
-    'nw81044','nw8043','nw8042','nw8041',
-    'nw8036','nw8035','nw81034','nw8033','nw8032','nw8031',
+    'nw8044','nw8043','nw8042','nw8041',
+    'nw8037','nw8036','nw8035','nw81034','nw8033','nw8032','nw8031',
     'nw8026','nw8025','nw81024','nw8023','nw8022','nw8021',
     'nw8016','nw8015','nw81014','nw8013','nw8012',
     'nw8007','nw8006','nw8005','nw81004','nw8003','nw8002','nw80',
-    'nwunknown')]
+    'nwunknown'
+    )]
     $nw_ver,
 
 ### network Parameters ######
@@ -481,10 +498,10 @@ Valid values 'IPv4','IPv6','IPv4IPv6'
 #requires -module labtools 
 ###################################################
 ###################################################
-[string]$Myself = $MyInvocation.MyCommand
+[string]$Myself_ps1 = $MyInvocation.MyCommand
+$myself = $Myself_ps1.TrimEnd(".ps1")
 #$AddressFamily = 'IPv4'
 $IPv4PrefixLength = '24'
-$myself = $Myself.TrimEnd(".ps1")
 $Starttime = Get-Date
 $Builddir = $PSScriptRoot
 $Scripts = "Scripts"
@@ -584,6 +601,8 @@ $Scenario = 1
 $AddonFeatures = ("RSAT-ADDS", "RSAT-ADDS-TOOLS", "AS-HTTP-Activation", "NET-Framework-45-Features")
 $Gatewayhost = "11" 
 $Host.UI.RawUI.WindowTitle = "$Buildname"
+###### labbuildr-hyperv statics
+$my_repo = "labbuildr-hyperv"
 $IN_Guest_UNC_Sourcepath = "X:"
 $IN_Guest_UNC_Scriptroot = "Z:"
 $IN_Guest_CD_Scriptroot = "D:"
@@ -606,8 +625,6 @@ function convert-iptosubnet
 
 function update-fromGit
 {
-
-
 	param (
             [string]$Repo,
             [string]$RepoLocation,
@@ -616,6 +633,7 @@ function update-fromGit
             [string]$Destination,
             [switch]$delete
             )
+        $branch =  $branch.ToLower()
         $Isnew = $false
         Write-Verbose "Using update-fromgit function for $repo"
         $Uri = "https://api.github.com/repos/$RepoLocation/$repo/commits/$branch"
@@ -629,12 +647,13 @@ function update-fromGit
             Write-Warning "Error connecting to git"
             if ($_.Exception.Response.StatusCode -match "Forbidden")
                 {
-                Write-Warning "Status inidicates that Connection Limit is exceeded"
+                Write-Host -ForegroundColor Gray " ==> Status inidicates that Connection Limit is exceeded"
                 }
             exit
             }
         [datetime]$latest_OnGit = $request.Headers.'Last-Modified'
                 Write-Verbose "We have $repo version $latest_local_Git, $latest_OnGit is online !"
+                $latest_local_Git -lt $latest_OnGit
                 if ($latest_local_Git -lt $latest_OnGit -or $force.IsPresent )
                     {
                     $Updatepath = "$Builddir\Update"
@@ -642,7 +661,7 @@ function update-fromGit
 					        {
 						    $newDir = New-Item -ItemType Directory -Path "$Updatepath" | out-null
                             }
-                    Write-Host "We found a newer Version for $repo on Git Dated $($request.Headers.'Last-Modified')"
+                    Write-Host -ForegroundColor Gray "We found a newer Version for $repo on Git Dated $($request.Headers.'Last-Modified')"
                     if ($delete.IsPresent)
                         {
                         Write-Verbose "Cleaning $Destination"
@@ -655,10 +674,9 @@ function update-fromGit
                     }
                 else 
                     {
-                    Status "No update required for $repo on $branch, already newest version "                    
+                    Write-Host -ForegroundColor Gray " ==>No update required for $repo on $branch, already newest version "                    
                     }
-
-return $Isnew
+if ($Isnew) {return $true}
 }
 function Extract-Zip
 {
@@ -1082,12 +1100,11 @@ switch ($PsCmdlet.ParameterSetName)
 {
     "update" 
         {
-        $Repo = "labbuildr-hyperv"
+        $ReloadProfile = $False
+        $Repo = $my_repo
         $RepoLocation = "bottkars"
-        $Latest_local_git = $Latest_labbuildr_hyperv_git
+        $Latest_local_git = $Latest_labbuildr_git
         $Destination = "$Builddir"
-
-        Write-Host -ForegroundColor Magenta "Trying update using branch $branch"
         $Has_update = update-fromGit -Repo $Repo -RepoLocation $RepoLocation -branch $branch -latest_local_Git $Latest_local_git -Destination $Destination
         if (Test-Path "$Builddir\deletefiles.txt")
 		    {
@@ -1097,15 +1114,18 @@ switch ($PsCmdlet.ParameterSetName)
 				if (Get-Item $Builddir\$deletefile -ErrorAction SilentlyContinue)
 				    {
 					Remove-Item -Path $Builddir\$deletefile -Recurse -ErrorAction SilentlyContinue
-					status "deleted $deletefile"
+					Write-Host -ForegroundColor White  " ==>deleted $deletefile"
 					write-log "deleted $deletefile"
 					}
 			    }
             }
         else 
             {
-            Write-Host "No Deletions required"
+            Write-Host -ForegroundColor Gray " ==>No Deletions required"
             }
+
+
+
         ####
         $Repo = "labbuildr-scripts"
         $RepoLocation = "bottkars"
@@ -1121,18 +1141,38 @@ switch ($PsCmdlet.ParameterSetName)
             {
             $ReloadProfile = $True
             }
-        ##
-                $branch | Set-Content -Path "$Builddir\labbuildr-hyperv.branch" -Force -Verbose
+        ####
+        $Repo = "VMXToolKit"
+        $RepoLocation = "bottkars"
+        $Latest_local_git = $Latest_vmxtoolkit_git
+        $Destination = "$Builddir\VMXToolKit"
+        if ($Hasupdate = update-fromGit -Repo $Repo -RepoLocation $RepoLocation -branch $branch -latest_local_Git $Latest_local_git -Destination $Destination -delete)
+            {
+            $ReloadProfile = $True
+            }
+        ####
+        $Repo = "SIOToolKit"
+        $RepoLocation = "emccode"
+        $Latest_local_git = $Latest_SIOToolkit_git
+        $Destination = "$Builddir\SIOToolKit"
+        $Hasupdate = update-fromGit -Repo $Repo -RepoLocation $RepoLocation -branch $branch -latest_local_Git $Latest_local_git -Destination $Destination
+        $Branch | Set-Content -Path "$Builddir\labbuildr.branch" -Force # -Verbose
 
         if ($ReloadProfile)
             {
             Remove-Item .\Update -Recurse -Confirm:$false
-			status "Update Done"
-            status "press any key for reloading Modules"
+			Write-Host -ForegroundColor White  " ==>Update Done"
+            Write-Host -ForegroundColor White  " ==>press any key for reloading Modules"
             pause
             ./profile.ps1
             }
-        return
+        else
+            {
+            ./$Myself_ps1
+            }
+
+    return 
+    #$ReloadProfile
     }# end Updatefromgit
     "Shortcut"
         {
@@ -1142,7 +1182,7 @@ switch ($PsCmdlet.ParameterSetName)
         }# end shortcut
     "Version"
         {
-				Write-Host -ForegroundColor Magenta "labbuildr-HyperV version $major-$verlabbuildr_HyperV$Edition on branch $Current_labbuildr_hyperv_branch"
+				Write-Host -ForegroundColor Magenta "$my_repo version $major-$verlabbuildr_HyperV$Edition on branch $Current_labbuildr_hyperv_branch"
                 if ($Latest_labbuildr_hyperv_git)
                     {
                     Status "Git Release $Latest_labbuildr_hyperv_git"
@@ -1600,7 +1640,7 @@ try
     }
 catch
     {
-    Write-Warning "labbuildr-hyperv Scripts Share $Scripts_share_name not found, creating new"
+    Write-Warning " Scripts Share $Scripts_share_name not found, creating new"
     $SMBSHARE_Scripts = New-SmbShare -name $Scripts_share_name -path $Scripts_share_path -Temporary
     }
 if (!$SMBSHARE_Scripts)
@@ -1662,7 +1702,7 @@ if (!$Master)
     catch [Exception] 
     {
     Write-Warning "Could not find $Masterpath\$Master\$Master.vhdx"
-    Write-Warning "Please download a Master from https://github.com/bottkars/labbuildr-hyperv/wiki/Master"
+    Write-Warning "Please download a Master from https://github.com/bottkars//wiki/Master"
     Write-Warning "And extract to $Masterpath"
     # write-verbose $_.Exception
     break
@@ -1670,7 +1710,7 @@ if (!$Master)
 if (!$MyMaster)
     {
     Write-Warning "Could not find $Masterpath\$Master"
-    Write-Warning "Please download a Master from https://github.com/bottkars/labbuildr-hyperv/wiki/Master"
+    Write-Warning "Please download a Master from https://github.com/bottkars/$my_repo/wiki/Master"
     Write-Warning "And extract to $Masterpath"
     # write-verbose $_.Exception
     break
