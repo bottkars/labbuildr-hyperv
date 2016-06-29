@@ -1170,7 +1170,7 @@ switch ($PsCmdlet.ParameterSetName)
             }
         else
             {
-            .$Myself_ps1
+            ."./$Myself_ps1"
             }
 
     return 
