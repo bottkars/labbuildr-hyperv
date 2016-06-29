@@ -545,6 +545,14 @@ try
     {
     [datetime]$Latest_labtools_git = "07/11/2015"
     }
+try
+    {
+    [datetime]$Latest_SIOToolKit_git = Get-Content  ($Builddir + "\SIOToolKit-$branch.gitver") -ErrorAction Stop
+    }
+    catch
+    {
+    [datetime]$Latest_SIOToolKit_git = "07/11/2015"
+    }
 
 
 ################## Statics
@@ -1162,7 +1170,7 @@ switch ($PsCmdlet.ParameterSetName)
             }
         else
             {
-            ./$Myself_ps1
+            .$Myself_ps1
             }
 
     return 
