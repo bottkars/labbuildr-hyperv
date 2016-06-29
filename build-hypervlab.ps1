@@ -602,6 +602,7 @@ $AddonFeatures = ("RSAT-ADDS", "RSAT-ADDS-TOOLS", "AS-HTTP-Activation", "NET-Fra
 $Gatewayhost = "11" 
 $Host.UI.RawUI.WindowTitle = "$Buildname"
 ###### labbuildr-hyperv statics
+$labbuildr_modules_required = "labtools"
 $my_repo = "labbuildr-hyperv"
 $IN_Guest_UNC_Sourcepath = "X:"
 $IN_Guest_UNC_Scriptroot = "Z:"
@@ -1124,7 +1125,7 @@ switch ($PsCmdlet.ParameterSetName)
             Write-Host -ForegroundColor Gray " ==>No Deletions required"
             }
 
-
+        
 
         ####
         $Repo = "labbuildr-scripts"
@@ -1132,8 +1133,9 @@ switch ($PsCmdlet.ParameterSetName)
         $Latest_local_git = $Latest_labbuildr_scripts_git
         $Destination = "$Builddir\$Scripts"
         $Has_update = update-fromGit -Repo $Repo -RepoLocation $RepoLocation -branch $branch -latest_local_Git $Latest_local_git -Destination $Destination -delete
-        ####
-        $Repo = "labtools"
+        
+        foreach ($Repo in $labbuildr_modules_required)
+            {
         $RepoLocation = "bottkars"
         $Latest_local_git = $Latest_labtools_git
         $Destination = "$Builddir\$Repo"
@@ -1141,15 +1143,7 @@ switch ($PsCmdlet.ParameterSetName)
             {
             $ReloadProfile = $True
             }
-        ####
-        $Repo = "VMXToolKit"
-        $RepoLocation = "bottkars"
-        $Latest_local_git = $Latest_vmxtoolkit_git
-        $Destination = "$Builddir\VMXToolKit"
-        if ($Hasupdate = update-fromGit -Repo $Repo -RepoLocation $RepoLocation -branch $branch -latest_local_Git $Latest_local_git -Destination $Destination -delete)
-            {
-            $ReloadProfile = $True
-            }
+        }
         ####
         $Repo = "SIOToolKit"
         $RepoLocation = "emccode"
