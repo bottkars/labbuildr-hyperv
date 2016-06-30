@@ -14,6 +14,17 @@ $Userinterface.WindowSize = $size
 clear-host
 #>
 import-module .\labtools -Force
+try
+    {
+    Get-ChildItem .\defaults.xml -ErrorAction Stop | Out-Null
+    }
+catch
+    [System.Management.Automation.ItemNotFoundException]
+    {
+    Write-Host -ForegroundColor Yellow "no defaults.xml found, using labbuildr default settings"
+    Copy-Item .\defaults.xml.example .\defaults.xml
+    }
+
 $Defaults = Get-labdefaults
 
 .\Build-hypervlab.ps1

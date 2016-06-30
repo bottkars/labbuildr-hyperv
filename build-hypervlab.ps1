@@ -1230,20 +1230,33 @@ if ($defaults.IsPresent)
     {
     if (Test-Path $Builddir\defaults.xml)
         {
-        status "Loading defaults from $Builddir\defaults.xml"
-        $Default = Get-LABDefaults
+        Write-Host -ForegroundColor White  "Loading defaults from $Builddir\defaults.xml"
+        $LabDefaults = Get-LABDefaults
         }
-        $DefaultGateway = $Default.DefaultGateway
+       if (!($LabDefaults))
+            {
+            try
+                {
+                $LabDefaults = Get-labDefaults -Defaultsfile ".\defaults.xml.example"
+                }
+            catch
+                {
+            Write-Warning "no  defaults or example defaults found, exiting now"
+            exit
+                }
+            Write-Host -ForegroundColor Magenta "Using generic defaults from $my_repo"
+        }
+        $DefaultGateway = $LabDefaults.DefaultGateway
         if (!$nmm_ver)
             {
             try
                 {
-                $nmm_ver = $Default.nmm_ver
+                $nmm_ver = $LabDefaults.nmm_ver
                 }
             catch
             [System.Management.Automation.ValidationMetadataException]
                 {
-                Write-Warning "defaulting NMM version to $latest_nmm"
+                Write-Host -ForegroundColor Gray " ==> defaulting NMM version to $latest_nmm"
                  $nmm_ver = $latest_nmm
                 }
             } 
@@ -1252,12 +1265,12 @@ if ($defaults.IsPresent)
             {
             try
                 {
-                $nw_ver = $Default.nw_ver
+                $nw_ver = $LabDefaults.nw_ver
                 }
             catch
             [System.Management.Automation.ValidationMetadataException]
                 {
-                Write-Warning "defaulting nw version to $latest_nw"
+                Write-Host -ForegroundColor Gray " ==> defaulting nw version to $latest_nw"
                  $nw_ver = $latest_nw
                 }
             } 
@@ -1265,35 +1278,37 @@ if ($defaults.IsPresent)
             {
             try
                 {
-                $Masterpath = $Default.Masterpath
+                $Masterpath = $LabDefaults.Masterpath
                 }
             catch
                 {
-                Write-Warning "No Masterpath specified, trying default"
+                Write-Host -ForegroundColor Gray " ==> No Masterpath specified, trying default"
                 $Masterpath = $Builddir
                 }
             }
+       
         if (!$Sourcedir)
             {
             try
                 {
-                $Sourcedir = $Default.Sourcedir
+                $Sourcedir = $LabDefaults.Sourcedir
                 }
             catch [System.Management.Automation.ParameterBindingException]
                 {
-                Write-Warning "No sources specified, trying default"
+                Write-Host -ForegroundColor Gray " ==> No sources specified, trying default"
                 $Sourcedir = $Sourcedirdefault
                 }
             }
+
         if (!$Master) 
             {
             try
                 {
-                $master = $Default.master
+                $master = $LabDefaults.master
                 }
             catch 
                 {
-                Write-Warning "No Master specified, trying default"
+                Write-Host -ForegroundColor Gray " ==> No Master specified, trying default"
                 $Master = $latest_master
                 }
             }
@@ -1301,35 +1316,60 @@ if ($defaults.IsPresent)
             {   
             try
                 {
-                $sqlver = $Default.sqlver
+                $sqlver = $LabDefaults.sqlver
                 }
             catch 
                 {
-                Write-Warning "No sqlver specified, trying default"
+                Write-Host -ForegroundColor Gray " ==> No sqlver specified, trying default"
                 $sqlver = $latest_sqlver
                 }
             }
-        if (!$ex_cu) 
+        if (!$e14_sp) 
             {
             try
                 {
-                $ex_cu = $Default.ex_cu
+                $e14_sp = $LabDefaults.e14_sp
                 }
             catch 
                 {
-                Write-Warning "No Master specified, trying default"
-                $ex_cu = $latest_ex_cu
+                Write-Host -ForegroundColor Gray " ==> No Exchange 2010 SP Specified, setting $latest_e14_sp"
+                $e14_sp = $latest_e14_sp
+                }
+            }
+        if (!$e14_ur) 
+            {
+            try
+                {
+                $e14_ur = $LabDefaults.e14_ur
+                }
+            catch 
+                {
+                Write-Host -ForegroundColor Gray " ==> No Exchange 2010 Update Rollup Specified, setting $latest_e14_ur"
+                $e14_ur = $latest_e14_ur
+                }
+            }
+
+        if (!$e15_cu) 
+            {
+            try
+                {
+                $e15_cu = $LabDefaults.e15_cu
+                }
+            catch 
+                {
+                Write-Host -ForegroundColor Gray " ==> No Exchange 2013 CU Specified, setting $latest_e15_cu"
+                $e15_cu = $latest_e15_cu
                 }
             }
         if (!$e16_cu) 
             {
             try
                 {
-                $e16_cu = $Default.e16_cu
+                $e16_cu = $LabDefaults.e16_cu
                 }
             catch 
                 {
-                Write-Warning "No e16_cu specified, trying default"
+                Write-Host -ForegroundColor Gray " ==> No Exchange 2016 CU Specified, setting $latest_e16_cu"
                 $e16_cu = $latest_e16_cu
                 }
             }
@@ -1337,11 +1377,11 @@ if ($defaults.IsPresent)
             {
             try
                 {
-                $ScaleIOVer = $Default.ScaleIOVer
+                $ScaleIOVer = $LabDefaults.ScaleIOVer
                 }
             catch 
                 {
-                Write-Warning "No ScaleIOVer specified, trying default"
+                Write-Host -ForegroundColor Gray " ==> No ScaleIOVer specified, trying default"
                 $ScaleIOVer = $latest_ScaleIOVer
                 }
             }
@@ -1349,11 +1389,11 @@ if ($defaults.IsPresent)
             {
             try
                 {
-                $vmnet = $Default.vmnet
+                $vmnet = $LabDefaults.vmnet
                 }
             catch 
                 {
-                Write-Warning "No vmnet specified, trying default"
+                Write-Host -ForegroundColor Gray " ==> No vmnet specified, trying default"
                 $vmnet = $Default_vmnet
                 }
             }
@@ -1361,11 +1401,11 @@ if ($defaults.IsPresent)
             {
             try
                 {
-                $BuildDomain = $Default.BuildDomain
+                $BuildDomain = $LabDefaults.BuildDomain
                 }
             catch 
                 {
-                Write-Warning "No BuildDomain specified, trying default"
+                Write-Host -ForegroundColor Gray " ==> No BuildDomain specified, trying default"
                 $BuildDomain = $Default_BuildDomain
                 }
             } 
@@ -1373,11 +1413,11 @@ if ($defaults.IsPresent)
             {
             try
                 {
-                $MySubnet = $Default.mysubnet
+                $MySubnet = $LabDefaults.mysubnet
                 }
             catch 
                 {
-                Write-Warning "No mysubnet specified, trying default"
+                Write-Host -ForegroundColor Gray " ==> No mysubnet specified, trying default"
                 $MySubnet = $Default_Subnet
                 }
             }
@@ -1385,38 +1425,23 @@ if ($defaults.IsPresent)
             {
             try
                 {
-                $vmnet = $Default.vmnet
+                $vmnet = $LabDefaults.vmnet
                 }
             catch 
                 {
-                Write-Warning "No vmnet specified, trying default"
+                Write-Host -ForegroundColor Gray " ==> No vmnet specified, trying default"
                 $vmnet = $Default_vmnet
                 }
             }
-
-       if (!$vlanID) 
-            {
-            try
-                {
-                $vlanID = $Default.vlanID
-                }
-            catch 
-                {
-                Write-Warning "No VLanIDt specified, trying default"
-                $vlanID = $Default_vlanid
-                }
-            }
-
-
        if (!$AddressFamily) 
             {
             try
                 {
-                $AddressFamily = $Default.AddressFamily
+                $AddressFamily = $LabDefaults.AddressFamily
                 }
             catch 
                 {
-                Write-Warning "No AddressFamily specified, trying default"
+                Write-Host -ForegroundColor Gray " ==> No AddressFamily specified, trying default"
                 $AddressFamily = $Default_AddressFamily
                 }
             }
@@ -1424,11 +1449,11 @@ if ($defaults.IsPresent)
             {
             try
                 {
-                $IPv6Prefix = $Default.IPv6Prefix
+                $IPv6Prefix = $LabDefaults.IPv6Prefix
                 }
             catch 
                 {
-                Write-Warning "No IPv6Prefix specified, trying default"
+                Write-Host -ForegroundColor Gray " ==> No IPv6Prefix specified, trying default"
                 $IPv6Prefix = $Default_IPv6Prefix
                 }
             }
@@ -1436,17 +1461,17 @@ if ($defaults.IsPresent)
             {
             try
                 {
-                $IPv6PrefixLength = $Default.IPv6PrefixLength
+                $IPv6PrefixLength = $LabDefaults.IPv6PrefixLength
                 }
             catch 
                 {
-                Write-Warning "No IPv6PrefixLength specified, trying default"
+                Write-Host -ForegroundColor Gray " ==> No IPv6PrefixLength specified, trying default"
                 $IPv6PrefixLength = $Default_IPv6PrefixLength
                 }
             }
         if (!($MyInvocation.BoundParameters.Keys.Contains("Gateway")))
             {
-            if ($Default.Gateway -eq "true")
+            if ($LabDefaults.Gateway -eq "true")
                 {
                 $Gateway = $true
                 [switch]$NW = $True
@@ -1455,27 +1480,20 @@ if ($defaults.IsPresent)
             }
         if (!($MyInvocation.BoundParameters.Keys.Contains("NoDomainCheck")))
             {
-            if ($Default.NoDomainCheck -eq "true")
+            if ($LabDefaults.NoDomainCheck -eq "true")
                 {
                 [switch]$NoDomainCheck = $true
                 }
             }
         if (!($MyInvocation.BoundParameters.Keys.Contains("NMM")))
             {
-            if ($Default.NMM -eq "true")
+            if ($LabDefaults.NMM -eq "true")
                 {
                 $nmm = $true
                 $nw = $true
                 }
             }
-    
-    if (Test-Path "$Builddir\Switchdefaults.xml")
-        {
-        status "Loading Switchdefaults from $Builddir\Switchdefaults.xml"
-        $SwitchDefault = Get-LABSwitchDefaults
-
-        }
-    $HVSwitch = $SwitchDefault.$($Vmnet)
+        
     }
 
 
