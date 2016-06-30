@@ -164,7 +164,9 @@ param (
     [Parameter(ParameterSetName = "SCOM", Mandatory = $false)]
     [Parameter(ParameterSetName = "SCVMM", Mandatory = $false)]
     [Parameter(ParameterSetName = "SRM", Mandatory = $false)]
-    [ValidateSet('2016TP4','2016TP3','2012R2FallUpdate')]$Master,
+    [ValidateSet(
+    '2016TP5','2016TP4',
+    '2012R2FallUpdate')]$Master,
     <#do we want a special path to the Masters ? #>
     [Parameter(ParameterSetName = "Sharepoint",Mandatory = $false)]
 	[Parameter(ParameterSetName = "Hyperv", Mandatory = $false)]
@@ -719,7 +721,7 @@ function test-source
 			write-verbose "Checking $Version"
 			if (!($SourceFiles -contains $Version))
 			{
-				write-Host "$Sourcedir does not contain $Version"
+				write-host -ForegroundColor Gray " ==> $Sourcedir does not contain $Version"
 				Write-Warning "Please Download and extraxt $Version to $Sourcedir\$Version"
 				$Sourceerror = $true
 			}
@@ -922,17 +924,7 @@ function check-task
     $task,
     $nodename,
     $sleep)
-    <#
-        Write-Host "Checking for task $Task started"
-        do
-            {
-            Write-Host -NoNewline "."
-            Sleep $Sleep
-            }
-        until ((get-vmguesttask -Task $task -Node $NodeName) -match "started")
-        Write-Host
-        #>
-        Write-Host "Checking for task $Task finished"
+        write-host -ForegroundColor Gray " ==> Checking for task $Task finished"
         do
             {
             Write-Host -NoNewline "."
@@ -1499,14 +1491,17 @@ catch
 
 try
     {
-    $HostIP_Address = Get-NetIPAddress -InterfaceAlias "vEthernet ($HVSwitch)" -AddressFamily IPv4
-    $HostIP = $HostIP_Address.IPAddress
-    Write-Verbose "we use $HostIP for communication with Guest"
+    $HostIP_Address = Get-NetIPAddress -InterfaceAlias "vEthernet ($HVSwitch)*" -AddressFamily IPv4 -ErrorAction Stop
     }
 catch
     {
     Write-Warning "Could not detect Host IP Address configured for VMSwitch $HVSwitch"
+    break
     }
+    
+$HostIP = $HostIP_Address.IPAddress
+Write-Host -ForegroundColor Gray " ==> we use $HostIP for communication with Guest"
+
 
 Write-Verbose " We have Switch $HVSwitch and Host IP $HostIP"
 if (!$MySubnet) {$MySubnet = "192.168.2.0"}
@@ -1696,7 +1691,16 @@ if (!$Master)
     Write-Warning "Load masters from $UpdateUri"
     break
     } # end Master
-
+try
+    {
+    $MasterVHDX = test-labmaster -Masterpath "$Masterpath" -Master $Master -mastertype hyperv -ErrorAction Stop # -Confirm:$Confirm 
+    }
+catch
+    {
+    Write-Warning "Could not receive master $Master"
+    return
+    }
+<#
     Try
     {
     $MyMaster = get-childitem -path "$Masterpath\$Master\$Master.vhdx" -ErrorAction SilentlyContinue
@@ -1722,7 +1726,7 @@ else
    $MasterVHDX = $MyMaster.Fullname		
    Write-Verbose "We got master $MasterVHDX"
    }
-
+#>
 write-verbose "After Masterconfig !!!! "
 
 ########
@@ -2014,19 +2018,10 @@ if ($SCVMM.IsPresent)
 
 if ($SQL.IsPresent -or $AlwaysOn.IsPresent)
     {
-
-    $SQL2012_inst = "http://download.microsoft.com/download/4/C/7/4C7D40B9-BCF8-4F8A-9E76-06E9B92FE5AE/ENU/x64/SQLFULL_x64_ENU_Install.exe"
-    $SQL2012_lang = "http://download.microsoft.com/download/4/C/7/4C7D40B9-BCF8-4F8A-9E76-06E9B92FE5AE/ENU/x64/SQLFULL_x64_ENU_Lang.box"
-    $SQL2012_core = "http://download.microsoft.com/download/4/C/7/4C7D40B9-BCF8-4F8A-9E76-06E9B92FE5AE/ENU/x64/SQLFULL_x64_ENU_Core.box"
-    $SQL2012_box = "http://download.microsoft.com/download/3/B/D/3BD9DD65-D3E3-43C3-BB50-0ED850A82AD5/SQLServer2012SP1-FullSlipstream-x64-ENU.box"
-    $SQL2012SP1SLIP_INST = "http://download.microsoft.com/download/3/B/D/3BD9DD65-D3E3-43C3-BB50-0ED850A82AD5/SQLServer2012SP1-FullSlipstream-x64-ENU.exe"
-    $SQL2012SP1SLIP_box= "http://download.microsoft.com/download/3/B/D/3BD9DD65-D3E3-43C3-BB50-0ED850A82AD5/SQLServer2012SP1-FullSlipstream-x64-ENU.box"
-    $SQL2012_SP1 = "http://download.microsoft.com/download/3/B/D/3BD9DD65-D3E3-43C3-BB50-0ED850A82AD5/SQLServer2012SP1-KB2674319-x64-ENU.exe"
-    $SQL2012_SP2 = "http://download.microsoft.com/download/D/F/7/DF7BEBF9-AA4D-4CFE-B5AE-5C9129D37EFD/SQLServer2012SP2-KB2958429-x64-ENU.exe"
-    $SQL2014_ZIP = "http://care.dlservice.microsoft.com/dl/download/evalx/sqlserver2014/x64/SQLServer2014_x64_enus.zip"
-    $SQL2014SP1SLIP_INST = "http://care.dlservice.microsoft.com/dl/download/2/F/8/2F8F7165-BB21-4D1E-B5D8-3BD3CE73C77D/SQLServer2014SP1-FullSlipstream-x64-ENU.exe"
-    $SQL2014SP1SLIP_box= "http://care.dlservice.microsoft.com/dl/download/2/F/8/2F8F7165-BB21-4D1E-B5D8-3BD3CE73C77D/SQLServer2014SP1-FullSlipstream-x64-ENU.box"
-
+    If ($SQLVER -match 'SQL2016')
+        {
+        $Java8_required = $true
+        }
     $AAGURL = "https://community.emc.com/servlet/JiveServlet/download/38-111250/AWORKS.zip"
     $URL = $AAGURL
     $FileName = Split-Path -Leaf -Path $Url
@@ -2036,209 +2031,27 @@ if ($SQL.IsPresent -or $AlwaysOn.IsPresent)
         Write-Verbose "Trying Download"
         if (!(get-prereq -DownLoadUrl $URL -destination  "$Sourcedir\$FileName"))
             { 
-            write-warning "Error Downloading file $Url, Please check connectivity"
+            Write-Warning "Error Downloading file $Url, Please check connectivity"
             exit
             }
         #New-Item -ItemType Directory -Path "$Sourcedir\Aworks" -Force
         Extract-Zip -zipfilename $Sourcedir\$FileName -destination $Sourcedir
         }
-    Write-Verbose "We are now going to Test $SQLVER"
-    Switch ($SQLVER)
+
+    if (!($SQL_OK = receive-labsql -SQLVER $SQLVER -Destination $Sourcedir -Product_Dir "SQL" -extract -WarningAction SilentlyContinue))
         {
-            "SQL2012"
-            {
-            if (!(Test-Path "$Sourcedir\SQLFULL_x64_ENU\SETUP.EXE"))
-                {
-                foreach ($url in ($SQL2012_inst,$SQL2012_lang,$SQL2012_core))
-                    {
-                    $FileName = Split-Path -Leaf -Path $Url
-                    Write-Verbose "Testing $FileName in $Sourcedir"
-                    if (!(test-path  "$Sourcedir\$FileName"))
-                        {
-                        Write-Verbose "Trying Download"
-                        if (!(get-prereq -DownLoadUrl $URL -destination  "$Sourcedir\$FileName"))
-                            { 
-                            write-warning "Error Downloading file $Url, Please check connectivity"
-                            exit
-                            }
-                        }
-                    }
-                Write-Warning "Creating $SQLVER Installtree, this might take a while"
-                $FileName = Split-Path -Leaf $SQL2012_inst
-                Start-Process $Sourcedir\$FileName -ArgumentList "/X /q" -Wait    
-                }
+        break
+        }
 
-            }
-            "SQL2012SP1"
-            {
-            #Getting SP1
-            $url = $SQL2012_SP1
-            $FileName = Split-Path -Leaf -Path $Url
-            $Destination = "$Sourcedir\$SQLVER\$FileName"
-            Write-Verbose "Testing $Destination"
-                if (!(test-path  "$Destination"))
-                    {
-                    Write-Verbose "Trying Download"
-                    if (!(get-prereq -DownLoadUrl $URL -destination $Destination))
-                        { 
-                            write-warning "Error Downloading file $Url, Please check connectivity"
-                            exit
-                            }
-                        }
-            #first check for 2012
-            if (!(Test-Path "$Sourcedir\SQLFULL_x64_ENU\SETUP.EXE"))
-                {
-                foreach ($url in ($SQL2012_inst,$SQL2012_lang,$SQL2012_core))
-                    {
-                    $FileName = Split-Path -Leaf -Path $Url
-                    Write-Verbose "Testing $FileName in $Sourcedir"
-                    if (!(test-path  "$Sourcedir\$FileName"))
-                        {
-                        Write-Verbose "Trying Download"
-                        if (!(get-prereq -DownLoadUrl $URL -destination  "$Sourcedir\$FileName"))
-                            { 
-                            write-warning "Error Downloading file $Url, Please check connectivity"
-                            exit
-                            }
-                        }
-                    }
-                Write-Warning "Creating $SQLVER Installtree, this might take a while"
-                $FileName = Split-Path -Leaf $SQL2012_inst
-                Start-Process $Sourcedir\$FileName -ArgumentList "/X /q" -Wait    
-                }
-
-            # end 2012
-
-            }
-            "SQL2012SP2"
-            {
-            #first check for 2012
-            if (!(Test-Path "$Sourcedir\SQLFULL_x64_ENU\SETUP.EXE"))
-                {
-                foreach ($url in ($SQL2012_inst,$SQL2012_lang,$SQL2012_core))
-                    {
-                    $FileName = Split-Path -Leaf -Path $Url
-                    Write-Verbose "Testing $FileName in $Sourcedir"
-                    if (!(test-path  "$Sourcedir\$FileName"))
-                        {
-                        Write-Verbose "Trying Download"
-                        if (!(get-prereq -DownLoadUrl $URL -destination  "$Sourcedir\$FileName"))
-                            { 
-                            write-warning "Error Downloading file $Url, Please check connectivity"
-                            exit
-                            }
-                        }
-                    }
-                Write-Warning "Creating $SQLVER Installtree, this might take a while"
-                $FileName = Split-Path -Leaf $SQL2012_inst
-                Start-Process $Sourcedir\$FileName -ArgumentList "/X /q" -Wait    
-                }
-
-            # end 2012
-
-            #### Getting Sp2
-            $url = $SQL2012_SP2
-            $FileName = Split-Path -Leaf -Path $Url
-            $Destination = "$Sourcedir\$SQLVER\$FileName"
-            Write-Verbose "Testing $Destination"
-            if (!(test-path  "$Destination"))
-                {
-                Write-Verbose "Trying Download"
-                if (!(get-prereq -DownLoadUrl $URL -destination $Destination))
-                    { 
-                    write-warning "Error Downloading file $Url, Please check connectivity"
-                    exit
-                    }
-                }
-
-            }
-            "SQL2012SP1Slip"
-            {
-            if (!(Test-Path $Sourcedir\$SQLVER\setup.exe))
-                {
-                foreach ($url in ($SQL2012SP1SLIP_box,$SQL2012SP1SLIP_INST))
-                    {
-                    $FileName = Split-Path -Leaf -Path $Url
-                    Write-Verbose "Testing $FileName in $Sourcedir"
-                    if (!(test-path  "$Sourcedir\$FileName"))
-                        {
-                        Write-Verbose "Trying Download"
-                        if (!(get-prereq -DownLoadUrl $URL -destination  "$Sourcedir\$FileName"))
-                            {  
-                            write-warning "Error Downloading file $Url, Please check connectivity"
-                            exit
-                            }
-                        }
-                    }
-                    Write-Warning "Creating $SQLVER Installtree, this might take a while"
-                    Start-Process $Sourcedir\$FileName -ArgumentList "/X:$Sourcedir\$SQLVER /q" -Wait
-                }
-            }
-
-            "SQL2014"
-            {
-            if (!(Test-Path $Sourcedir\$SQLVER\setup.exe))
-            {
-            foreach ($url in ($SQL2014_ZIP))
-                {
-                $FileName = Split-Path -Leaf -Path $Url
-                Write-Verbose "Testing $FileName in $Prereqdir"
-                ### Test if the 2014 ENU´s are there
-                if (!(test-path  "$Sourcedir\SQLServer2014-x64-ENU.exe"))
-                    {
-                    ## Test if we already have the ZIP
-                    if (!(test-path  "$Sourcedir\$FileName"))
-                        {
-                        Write-Verbose "Trying Download"
-                        if (!(get-prereq -DownLoadUrl $URL -destination  "$Sourcedir\$FileName"))
-                            { 
-                            write-warning "Error Downloading file $Url, Please check connectivity"
-                            exit
-                            }
-                    }
-                 Extract-Zip -zipfilename $Sourcedir\$FileName -destination $Sourcedir
-                 Remove-Item $Sourcedir\$FileName 
-                 Move-Item $Sourcedir\enus\* $Sourcedir\
-                 Remove-Item $Sourcedir\enus
-                 }
-                # New-Item -ItemType Directory $Sourcedir\$SQLVER
-                Write-Warning "Creating $SQLVER Installtree, this might take a while"
-                Start-Process "$Sourcedir\SQLServer2014-x64-ENU.exe" -ArgumentList "/X:$Sourcedir\$SQLVER /q" -Wait 
-                }
-            
-            }
-            }
-            "SQL2014SP1slip"
-            {
-            if (!(Test-Path $Sourcedir\$SQLVER\setup.exe))
-                {
-                foreach ($url in ($SQL2014SP1SLIP_box,$SQL2014SP1SLIP_INST))
-                    {
-                    $FileName = Split-Path -Leaf -Path $Url
-                    Write-Verbose "Testing $FileName in $Sourcedir"
-                    if (!(test-path  "$Sourcedir\$FileName"))
-                        {
-                        Write-Verbose "Trying Download"
-                        if (!(get-prereq -DownLoadUrl $URL -destination  "$Sourcedir\$FileName"))
-                            {  
-                            write-warning "Error Downloading file $Url, Please check connectivity"
-                            exit
-                            }
-                        }
-                    }
-                    Write-Warning "Creating $SQLVER Installtree, this might take a while"
-                    Start-Process $Sourcedir\$FileName -ArgumentList "/X:$Sourcedir\$SQLVER /q" -Wait
-                }
-            }
-          } #end switch
-    }#end $SQLEXPRESS
+}
 
 ##end Autodownloaders
 ##########################################
+
 if ($nw.IsPresent -and !$NoDomainCheck.IsPresent) 
     { #workorder "Networker $nw_ver Node will be installed" 
     }
-write-verbose "Checking Environment"
+write-host -ForegroundColor Gray " ==> Checking Environment"
 if ($NW.IsPresent -or $NWServer.IsPresent)
 {
     if (!$Scenarioname) 
@@ -2254,7 +2067,7 @@ if ($NW.IsPresent -or $NWServer.IsPresent)
 	    {
 		$Acroread = $Acroread | Sort-Object -Property Name -Descending
 		$LatestReader = $Acroread[0].Name
-		write-verbose "Found Adobe $LatestReader"
+		write-host -ForegroundColor Gray " ==> Found Adobe $LatestReader"
 	    }
 	
 	##### 
@@ -2297,11 +2110,11 @@ if ($Java7_required)
 
 If ($Java8_required)
     {
-    Write-Verbose "Checking for Java 8"
+    write-host -ForegroundColor Gray " ==> Checking for Java 8"
     if (!($Java8 = Get-ChildItem -Path $Sourcedir -Filter 'jre-8*x64*'))
         {
 	    Write-Warning "Java8 not found, trying download"
-        Write-Verbose "Asking for latest Java8"
+        write-host -ForegroundColor Gray " ==> Asking for latest Java8"
         $LatestJava = (get-labJava64 -DownloadDir $Sourcedir).LatestJava8
         if (!$LatestJava)
             {
@@ -2312,7 +2125,7 @@ If ($Java8_required)
         {
         $Java8 = $Java8 | Sort-Object -Property Name -Descending
 	    $LatestJava = $Java8[0].Name
-        Write-Verbose "Got $LatestJava"
+        write-host -ForegroundColor Gray " ==> Got $LatestJava"
         }
     }
 
@@ -2320,7 +2133,7 @@ If ($Java8_required)
 
 if (!($SourceOK = test-source -SourceVer $Sourcever -SourceDir $Sourcedir))
 {
-	Write-Verbose "Sourcecomlete: $SourceOK"
+	write-host -ForegroundColor Gray " ==> Sourcecomlete: $SourceOK"
 	break
 }
 if ($DefaultGateway) {$AddGateway  = "-DefaultGateway $DefaultGateway"}
@@ -2458,7 +2271,7 @@ $IN_Guest_CD_Node_ScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status fin
 ####### clone creation
         if ($PSCmdlet.MyInvocation.BoundParameters["verbose"].IsPresent)
             {
-            Write-Verbose "Press any Key to continue to Cloning"
+            write-host -ForegroundColor Gray " ==> Press any Key to continue to Cloning"
             pause
             }
         $CloneOK = Invoke-Expression  "$Builddir\clone-node.ps1 -MasterVHD $MasterVHDX -Nodename $NodeName -Size L -HVSwitch $HVSwitch $CloneParameter"
@@ -2521,7 +2334,7 @@ switch ($PsCmdlet.ParameterSetName)
         # if ($BlankHV.IsPresent) {$AddonFeatures = "$AddonFeatures, Hyper-V, RSAT-Hyper-V-Tools, Multipath-IO"}
 
         $Blank_End = (($Blankstart+$BlankNodes)-1)
-        Write-Verbose "We will deploy $Nodes Nodes from $Blankstart to $Blank_End"
+        write-host -ForegroundColor Gray " ==> We will deploy $Nodes Nodes from $Blankstart to $Blank_End"
 		foreach ($Node in ($Blankstart..$Blank_End))
 		{
 			
@@ -2645,7 +2458,7 @@ Set-Content "$Isodir\$Scripts\run-$Current_phase.ps1" -Value $Content -Force
 
    	"E16"{
         test-dcrunning
-        Write-Verbose "Starting $EX_Version $e16_cu Setup"
+        write-host -ForegroundColor Gray " ==> Starting $EX_Version $e16_cu Setup"
         If ($Disks -lt 3)
             {
             $Disks = 3
@@ -2791,13 +2604,13 @@ $ScenarioScriptdir\configure-exchange.ps1 -EX_Version $EX_Version -SourcePath $I
         {
         if ($DAG.IsPresent) 
             {
-			write-verbose "Creating DAG"
+			write-host -ForegroundColor Gray " ==> Creating DAG"
             $Content += "$ScenarioScriptdir\create-dag.ps1 -DAGIP $DAGIP -AddressFamily $EXAddressFamiliy -EX_Version $EX_Version -SourcePath $IN_Guest_UNC_Sourcepath -Scriptdir $IN_Guest_CD_Scriptroot
 "
 			} # end if $DAG
         if (!($nouser.ispresent))
             {
-            write-verbose "Creating Accounts and Mailboxes:"
+            write-host -ForegroundColor Gray " ==> Creating Accounts and Mailboxes:"
             $Content += "c:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe `". 'C:\Program Files\Microsoft\Exchange Server\V15\bin\RemoteExchange.ps1'; Connect-ExchangeServer -auto; $ScenarioScriptdir\User.ps1 -subnet $IPv4Subnet -AddressFamily $AddressFamily -IPV6Prefix $IPV6Prefix -SourcePath $IN_Guest_UNC_Sourcepath -Scriptdir $IN_Guest_CD_Scriptroot`"
 "
             } #end creatuser

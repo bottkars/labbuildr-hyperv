@@ -86,7 +86,7 @@ $numvcpus = "4"
 
 
 
-write-host "Creating Differencing disk from $MasterVHD in $Nodename"
+write-host -ForegroundColor Gray " ==> Creating Differencing disk from $MasterVHD in $Nodename"
 try
     {
     $VHD = New-VHD –Path “$CloneVMPath\Disk_0.vhdx” –ParentPath “$MasterVHD” -ErrorAction Stop
