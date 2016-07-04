@@ -94,7 +94,7 @@ try
 catch
     {
     Write-Warning "The VHD for $Nodename already Exists in $CloneVMPath"
-    # $_
+    $_
     break
     }
 try

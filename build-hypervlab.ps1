@@ -576,11 +576,13 @@ $Default_AddressFamily = "IPv4"
 $latest_ScaleIOVer = '1.32-2451.4'
 $ScaleIO_OS = "Windows"
 $ScaleIO_Path = "ScaleIO_$($ScaleIO_OS)_SW_Download"
-$latest_nmm = 'nmm9001'
-$latest_nw = 'nw9001'
-$latest_e16_cu = 'final'
-$latest_ex_cu = 'cu10'
-$latest_sqlver  = 'SQL2014SP1slip'
+$latest_nmm = 'nmm9007'
+$latest_nw = 'nw9007'
+$latest_e16_cu = 'cu1'
+$latest_e15_cu = 'cu12'
+$latest_e14_sp = 'sp3'
+$latest_e14_ur = 'ur13'
+$latest_sqlver  = 'SQL2016'
 $latest_master = '2012R2FallUpdate'
 $latest_sql_2012 = 'SQL2012SP2'
 $SIOToolKit_Branch = "master"
@@ -1495,6 +1497,26 @@ if ($defaults.IsPresent)
             }
         
     }
+if (Test-Path "$Builddir\Switchdefaults.xml")
+    {
+    status "Loading Switchdefaults from $Builddir\Switchdefaults.xml"
+    $SwitchDefault = Get-LABSwitchDefaults
+
+    }
+$HVSwitch = $SwitchDefault.$($Vmnet)
+
+if ($defaults.IsPresent) 
+    {
+    try
+        {
+        $vlanID = $LabDefaults.vlanID
+        }
+    catch 
+        {
+        Write-Warning "No VLanID specified, trying default"
+        $vlanID = $Default_vlanid
+        }
+    }
 
 
 try
@@ -1533,6 +1555,7 @@ if (!$Master) {$Master = $latest_master}
 if (!$vmnet) {$vmnet = $Default_vmnet}
 if (!$IPv6PrefixLength){$IPv6PrefixLength = $Default_IPv6PrefixLength}
 if (!$IPv6Prefix){$IPv6Prefix = $Default_IPv6Prefix}
+if (!$vlanID){$vlanID = $Default_vlanid}
 
 if (!$Default.DNS1)
     {
@@ -1579,17 +1602,19 @@ if (!$AddressFamily){$AddressFamily = "IPv4" }
 if ($savedefaults.IsPresent)
 {
 $defaultsfile = New-Item -ItemType file $Builddir\defaults.xml -Force
-Status "saving defaults to $Builddir\defaults.xml"
+Write-Host -ForegroundColor White  "saving defaults to $Builddir\defaults.xml"
 $config =@()
 $config += ("<config>")
 $config += ("<nmm_ver>$nmm_ver</nmm_ver>")
 $config += ("<nw_ver>$nw_ver</nw_ver>")
 $config += ("<master>$Master</master>")
 $config += ("<sqlver>$SQLVER</sqlver>")
-$config += ("<ex_cu>$ex_cu</ex_cu>")
+$config += ("<e14_ur>$e14_ur</e14_ur>")
+$config += ("<e14_sp>$e14_sp</e14_sp>")
+$config += ("<e15_cu>$e15_cu</e15_cu>")
 $config += ("<e16_cu>$e16_cu</e16_cu>")
 $config += ("<vmnet>$VMnet</vmnet>")
-$config += ("<vlanID>$vlanID</vlanID>")
+$config += ("<vlanid>$vlanID</vlanid>")
 $config += ("<BuildDomain>$BuildDomain</BuildDomain>")
 $config += ("<MySubnet>$MySubnet</MySubnet>")
 $config += ("<AddressFamily>$AddressFamily</AddressFamily>")
@@ -1603,9 +1628,9 @@ $config += ("<DNS1>$($DNS1)</DNS1>")
 $config += ("<NMM>$($NMM.IsPresent)</NMM>")
 $config += ("<Masterpath>$Masterpath</Masterpath>")
 $config += ("<NoDomainCheck>$NoDomainCheck</NoDomainCheck>")
-$config += ("<Puppet>$($Default.Puppet)</Puppet>")
-$config += ("<PuppetMaster>$($Default.PuppetMaster)</PuppetMaster>")
-$config += ("<Hostkey>$($Default.HostKey)</Hostkey>")
+$config += ("<Puppet>$($LabDefaults.Puppet)</Puppet>")
+$config += ("<PuppetMaster>$($LabDefaults.PuppetMaster)</PuppetMaster>")
+$config += ("<Hostkey>$($LabDefaults.HostKey)</Hostkey>")
 $config += ("</config>")
 $config | Set-Content $defaultsfile
 }
@@ -1993,12 +2018,6 @@ if ($Exchange2016.IsPresent)
 
         
         }
-    
-	    if ($DAG.IsPresent)
-	        {
-		    Write-Host -ForegroundColor Yellow "We will form a $EXNodes-Node DAG"
-	        }
-
 }
 
 ############## SCOM Section
@@ -2065,6 +2084,18 @@ if ($SQL.IsPresent -or $AlwaysOn.IsPresent)
 
 ##end Autodownloaders
 ##########################################
+If ($DAG.IsPresent)
+    {
+    if (!$EXNodes)
+        {
+        $EXNodes = 2 
+        Write-Host -ForegroundColor Gray " ==> No -EXnodes specified, defaulting to $EXNodes Nodes for DAG Deployment"
+        }
+	Write-Host -ForegroundColor Magenta " ==>We will form a $EXNodes-Node DAG"
+
+    }
+if (!$EXnodes)
+    {$EXNodes = 1}
 
 if ($nw.IsPresent -and !$NoDomainCheck.IsPresent) 
     { #workorder "Networker $nw_ver Node will be installed" 
