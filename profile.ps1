@@ -13,7 +13,6 @@ $size.height=48
 $Userinterface.WindowSize = $size
 clear-host
 #>
-import-module .\labtools -Force
 $labbuildr_home = $env:USERPROFILE
 clear-host
 $self  = Get-Location
@@ -37,7 +36,6 @@ catch
         exit
         }
     }
-
 try
     {
     Get-ChildItem .\defaults.xml -ErrorAction Stop | Out-Null
@@ -58,7 +56,3 @@ if ((Get-LABDefaults).SQLVER -notmatch 'ISO')
 $buildlab = (join-path $self "build-hypervlab.ps1")
 .$buildlab
 
-$Defaults = Get-labdefaults
-$Global:vmxtoolkit_type = "win_x86_64"
-
-$Defaults
