@@ -2242,8 +2242,9 @@ if (!(test-dcrunning) -and (!$NoDomainCheck.IsPresent))
         $ScenarioScriptdir = "$IN_Guest_CD_Scriptroot\$NodePrefix"
         $NodeIP = "$IPv4Subnet.10"
         ####prepare iso
+		Write-Verbose $Dynmic_Scripts
         Remove-Item -Path "$Dynamic_Scripts" -Force -Recurse -ErrorAction SilentlyContinue | Out-Null
-        New-Item -ItemType Directory "$Dynamic_Scripts" -Force | Out-Null
+        New-Item -ItemType Directory "$Dynamic_Scripts" #-Force | Out-Null
         New-Item -ItemType Directory "$Builddir\$NodePrefix" -Force | Out-Null
         $Current_phase = "start-customize"
         $next_phase = "phase2"
@@ -3145,7 +3146,7 @@ if (($NW.IsPresent -and !$NoDomainCheck.IsPresent) -or $NWServer.IsPresent)
             Write-Verbose "Addressfamily = $AddressFamily"
 ####prepare iso
             Remove-Item -Path "$Dynamic_Scripts" -Force -Recurse -ErrorAction SilentlyContinue | Out-Null
-            New-Item -ItemType Directory "$Dynamic_Scripts" -Force | Out-Null
+            New-Item -ItemType Directory "$Dynamic_Scripts" -Force #| Out-Null
             New-Item -ItemType Directory "$Builddir\$NodePrefix" -Force | Out-Null
             $Current_phase = "start-customize"
             $next_phase = "phase3"
