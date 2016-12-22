@@ -14,6 +14,30 @@ $Userinterface.WindowSize = $size
 clear-host
 #>
 import-module .\labtools -Force
+$labbuildr_home = $env:USERPROFILE
+clear-host
+$self  = Get-Location
+import-module (Join-Path $self "labtools") -Force
+try
+    {
+    Get-ChildItem labbuildr-scripts -ErrorAction Stop | Out-Null
+    }
+catch
+    [System.Management.Automation.ItemNotFoundException]
+    {
+    Write-Warning -InformationAction Stop "labbuildr-scripts not found, need to move scripts folder"
+	try
+        {
+		Write-Host -ForegroundColor Gray " ==> moving Scripts to labbuildr-scripts"
+        Move-Item -Path Scripts -Destination labbuildr-scripts -ErrorAction Stop
+        }
+    catch
+        {
+        Write-Warning "could not move old scripts folder, incomlete installation ?"
+        exit
+        }
+    }
+
 try
     {
     Get-ChildItem .\defaults.xml -ErrorAction Stop | Out-Null
@@ -23,20 +47,18 @@ catch
     {
     Write-Host -ForegroundColor Yellow "no defaults.xml found, using labbuildr default settings"
     Copy-Item .\defaults.xml.example .\defaults.xml
+	$Master_path = Join-Path $labbuildr_home "Master.labbuildr"
+    Set-LABMasterpath -Masterpath (Join-Path $labbuildr_home "Master.labbuildr").tostring()
+	Set-LABSources -Sourcedir (Join-Path $labbuildr_home "Sources.labbuildr").tostring()
     }
+if ((Get-LABDefaults).SQLVER -notmatch 'ISO')
+	{
+	Set-LABSQLver -SQLVER SQL2014SP2_ISO
+	}
+$buildlab = (join-path $self "build-lab.ps1")
+.$buildlab
 
 $Defaults = Get-labdefaults
 
 .\Build-hypervlab.ps1
-if (!(Test-Connection community.emc.com -Quiet -Count 2 -ErrorAction SilentlyContinue))
-    {
-    Write-Warning "no Internet Connection detected, Download of Sources may not work"
-    }
-else
-    {
-    Write-host "latest updates on vmxtoolkit and labbuildr"
-    $Url = "https://community.emc.com/blogs/bottk/feeds/posts"
-    $blog = [xml](new-object System.Net.WebClient).DownloadString($Url)
-    $blog.rss.channel.item |  where {$_.title -match "vmxtoolkit" -or $_.title -Match "labbuildr"} |select Link | ft
-    }
 $Defaults
