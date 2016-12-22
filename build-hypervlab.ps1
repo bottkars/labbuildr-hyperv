@@ -627,7 +627,7 @@ $IN_Guest_CD_Scriptroot = "D:"
 $IN_Guest_LogDir = "C:\$Scripts"
 $IN_Guest_CD_Node_ScriptDir = "$IN_Guest_CD_Scriptroot\Node"
 $IN_Guest_UNC_Node_ScriptDir = "$IN_Guest_UNC_Scriptroot\Node"
-$Dynmic_Scripts = Join-Path $Isodir "Scripts"
+$Dynmic_Scripts = "$Isodir\Scripts"
 ##################
 ###################################################
 # main function go here
