@@ -34,7 +34,7 @@ param (
 	[Parameter(ParameterSetName = "update",Mandatory = $false, HelpMessage = "this will update labbuildr from latest git commit")][switch]$Update,
     <#
     run build-lab update    #>
-	[Parameter(ParameterSetName = "update",Mandatory = $false, HelpMessage = "select a branch to update from")][ValidateSet('develop','testing','master')]$branch  = "master",
+	[Parameter(ParameterSetName = "update",Mandatory = $false, HelpMessage = "select a branch to update from")][ValidateSet('develop','testing','master')]$branch,
     [Parameter(ParameterSetName = "update",Mandatory = $false, HelpMessage = "this will force update labbuildr")]
     [switch]$force,
         <# 
@@ -1212,7 +1212,7 @@ switch ($PsCmdlet.ParameterSetName)
                     }
                 if ($Latest_labbuildr_scripts_git)
                     {
-                    Status "Scripts Git Release $Latest_labbuildr_scripts_git"
+                    Status "labbuildr-Scripts Git Release $Latest_labbuildr_scripts_git"
                     }
                 if ($Latest_labtools_git)
                     {
