@@ -34,7 +34,7 @@ param (
 	[Parameter(ParameterSetName = "update",Mandatory = $false, HelpMessage = "this will update labbuildr from latest git commit")][switch]$Update,
     <#
     run build-lab update    #>
-	[Parameter(ParameterSetName = "update",Mandatory = $false, HelpMessage = "select a branch to update from")][ValidateSet('develop','testing','master')]$branch  = "testing",
+	[Parameter(ParameterSetName = "update",Mandatory = $false, HelpMessage = "select a branch to update from")][ValidateSet('develop','testing','master')]$branch  = "master",
     [Parameter(ParameterSetName = "update",Mandatory = $false, HelpMessage = "this will force update labbuildr")]
     [switch]$force,
         <# 
@@ -499,13 +499,20 @@ Valid values 'IPv4','IPv6','IPv4IPv6'
 #requires -version 3.0
 #requires -module labtools 
 ###################################################
-###################################################
 [string]$Myself_ps1 = $MyInvocation.MyCommand
 $myself = $Myself_ps1.TrimEnd(".ps1")
 #$AddressFamily = 'IPv4'
 $IPv4PrefixLength = '24'
-$Starttime = Get-Date
 $Builddir = $PSScriptRoot
+$local_culture = Get-Culture
+$git_Culture = New-Object System.Globalization.CultureInfo 'en-US'
+if (Test-Path $env:SystemRoot\system32\ntdll.dll)
+	{
+	$runonos = "win_x86_64"
+	}
+
+If ($ConfirmPreference -match "none")
+    {$Confirm = $false}
 $Scripts = "labbuildr-scripts"
 $Scripts_share_path = Join-Path $Builddir $Scripts
 $Scripts_share_name = ((Split-Path -NoQualifier $Scripts_share_path) -replace "\\","_")
@@ -513,11 +520,19 @@ $Scripts_share_name = ((Split-Path -NoQualifier $Scripts_share_path) -replace "\
 
 try
     {
-    $Current_labbuildr_branch = Get-Content  ($Builddir + "\labbuildr-hyperv.branch") -ErrorAction Stop
+    $Current_labbuildr_branch = Get-Content  (Join-Path $Builddir "labbuildr.branch") -ErrorAction Stop
     }
-    catch
+catch
     {
-    $Current_labbuildr_branch = $branch
+    Write-Host -ForegroundColor Gray " ==>no prevoius branch"
+    If (!$PSCmdlet.MyInvocation.BoundParameters['branch'].IsPresent)
+        {
+        $Current_labbuildr_branch = "master"
+        }
+    else
+        {
+        $Current_labbuildr_branch = $branch
+        }
     }
 If (!$PSCmdlet.MyInvocation.BoundParameters["branch"].IsPresent)
     {
