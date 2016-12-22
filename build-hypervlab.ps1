@@ -540,7 +540,7 @@ If (!$PSCmdlet.MyInvocation.BoundParameters["branch"].IsPresent)
     }
 try
     {
-    $Latest_labbuildr_git = Get-Content  (Join-path $Builddir "labbuildr-$branch.gitver") -ErrorAction Stop
+    $Latest_labbuildr_git = Get-Content  (Join-path $Builddir "labbuildr-hyperv-$branch.gitver") -ErrorAction Stop
     }
     catch
     {
@@ -548,7 +548,7 @@ try
     }
 try
     {
-    $Latest_labbuildr_scripts_git = Get-Content  (Join-path $Builddir "labbuildr--scripts-$branch.gitver") -ErrorAction Stop
+    $Latest_labbuildr_scripts_git = Get-Content  (Join-path $Builddir "labbuildr-scripts-$branch.gitver") -ErrorAction Stop
     }
     catch
     {
