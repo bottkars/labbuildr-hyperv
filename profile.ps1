@@ -59,6 +59,7 @@ $buildlab = (join-path $self "build-lab.ps1")
 .$buildlab
 
 $Defaults = Get-labdefaults
+$Global:vmxtoolkit_type ="win_x86_64"
 
 .\Build-hypervlab.ps1
 $Defaults

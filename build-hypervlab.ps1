@@ -585,7 +585,6 @@ $latest_e14_ur = 'ur13'
 $latest_sqlver  = 'SQL2016'
 $latest_master = '2012R2FallUpdate'
 $latest_sql_2012 = 'SQL2012SP2'
-$SIOToolKit_Branch = "master"
 $NW85_requiredJava = "jre-7u61-windows-x64"
 # $latest_java8 = "jre-8u51-windows-x64.exe"
 $latest_java8uri = "http://javadl.sun.com/webapps/download/AutoDL?BundleId=107944"
@@ -646,50 +645,79 @@ function update-fromGit
             [string]$Destination,
             [switch]$delete
             )
-        $branch =  $branch.ToLower()
-        $Isnew = $false
-        Write-Verbose "Using update-fromgit function for $repo"
-        $Uri = "https://api.github.com/repos/$RepoLocation/$repo/commits/$branch"
-        $Zip = ("https://github.com/$RepoLocation/$repo/archive/$branch.zip").ToLower()
-        try
-            {
-            $request = Invoke-WebRequest -UseBasicParsing -Uri $Uri -Method Head -ErrorAction Stop
-            }
-        Catch
-            {
-            Write-Warning "Error connecting to git"
-            if ($_.Exception.Response.StatusCode -match "Forbidden")
-                {
-                Write-Host -ForegroundColor Gray " ==> Status inidicates that Connection Limit is exceeded"
-                }
-            exit
-            }
-        [datetime]$latest_OnGit = $request.Headers.'Last-Modified'
-                Write-Verbose "We have $repo version $latest_local_Git, $latest_OnGit is online !"
-                $latest_local_Git -lt $latest_OnGit
-                if ($latest_local_Git -lt $latest_OnGit -or $force.IsPresent )
-                    {
-                    $Updatepath = "$Builddir\Update"
-					if (!(Get-Item -Path $Updatepath -ErrorAction SilentlyContinue))
-					        {
-						    $newDir = New-Item -ItemType Directory -Path "$Updatepath" | out-null
-                            }
-                    Write-Host -ForegroundColor Gray "We found a newer Version for $repo on Git Dated $($request.Headers.'Last-Modified')"
-                    if ($delete.IsPresent)
-                        {
-                        Write-Verbose "Cleaning $Destination"
-                        Remove-Item -Path $Destination -Recurse -ErrorAction SilentlyContinue
-                        }
-                    Get-LABHttpFile -SourceURL $Zip -TarGetFile "$Builddir\update\$repo-$branch.zip" -ignoresize
-                    Expand-LABZip -zipfilename "$Builddir\update\$repo-$branch.zip" -destination $Destination -Folder $repo-$branch
-                    $Isnew = $true
-                    $request.Headers.'Last-Modified' | Set-Content ($Builddir+"\$repo-$branch.gitver") 
-                    }
-                else 
-                    {
-                    Write-Host -ForegroundColor Gray " ==>No update required for $repo on $branch, already newest version "                    
-                    }
-if ($Isnew) {return $true}
+		$AuthHeaders = @{'Authorization' = "token b64154d0de42396ebd72b9f53ec863f2234f6997"}
+		if ($Global:vmxtoolkit_type -eq "win_x86_64" )
+			{
+			$branch =  $branch.ToLower()
+			$Isnew = $false
+			Write-Verbose "Using update-fromgit function for $repo"
+			$Uri = "https://api.github.com/repos/$RepoLocation/$repo/commits/$branch"
+			$Zip = ("https://github.com/$RepoLocation/$repo/archive/$branch.zip").ToLower()
+			$local_culture = Get-Culture
+			$git_Culture = New-Object System.Globalization.CultureInfo 'en-US'
+			if ($Global:vmxtoolkit_type -eq "win_x86_64" )
+				{
+				try
+					{
+					$request = Invoke-WebRequest -UseBasicParsing -Uri $Uri -Method Head -ErrorAction Stop -Headers $AuthHeaders
+					}
+				Catch
+					{
+					Write-Warning "Error connecting to git"
+					if ($_.Exception.Response.StatusCode -match "Forbidden")
+						{
+						Write-Host -ForegroundColor Gray " ==>Status inidicates that Connection Limit is exceeded"
+						}
+					exit
+					}
+				
+				$latest_OnGit =  $request.Headers.'Last-Modified'
+				#Write-Host $latest_OnGit
+				}
+			##else
+		#		{
+		#		$request = curl -D - $Uri | grep Last-Modified
+	#			$request
+	#			[datetime]$latest_OnGit = $request -replace 'Last-Modified: '
+	#			}
+			Write-Host " ==>we have $repo version "(get-date $latest_local_Git)", "(get-date $latest_OnGit)" is online !"
+	#		$latest_local_Git -lt $latest_OnGit
+			if ($latest_local_Git -lt $latest_OnGit -or $force.IsPresent )
+				{
+				$Updatepath = "$Builddir/Update"
+				if (!(Get-Item -Path $Updatepath -ErrorAction SilentlyContinue))
+						{
+						$newDir = New-Item -ItemType Directory -Path "$Updatepath" | out-null
+						}
+				Write-Host -ForegroundColor Gray " ==>we found a newer Version for $repo on Git Dated $($request.Headers.'Last-Modified')"
+				if ($delete.IsPresent)
+					{
+					Write-Host -ForegroundColor Gray "==>cleaning $Destination"
+					Remove-Item -Path $Destination -Recurse -ErrorAction SilentlyContinue
+					}
+				if ($Global:vmxtoolkit_type -eq "win_x86_64")
+					{
+					Get-LABHttpFile -SourceURL $Zip -TarGetFile "$Builddir/update/$repo-$branch.zip" -ignoresize
+					Expand-LABZip -zipfilename "$Builddir/update/$repo-$branch.zip" -destination $Destination -Folder $repo-$branch
+					}
+				else
+					{
+					Receive-LABBitsFile -DownLoadUrl $Zip -destination "$Builddir/update/$repo-$branch.zip"
+					Expand-LABpackage -Archive "$Builddir/update/$repo-$branch.zip" -filepattern $Repo-$branch -destination $Destination
+					}
+				$Isnew = $true
+				$latest_OnGit | Set-Content (join-path $Builddir "$repo-$branch.gitver")
+				}
+			else
+				{
+				Write-Host -ForegroundColor Gray " ==>no update required for $repo on $branch, already newest version "
+				}
+			if ($Isnew) 
+			{
+			return $true
+			}
+		}
+
 }
 function Extract-Zip
 {
