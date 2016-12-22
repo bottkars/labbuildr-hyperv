@@ -2262,9 +2262,8 @@ if (!(Test-Path `$logpath))
 `$Logfile = New-Item -ItemType file `"c:\$Scripts\`$ScriptName.log`"
 $IN_Guest_CD_Node_ScriptDir\set-vmguesttask.ps1 -Task $Current_phase -Status started
 New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name '99-$next_phase' -Value '$PSHOME\powershell.exe -Command `". $IN_Guest_CD_Scriptroot\$Dynamic_Scripts_Name\run-$next_phase.ps1`"'
-$ScenarioScriptdir\new-dc.ps1 -dcname $DCName -Domain $BuildDomain -IPv4subnet $IPv4subnet -IPv4Prefixlength $IPv4PrefixLength -IPv6PrefixLength $IPv6PrefixLength -IPv6Prefix $IPv6Prefix -AddressFamily $AddressFamily
+$ScenarioScriptdir\new-dc.ps1 -dcname $DCName -Domain $BuildDomain -IPv4subnet $IPv4subnet -IPv4Prefixlength $IPv4PrefixLength -IPv6PrefixLength $IPv6PrefixLength -IPv6Prefix $IPv6Prefix -AddressFamily $AddressFamily -CommonParameter $CommonParameter
 "
-# $ScenarioScriptdir\new-dc.ps1 -dcname $DCName -Domain $BuildDomain -IPv4subnet $IPv4subnet -IPv4Prefixlength $IPv4PrefixLength -IPv6PrefixLength $IPv6PrefixLength -IPv6Prefix $IPv6Prefix -AddressFamily $AddressFamily #-setwsman $CommonParameter
 
 Write-Verbose $Content
 Set-Content "$Dynamic_Scripts\$Current_phase.ps1" -Value $Content -Force
