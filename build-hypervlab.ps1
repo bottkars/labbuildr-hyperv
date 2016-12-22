@@ -65,7 +65,7 @@ param (
     #>
     #>
 	[Parameter(ParameterSetName = "E16", Mandatory = $false)]
-    [ValidateSet('cu1','final',''cu1','cu2','cu3','cu4')]
+    [ValidateSet('final','cu1','cu2','cu3','cu4')]
     $e16_cu,
     <#
     Determines if Exchange should be installed in a DAG
