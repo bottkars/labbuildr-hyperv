@@ -540,7 +540,7 @@ If (!$PSCmdlet.MyInvocation.BoundParameters["branch"].IsPresent)
     }
 try
     {
-    [datetime]$Latest_labbuildr_git = Get-Content  ($Builddir + "\labbuildr-$branch.gitver") -ErrorAction Stop
+    $Latest_labbuildr_git = Get-Content  (Join-path $Builddir "labbuildr-$branch.gitver") -ErrorAction Stop
     }
     catch
     {
@@ -548,7 +548,7 @@ try
     }
 try
     {
-    [datetime]$Latest_labbuildr_scripts_git = Get-Content  ($Builddir + "\labbuildr-scripts-$branch.gitver") -ErrorAction Stop
+    $Latest_labbuildr_scripts_git = Get-Content  (Join-path $Builddir "labbuildr--scripts-$branch.gitver") -ErrorAction Stop
     }
     catch
     {
@@ -556,21 +556,12 @@ try
     }
 try
     {
-    [datetime]$Latest_labtools_git = Get-Content  ($Builddir + "\labtools-$branch.gitver") -ErrorAction Stop
+    $Latest_labtools_git = Get-Content  (Join-path $Builddir "labtools-$branch.gitver") -ErrorAction Stop
     }
     catch
     {
     [datetime]$Latest_labtools_git = "07/11/2015"
     }
-try
-    {
-    [datetime]$Latest_SIOToolKit_git = Get-Content  ($Builddir + "\SIOToolKit-$branch.gitver") -ErrorAction Stop
-    }
-    catch
-    {
-    [datetime]$Latest_SIOToolKit_git = "07/11/2015"
-    }
-
 
 ################## Statics
 $LogFile = "$Builddir\$(Get-Content env:computername).log"
@@ -661,7 +652,7 @@ function update-fromGit
             [switch]$delete
             )
 		$AuthHeaders = @{'Authorization' = "token b64154d0de42396ebd72b9f53ec863f2234f6997"}
-		if ($Global:vmxtoolkit_type -eq "win_x86_64" )
+		if ($runonos -eq "win_x86_64" )
 			{
 			$branch =  $branch.ToLower()
 			$Isnew = $false
@@ -1149,7 +1140,7 @@ switch ($PsCmdlet.ParameterSetName)
         $ReloadProfile = $False
         $Repo = $my_repo
         $RepoLocation = "bottkars"
-        $Latest_local_git = $Latest_labbuildr_git
+		[datetime]$latest_local_git =  [datetime]::parse($Latest_labbuildr_git, $git_Culture)
         $Destination = "$Builddir"
         $Has_update = update-fromGit -Repo $Repo -RepoLocation $RepoLocation -branch $branch -latest_local_Git $Latest_local_git -Destination $Destination
         if (Test-Path "$Builddir\deletefiles.txt")
@@ -1190,13 +1181,6 @@ switch ($PsCmdlet.ParameterSetName)
             }
         }
         ####
-        $Repo = "SIOToolKit"
-        $RepoLocation = "emccode"
-        $Latest_local_git = $Latest_SIOToolkit_git
-        $Destination = "$Builddir\SIOToolKit"
-        $Hasupdate = update-fromGit -Repo $Repo -RepoLocation $RepoLocation -branch $branch -latest_local_Git $Latest_local_git -Destination $Destination
-        $Branch | Set-Content -Path "$Builddir\labbuildr.branch" -Force # -Verbose
-
         if ($ReloadProfile)
             {
             Remove-Item .\Update -Recurse -Confirm:$false
