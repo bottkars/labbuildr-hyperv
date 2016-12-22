@@ -627,6 +627,7 @@ $IN_Guest_CD_Scriptroot = "D:"
 $IN_Guest_LogDir = "C:\$Scripts"
 $IN_Guest_CD_Node_ScriptDir = "$IN_Guest_CD_Scriptroot\Node"
 $IN_Guest_UNC_Node_ScriptDir = "$IN_Guest_UNC_Scriptroot\Node"
+$Dynmic_Scripts = Join-Path $Isodir "Scripts"
 ##################
 ###################################################
 # main function go here
@@ -988,7 +989,7 @@ function get-vmguesttask
                 }
             catch
                 {
-                Write-Verbose " Integration Services not running"
+                Write-Verbose "Integration Services not running"
                 }
             
             if ($GuestExchangeItemXml -ne $null) 
@@ -1025,7 +1026,7 @@ $IN_Guest_CD_Node_ScriptDir\configure-node.ps1 -Scriptdir $IN_Guest_CD_Scriptroo
 "
 Write-Verbose $Content
 Write-Verbose ""
-Set-Content "$Isodir\$Scripts\$Current_phase.ps1" -Value $Content -Force
+Set-Content "$Dynamic_Scripts\$Current_phase.ps1" -Value $Content -Force
 }
 function run-phase1
 {
@@ -1048,7 +1049,7 @@ $Content = "### $Current_phase
 Write-Verbose ""
 Write-Verbose "$Content"
 Write-Verbose ""
-Set-Content "$Isodir\$Scripts\run-$Current_phase.ps1" -Value $Content -Force
+Set-Content "$Dynamic_Scripts\run-$Current_phase.ps1" -Value $Content -Force
 
 
 }
@@ -1082,7 +1083,7 @@ $IN_Guest_CD_Node_ScriptDir\set-winrm.ps1 -Scriptdir $IN_Guest_CD_Scriptroot
 "
     
         Write-Verbose $Content
-        Set-Content "$Isodir\$Scripts\run-$Current_phase.ps1" -Value $Content -Force
+        Set-Content "$Dynamic_Scripts\run-$Current_phase.ps1" -Value $Content -Force
 
 
 }
@@ -1115,7 +1116,7 @@ else
     "
     }
 Write-Verbose $Content
-Set-Content "$Isodir\$Scripts\run-$Current_phase.ps1" -Value $Content -Force
+Set-Content "$Dynamic_Scripts\run-$Current_phase.ps1" -Value $Content -Force
 
 }
 function run-phase5
@@ -1128,7 +1129,7 @@ $Content = @()
 $Content = "###
 "
 Write-Verbose $Content
-Set-Content "$Isodir\$Scripts\run-$Current_phase.ps1" -Value $Content -Force
+Set-Content "$Dynamic_Scripts\run-$Current_phase.ps1" -Value $Content -Force
 
 }
 
@@ -2003,15 +2004,29 @@ if ($NMM.IsPresent)
 
 
 ##### echange downloads section
-
 if ($Exchange2016.IsPresent)
-{
+    {
     if (!$e16_cu)
         {
         $e16_cu = $Latest_e16_cu
         }
-
-    If ($Master -gt '2012Z')
+	If ($e16_cu -lt "cu3")
+		{
+		$NET_VER = "452"
+		}
+	else
+		{
+		switch ($e16_cu)
+			{
+			default
+				{
+				$NET_VER = "462"
+				$E16_REQUIRED_KB = "KB3206632"
+				}
+			}
+		
+		}
+    If ($Master -gt '2012Z' -and $e16_cu -lt "cu3")
         {
         Write-Warning "Only master up 2012R2Fallupdate supported in this scenario"
         exit
@@ -2021,7 +2036,6 @@ if ($Exchange2016.IsPresent)
         Write-warning "We could not receive Exchange 2016 $e16_cu"
         return
         }
-
     $EX_Version = "E2016"
     $Scenarioname = "Exchange"
     $Prereqdir = "Attachments"
@@ -2228,8 +2242,8 @@ if (!(test-dcrunning) -and (!$NoDomainCheck.IsPresent))
         $ScenarioScriptdir = "$IN_Guest_CD_Scriptroot\$NodePrefix"
         $NodeIP = "$IPv4Subnet.10"
         ####prepare iso
-        Remove-Item -Path "$Isodir\$Scripts" -Force -Recurse -ErrorAction SilentlyContinue | Out-Null
-        New-Item -ItemType Directory "$Isodir\$Scripts" -Force | Out-Null
+        Remove-Item -Path "$Dynamic_Scripts" -Force -Recurse -ErrorAction SilentlyContinue | Out-Null
+        New-Item -ItemType Directory "$Dynamic_Scripts" -Force | Out-Null
         New-Item -ItemType Directory "$Builddir\$NodePrefix" -Force | Out-Null
         $Current_phase = "start-customize"
         $next_phase = "phase2"
@@ -2251,7 +2265,7 @@ $ScenarioScriptdir\new-dc.ps1 -dcname $DCName -Domain $BuildDomain -IPv4subnet $
 # $ScenarioScriptdir\new-dc.ps1 -dcname $DCName -Domain $BuildDomain -IPv4subnet $IPv4subnet -IPv4Prefixlength $IPv4PrefixLength -IPv6PrefixLength $IPv6PrefixLength -IPv6Prefix $IPv6Prefix -AddressFamily $AddressFamily #-setwsman $CommonParameter
 
 Write-Verbose $Content
-Set-Content "$Isodir\$Scripts\$Current_phase.ps1" -Value $Content -Force
+Set-Content "$Dynamic_Scripts\$Current_phase.ps1" -Value $Content -Force
         
 ######## Phase 2
        $previous_phase = $current_phase
@@ -2269,7 +2283,7 @@ Set-ExecutionPolicy -ExecutionPolicy bypass -Force
 $ScenarioScriptdir\finish-domain.ps1 -domain $BuildDomain -domainsuffix $domainsuffix
 "
 Write-Verbose $Content
-Set-Content "$Isodir\$Scripts\run-$Current_phase.ps1" -Value $Content -Force
+Set-Content "$Dynamic_Scripts\run-$Current_phase.ps1" -Value $Content -Force
 ## end Phase2 
 
 
@@ -2293,7 +2307,7 @@ $ScenarioScriptdir\pwpolicy.ps1
 restart-computer
 "
 Write-Verbose $Content
-Set-Content "$Isodir\$Scripts\run-$Current_phase.ps1" -Value $Content -Force
+Set-Content "$Dynamic_Scripts\run-$Current_phase.ps1" -Value $Content -Force
 ###end phase 3
 ## Phase 4
        $previous_phase = $current_phase
@@ -2313,7 +2327,7 @@ $IN_Guest_CD_Node_ScriptDir\set-winrm.ps1 -Scriptdir $IN_Guest_CD_Scriptroot
 restart-computer 
 "
         Write-Verbose $Content
-        Set-Content "$Isodir\$Scripts\run-$Current_phase.ps1" -Value $Content -Force
+        Set-Content "$Dynamic_Scripts\run-$Current_phase.ps1" -Value $Content -Force
 ## end Phase4       
         
 ### phase 5
@@ -2331,10 +2345,10 @@ $ScenarioScriptdir\check-domain.ps1 -Scriptdir $IN_Guest_CD_Scriptroot
 $IN_Guest_CD_Node_ScriptDir\set-vmguestshare.ps1 -user $Labbuildr_share_User -password $Labbuildr_share_password -HostIP $HostIP -Scripts_share_name $Scripts_share_name -Sources_share_name $Sources_share_name
 $IN_Guest_CD_Node_ScriptDir\create-labshortcut.ps1 -scriptdir $IN_Guest_UNC_Scriptroot
 $IN_Guest_CD_Node_ScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status finished
-#New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name '99-$next_phase' -Value '$PSHOME\powershell.exe -Command `". $Isodir\$Scripts\run-$next_phase.ps1`"'
+#New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name '99-$next_phase' -Value '$PSHOME\powershell.exe -Command `". $Dynamic_Scripts\run-$next_phase.ps1`"'
 "
         Write-Verbose $Content
-        Set-Content "$Isodir\$Scripts\run-$Current_phase.ps1" -Value $Content -Force
+        Set-Content "$Dynamic_Scripts\run-$Current_phase.ps1" -Value $Content -Force
 ## end Phase5  
 
 
@@ -2445,8 +2459,8 @@ switch ($PsCmdlet.ParameterSetName)
         Write-Verbose "Pre ClusterIP: $ClusterIP"
         Write-Verbose "Cloneparameter $CloneParameter"
         ####prepare iso
-            Remove-Item -Path "$Isodir\$Scripts" -Force -Recurse -ErrorAction SilentlyContinue | Out-Null
-            New-Item -ItemType Directory "$Isodir\$Scripts" -Force | Out-Null
+            Remove-Item -Path "$Dynamic_Scripts" -Force -Recurse -ErrorAction SilentlyContinue | Out-Null
+            New-Item -ItemType Directory "$Dynamic_Scripts" -Force | Out-Null
             New-Item -ItemType Directory "$Builddir\$NodePrefix" -Force | Out-Null
             $Current_phase = "start-customize"
             $next_phase = "phase3"
@@ -2500,7 +2514,7 @@ $AddContent = @()
 $Content += $AddContent
 
 Write-Verbose $Content
-Set-Content "$Isodir\$Scripts\run-$Current_phase.ps1" -Value $Content -Force
+Set-Content "$Dynamic_Scripts\run-$Current_phase.ps1" -Value $Content -Force
 ####
 
 
@@ -2592,8 +2606,8 @@ Set-Content "$Isodir\$Scripts\run-$Current_phase.ps1" -Value $Content -Force
             Write-Verbose "Addressfamily = $AddressFamily"
             Write-Verbose "EXAddressFamiliy = $EXAddressFamiliy"
 ####prepare iso
-            Remove-Item -Path "$Isodir\$Scripts" -Force -Recurse -ErrorAction SilentlyContinue | Out-Null
-            New-Item -ItemType Directory "$Isodir\$Scripts" -Force | Out-Null
+            Remove-Item -Path "$Dynamic_Scripts" -Force -Recurse -ErrorAction SilentlyContinue | Out-Null
+            New-Item -ItemType Directory "$Dynamic_Scripts" -Force | Out-Null
             New-Item -ItemType Directory "$Builddir\$NodePrefix" -Force | Out-Null
             $Current_phase = "start-customize"
             $next_phase = "phase3"
@@ -2634,12 +2648,12 @@ $Content = "###
 $IN_Guest_CD_Node_ScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status started
 $IN_Guest_CD_Node_ScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
 $ScenarioScriptdir\prepare-disks.ps1
-$ScenarioScriptdir\install-exchangeprereqs.ps1 -SourcePath $IN_Guest_UNC_Sourcepath -Scriptdir $IN_Guest_CD_Scriptroot
+$ScenarioScriptdir\install-exchangeprereqs.ps1 -SourcePath $IN_Guest_UNC_Sourcepath -Scriptdir $IN_Guest_CD_Scriptroot -Script install-exchangeprereqs.ps1 -NET_VER $NET_VER
 New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name '99-$next_phase' -Value '$PSHOME\powershell.exe -Command `". $IN_Guest_CD_Scriptroot\$Scripts\run-$next_phase.ps1`"'
 restart-computer
 "
 Write-Verbose $Content
-Set-Content "$Isodir\$Scripts\run-$Current_phase.ps1" -Value $Content -Force
+Set-Content "$Dynamic_Scripts\run-$Current_phase.ps1" -Value $Content -Force
    
    
             $previous_phase = $current_phase
@@ -2657,7 +2671,7 @@ $IN_Guest_CD_Node_ScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status fi
 $ScenarioScriptdir\install-exchange.ps1 -ex_cu $e16_cu -SourcePath $IN_Guest_UNC_Sourcepath -Scriptdir $IN_Guest_CD_Scriptroot
 "
 Write-Verbose $Content
-Set-Content "$Isodir\$Scripts\run-$Current_phase.ps1" -Value $Content -Force
+Set-Content "$Dynamic_Scripts\run-$Current_phase.ps1" -Value $Content -Force
 
 
 #####
@@ -2693,7 +2707,7 @@ $ScenarioScriptdir\configure-exchange.ps1 -EX_Version $EX_Version -SourcePath $I
     }# end if last server
 
 Write-Verbose $Content
-Set-Content "$Isodir\$Scripts\run-$Current_phase.ps1" -Value $Content -Force
+Set-Content "$Dynamic_Scripts\run-$Current_phase.ps1" -Value $Content -Force
 ####
 
 
@@ -2772,8 +2786,8 @@ Set-Content "$Isodir\$Scripts\run-$Current_phase.ps1" -Value $Content -Force
 
 #########################
 ####prepare iso
-            Remove-Item -Path "$Isodir\$Scripts" -Force -Recurse -ErrorAction SilentlyContinue | Out-Null
-            New-Item -ItemType Directory "$Isodir\$Scripts" -Force | Out-Null
+            Remove-Item -Path "$Dynamic_Scripts" -Force -Recurse -ErrorAction SilentlyContinue | Out-Null
+            New-Item -ItemType Directory "$Dynamic_Scripts" -Force | Out-Null
             New-Item -ItemType Directory "$Builddir\$NodePrefix" -Force | Out-Null
             $Current_phase = "start-customize"
             $next_phase = "phase3"
@@ -2828,7 +2842,7 @@ New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name '
 #restart-computer
 "
 Write-Verbose $Content
-Set-Content "$Isodir\$Scripts\run-$Current_phase.ps1" -Value $Content -Force
+Set-Content "$Dynamic_Scripts\run-$Current_phase.ps1" -Value $Content -Force
 ######
 
 
@@ -2848,7 +2862,7 @@ $IN_Guest_CD_Node_ScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status fi
 http://$($Nodeip):58080/APG/
 "
 Write-Verbose $Content
-Set-Content "$Isodir\$Scripts\run-$Current_phase.ps1" -Value $Content -Force
+Set-Content "$Dynamic_Scripts\run-$Current_phase.ps1" -Value $Content -Force
 
 ####### Iso Creation        
             $Isocreatio = make-iso -Nodename $NodeName -Builddir $Builddir -isodir $Isodir
@@ -2903,8 +2917,8 @@ Set-Content "$Isodir\$Scripts\run-$Current_phase.ps1" -Value $Content -Force
 
 #########################
 ####prepare iso
-            Remove-Item -Path "$Isodir\$Scripts" -Force -Recurse -ErrorAction SilentlyContinue | Out-Null
-            New-Item -ItemType Directory "$Isodir\$Scripts" -Force | Out-Null
+            Remove-Item -Path "$Dynamic_Scripts" -Force -Recurse -ErrorAction SilentlyContinue | Out-Null
+            New-Item -ItemType Directory "$Dynamic_Scripts" -Force | Out-Null
             New-Item -ItemType Directory "$Builddir\$NodePrefix" -Force | Out-Null
             $Current_phase = "start-customize"
             $next_phase = "phase3"
@@ -2951,7 +2965,7 @@ $ScenarioScriptdir\INSTALL-vmm.ps1 -SC_Version $SC_Version $CommonParameter -Sou
 # restart-computer
 "
 Write-Verbose $Content
-Set-Content "$Isodir\$Scripts\run-$Current_phase.ps1" -Value $Content -Force
+Set-Content "$Dynamic_Scripts\run-$Current_phase.ps1" -Value $Content -Force
 ######
 
 
@@ -3027,8 +3041,8 @@ Set-Content "$Isodir\$Scripts\run-$Current_phase.ps1" -Value $Content -Force
 
 #########################
 ####prepare iso
-            Remove-Item -Path "$Isodir\$Scripts" -Force -Recurse -ErrorAction SilentlyContinue | Out-Null
-            New-Item -ItemType Directory "$Isodir\$Scripts" -Force | Out-Null
+            Remove-Item -Path "$Dynamic_Scripts" -Force -Recurse -ErrorAction SilentlyContinue | Out-Null
+            New-Item -ItemType Directory "$Dynamic_Scripts" -Force | Out-Null
             New-Item -ItemType Directory "$Builddir\$NodePrefix" -Force | Out-Null
             $Current_phase = "start-customize"
             $next_phase = "phase3"
@@ -3074,7 +3088,7 @@ $ScenarioScriptdir\INSTALL-Scom.ps1 -SC_Version $SC_Version $CommonParameter -So
 # restart-computer
 "
 Write-Verbose $Content
-Set-Content "$Isodir\$Scripts\run-$Current_phase.ps1" -Value $Content -Force
+Set-Content "$Dynamic_Scripts\run-$Current_phase.ps1" -Value $Content -Force
 ######
 
 
@@ -3130,8 +3144,8 @@ if (($NW.IsPresent -and !$NoDomainCheck.IsPresent) -or $NWServer.IsPresent)
             Write-Verbose "IPv6PrefixLength = $IPv6PrefixLength"
             Write-Verbose "Addressfamily = $AddressFamily"
 ####prepare iso
-            Remove-Item -Path "$Isodir\$Scripts" -Force -Recurse -ErrorAction SilentlyContinue | Out-Null
-            New-Item -ItemType Directory "$Isodir\$Scripts" -Force | Out-Null
+            Remove-Item -Path "$Dynamic_Scripts" -Force -Recurse -ErrorAction SilentlyContinue | Out-Null
+            New-Item -ItemType Directory "$Dynamic_Scripts" -Force | Out-Null
             New-Item -ItemType Directory "$Builddir\$NodePrefix" -Force | Out-Null
             $Current_phase = "start-customize"
             $next_phase = "phase3"
@@ -3181,7 +3195,7 @@ New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name '
 restart-computer
 "
 Write-Verbose $Content
-Set-Content "$Isodir\$Scripts\run-$Current_phase.ps1" -Value $Content -Force
+Set-Content "$Dynamic_Scripts\run-$Current_phase.ps1" -Value $Content -Force
 ######
 
 
@@ -3202,7 +3216,7 @@ $IN_Guest_CD_Node_ScriptDir\set-vmguestshare.ps1 -user $Labbuildr_share_User -pa
 $ScenarioScriptdir\configure-nmc.ps1 -SourcePath $IN_Guest_UNC_Sourcepath -Scriptdir $IN_Guest_CD_Scriptroot
 "
 Write-Verbose $Content
-Set-Content "$Isodir\$Scripts\run-$Current_phase.ps1" -Value $Content -Force
+Set-Content "$Dynamic_Scripts\run-$Current_phase.ps1" -Value $Content -Force
 
 ####### Iso Creation        
             $Isocreatio = make-iso -Nodename $NodeName -Builddir $Builddir -isodir $Isodir
