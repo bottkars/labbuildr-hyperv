@@ -55,7 +55,7 @@ if ((Get-LABDefaults).SQLVER -notmatch 'ISO')
 	{
 	Set-LABSQLver -SQLVER SQL2014SP2_ISO
 	}
-$buildlab = (join-path $self "build-lab.ps1")
+$buildlab = (join-path $self "build-hypervlab.ps1")
 .$buildlab
 
 $Defaults = Get-labdefaults
