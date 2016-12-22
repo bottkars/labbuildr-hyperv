@@ -2244,6 +2244,7 @@ if (!(test-dcrunning) -and (!$NoDomainCheck.IsPresent))
         $NodeIP = "$IPv4Subnet.10"
         ####prepare iso
 		Write-Verbose $Dynamic_Scripts
+		Write-Verbose "Common Parameter = $CommonParameter"
         Remove-Item -Path "$Dynamic_Scripts" -Force -Recurse -ErrorAction SilentlyContinue | Out-Null
         New-Item -ItemType Directory "$Dynamic_Scripts" #-Force | Out-Null
         New-Item -ItemType Directory "$Builddir\$NodePrefix" -Force | Out-Null
