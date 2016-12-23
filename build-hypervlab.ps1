@@ -54,6 +54,9 @@ param (
 	[Parameter(ParameterSetName = "Blanknodes")][switch][alias('bnhv')]$BlankHV,
 	[Parameter(ParameterSetName = "Blanknodes")][switch][alias('S2D')]$SpacesDirect,
 	[Parameter(ParameterSetName = "Blanknodes")][string][alias('CLN')]$ClusterName,
+    <#Exchange 2013   #>
+	[Parameter(ParameterSetName = "E15",Mandatory = $true)][switch][alias('ex15')]$Exchange2013,
+    <#
     <#Exchange 2016   #>
 	[Parameter(ParameterSetName = "E16",Mandatory = $true)][switch][alias('ex16')]$Exchange2016,
     <#
@@ -86,7 +89,7 @@ param (
     CU Location is [Driveletter]:\sources\e2013[cuver], e.g. c:\sources\e2013cu7
     #>
 	[Parameter(ParameterSetName = "E15", Mandatory = $false)]
-    [ValidateSet('cu1', 'cu2', 'cu3', 'sp1','cu5','cu6','cu7','cu8','cu9','cu10','CU11','cu12')]
+    [ValidateSet('cu1', 'cu2', 'cu3', 'sp1','cu5','cu6','cu7','cu8','cu9','cu10','CU11','cu12','cu12','cu13','cu14','cu15')]
     [alias('ex_cu')]$e15_cu,
     <# schould we prestage users ? #>	
     [Parameter(ParameterSetName = "E16", Mandatory = $false)]
@@ -2092,6 +2095,59 @@ if ($Exchange2016.IsPresent)
         }
 }
 
+if ($Exchange2013.IsPresent)
+    {
+    if (!$e15_cu)
+        {
+        $e15_cu = $Latest_e15_cu
+        }
+	If ($e15_cu -lt "cu99")
+		{
+		$NET_VER = "452"
+		}
+	else
+		{
+		$NET_VER = "462"
+		}
+    If ($Master -gt '2012Z')
+        {
+        Write-Warning "Only master up 2012R2Fallupdate supported in this scenario"
+        exit
+        }
+    If (!(Receive-LABExchange -Exchange2013 -e15_cu $e15_cu -Destination $Sourcedir -unzip))
+        {
+        Write-Host -ForegroundColor Gray " ==>we could not receive Exchange 2013 $e15_cu"
+        return
+        }
+    $EX_Version = "E2013"
+    $Scenarioname = "Exchange"
+    $Prereqdir = "Attachments"
+    $attachments = (
+    "http://www.cisco.com/c/dam/en/us/solutions/collateral/data-center-virtualization/unified-computing/fle_vmware.pdf"
+    )
+    $Destination = Join-Path $Sourcedir $Prereqdir
+    if (!(Test-Path $Destination)){New-Item -ItemType Directory -Path $Destination | Out-Null }
+     foreach ($URL in $attachments)
+        {
+        $FileName = Split-Path -Leaf -Path $Url
+		$Destination_file = Join-Path $Destination $FileName
+        if (!(test-path  $Destination_file))
+            {
+            Write-Verbose "$FileName not found, trying Download"
+            if (!(Receive-LABBitsFile -DownLoadUrl $URL -destination $Destination_file))
+                { Write-Host -ForegroundColor Gray " ==>Error Downloading file $Url, Please check connectivity"
+                  Write-Host -ForegroundColor Gray " ==>creating dummy File"
+                  New-Item -ItemType file -Path $Destination_file | out-null
+                }
+            }
+        }
+	    if ($DAG.IsPresent)
+	        {
+		    $Work_Items +=  " ==>we will form a $EX_Version $EXNodes-Node DAG"
+	        }
+}
+
+
 ############## SCOM Section
 if ($SCOM.IsPresent)
   {
@@ -2701,6 +2757,224 @@ New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name '
 $IN_Guest_CD_Node_ScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status started
 $IN_Guest_CD_Node_ScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
 $ScenarioScriptdir\install-exchange.ps1 -ex_cu $e16_cu -SourcePath $IN_Guest_UNC_Sourcepath -Scriptdir $IN_Guest_CD_Scriptroot
+"
+Write-Verbose $Content
+Set-Content "$Dynamic_Scripts\run-$Current_phase.ps1" -Value $Content -Force
+
+
+#####
+            $previous_phase = $current_phase
+            $current_phase = $next_phase
+            $next_phase = "phase_EX_POST"
+
+
+$Content = "###
+`$ScriptName = `$MyInvocation.MyCommand.Name
+`$Host.UI.RawUI.WindowTitle = `$ScriptName
+`$Logfile = New-Item -ItemType file `"c:\$Scripts\`$ScriptName.log`"
+$IN_Guest_CD_Node_ScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status started
+$IN_Guest_CD_Node_ScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
+$ScenarioScriptdir\configure-exchange.ps1 -EX_Version $EX_Version -SourcePath $IN_Guest_UNC_Sourcepath -Scriptdir $IN_Guest_CD_Scriptroot
+"
+
+# dag phase fo last server
+    if ($EXNode -eq ($EXNodes+$EXStartNode-1)) #are we last sever in Setup ?!
+        {
+        if ($DAG.IsPresent) 
+            {
+			write-host -ForegroundColor Gray " ==> Creating DAG"
+            $Content += "$ScenarioScriptdir\create-dag.ps1 -DAGIP $DAGIP -AddressFamily $EXAddressFamiliy -EX_Version $EX_Version -SourcePath $IN_Guest_UNC_Sourcepath -Scriptdir $IN_Guest_CD_Scriptroot
+"
+			} # end if $DAG
+        if (!($nouser.ispresent))
+            {
+            write-host -ForegroundColor Gray " ==> Creating Accounts and Mailboxes:"
+            $Content += "c:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe `". 'C:\Program Files\Microsoft\Exchange Server\V15\bin\RemoteExchange.ps1'; Connect-ExchangeServer -auto; $ScenarioScriptdir\User.ps1 -subnet $IPv4Subnet -AddressFamily $AddressFamily -IPV6Prefix $IPV6Prefix -SourcePath $IN_Guest_UNC_Sourcepath -Scriptdir $IN_Guest_CD_Scriptroot`"
+"
+            } #end creatuser
+    }# end if last server
+
+Write-Verbose $Content
+Set-Content "$Dynamic_Scripts\run-$Current_phase.ps1" -Value $Content -Force
+####
+
+
+            if ($PSCmdlet.MyInvocation.BoundParameters["verbose"].IsPresent)
+                { 
+                Write-verbose "Now Pausing"
+                pause
+                    }
+            $Size = "XXL"
+		    # test-dcrunning
+		    ###################################################
+
+####### Iso Creation        
+            $Isocreatio = make-iso -Nodename $NodeName -Builddir $Builddir -isodir $Isodir
+####### clone creation
+            if ($PSCmdlet.MyInvocation.BoundParameters["verbose"].IsPresent)
+                {
+                Write-Verbose "Press any Key to continue to Cloning"
+                pause
+                }
+
+            $CloneOK = Invoke-Expression  "$Builddir\clone-node.ps1 -MasterVHD $MasterVHDX -Nodename $NodeName -Size $Size -HVSwitch $HVSwitch $CloneParameter"
+
+####### wait progress
+
+
+		    If ($CloneOK)
+            {
+            check-task -task "start-customize" -nodename $NodeName -sleep $Sleep
+            }
+            <##
+            }
+            
+        foreach ($EXNODE in ($EXStartNode..($EXNodes+$EXStartNode-1)))
+            {
+            $Nodename = "$EX_Version"+"N"+"$EXNODE"
+            $CloneVMX = (get-vmx $Nodename).config				
+			write-verbose "Setting Local Security Policies"
+			invoke-vmxpowershell -config $CloneVMX -Guestuser $Adminuser -Guestpassword $Adminpassword -ScriptPath $Targetscriptdir -Script create-security.ps1 -interactive
+			########### Entering networker Section ##############
+			if ($NMM.IsPresent)
+			{
+				write-verbose "Install NWClient"
+				invoke-vmxpowershell -config $CloneVMX -Guestuser $Adminuser -Guestpassword $Adminpassword -ScriptPath $Targetscriptdir -Script install-nwclient.ps1 -interactive -Parameter $nw_ver
+				write-verbose "Install NMM"
+				invoke-vmxpowershell -config $CloneVMX -Guestuser $Adminuser -Guestpassword $Adminpassword -ScriptPath $Targetscriptdir -Script install-nmm.ps1 -interactive -Parameter $nmm_ver
+			    write-verbose "Performin NMM Post Install Tasks"
+			    invoke-vmxpowershell -config $CloneVMX -Guestuser $Adminuser -Guestpassword $Adminpassword -ScriptPath $Targetscriptdir -Script finish-nmm.ps1 -interactive
+            }# end nmm
+			########### leaving NMM Section ###################
+		    invoke-postsection
+    #>
+                
+           }#end foreach exnode
+       }#End Switchblock Exchange
+
+   	"e15"{
+        test-dcrunning
+        write-host -ForegroundColor Gray " ==> Starting $EX_Version $e15_cu Setup"
+        If ($Disks -lt 3)
+            {
+            $Disks = 3
+            }
+        if ($Disks)
+            {
+		    $cloneparameter = "$CloneParameter -AddDisks -disks $Disks"
+            }
+
+        if ($AddressFamily -notmatch 'ipv4')
+            { 
+            $EXAddressFamiliy = 'IPv4IPv6'
+            }
+        else
+        {
+        $EXAddressFamiliy = $AddressFamily
+        }
+        if ($DAG.IsPresent)
+            {
+            Write-Warning "Running e15 Avalanche Install"
+
+            if ($DAGNOIP.IsPresent)
+			    {
+				$DAGIP = ([System.Net.IPAddress])::None
+			    }
+			else
+                {
+                $DAGIP = "$IPv4subnet.120"
+                }
+        }
+                $DCName =  $BuildDomain+"DC"
+
+		foreach ($EXNODE in ($EXStartNode..($EXNodes+$EXStartNode-1)))
+            {
+			###################################################
+			# Setup e15 Node
+			# Init
+			$Nodeip = "$IPv4Subnet.12$EXNODE"
+			$Nodename = "$EX_Version"+"N"+"$EXNODE"
+            $NodePrefix = $EX_Version
+			$ScenarioScriptdir = "$IN_Guest_CD_Scriptroot\$NodePrefix"
+		    $Host_ScriptDir = "$Builddir\$Scripts\$EX_Version\"
+            $AddonFeatures = "RSAT-ADDS, RSAT-ADDS-TOOLS, AS-HTTP-Activation, NET-Framework-45-Features"
+            $AddonFeatures = "$AddonFeatures, AS-HTTP-Activation, Desktop-Experience, NET-Framework-45-Features, RPC-over-HTTP-proxy, RSAT-Clustering, RSAT-Clustering-CmdInterface, RSAT-Clustering-Mgmt, RSAT-Clustering-PowerShell, Web-Mgmt-Console, WAS-Process-Model, Web-Asp-Net45, Web-Basic-Auth, Web-Client-Auth, Web-Digest-Auth, Web-Dir-Browsing, Web-Dyn-Compression, Web-Http-Errors, Web-Http-Logging, Web-Http-Redirect, Web-Http-Tracing, Web-ISAPI-Ext, Web-ISAPI-Filter, Web-Lgcy-Mgmt-Console, Web-Metabase, Web-Mgmt-Console, Web-Mgmt-Service, Web-Net-Ext45, Web-Request-Monitor, Web-Server, Web-Stat-Compression, Web-Static-Content, Web-Windows-Auth, Web-WMI, Windows-Identity-Foundation"
+
+
+			###################################################
+	    	
+            Write-Verbose $IPv4Subnet
+            Write-Verbose "IPv4PrefixLength = $IPv4PrefixLength"
+            write-verbose $Nodename
+            write-verbose $Nodeip
+            Write-Verbose "IPv6Prefix = $IPV6Prefix"
+            Write-Verbose "IPv6PrefixLength = $IPv6PrefixLength"
+            Write-Verbose "Addressfamily = $AddressFamily"
+            Write-Verbose "EXAddressFamiliy = $EXAddressFamiliy"
+####prepare iso
+            Remove-Item -Path "$Dynamic_Scripts" -Force -Recurse -ErrorAction SilentlyContinue | Out-Null
+            New-Item -ItemType Directory "$Dynamic_Scripts" -Force | Out-Null
+            New-Item -ItemType Directory "$Builddir\$NodePrefix" -Force | Out-Null
+            $Current_phase = "start-customize"
+            $next_phase = "phase3"
+            run-startcustomize -Current_phase $Current_phase -next_phase $next_phase
+        
+
+<### phase 2
+            $previous_phase = $current_phase
+            $current_phase = $next_phase
+            $next_phase = "phase3"
+            run-phase2 -Current_phase $Current_phase -next_phase $next_phase
+#>
+### phase 3
+            $previous_phase = $current_phase
+            $current_phase = $next_phase
+            $next_phase = "phase4"
+            run-phase3 -Current_phase $Current_phase -next_phase $next_phase
+        
+## Phase 4
+            $previous_phase = $current_phase
+            $current_phase = $next_phase
+            $next_phase = "phase_EX_PRE"
+            $Next_Phase_noreboot = $true
+            run-phase4 -Current_phase $Current_phase -next_phase $next_phase -next_phase_no_reboot
+
+
+             
+## phase_EX_PRE
+
+
+            $previous_phase = $current_phase
+            $current_phase = $next_phase
+            $next_phase = "phase_EX_SETUP"
+$Content = "###
+`$ScriptName = `$MyInvocation.MyCommand.Name
+`$Host.UI.RawUI.WindowTitle = `$ScriptName
+`$Logfile = New-Item -ItemType file `"c:\$Scripts\`$ScriptName.log`"
+$IN_Guest_CD_Node_ScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status started
+$IN_Guest_CD_Node_ScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
+New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name '99-$next_phase' -Value '$PSHOME\powershell.exe -Command `". $IN_Guest_CD_Scriptroot\$Dynamic_Scripts_Name\run-$next_phase.ps1`"'
+$ScenarioScriptdir\prepare-disks.ps1
+$ScenarioScriptdir\install-exchangeprereqs.ps1 -SourcePath $IN_Guest_UNC_Sourcepath -Scriptdir $IN_Guest_CD_Scriptroot -NET_VER $NET_VER
+restart-computer -force
+"
+Write-Verbose $Content
+Set-Content "$Dynamic_Scripts\run-$Current_phase.ps1" -Value $Content -Force
+   
+   
+            $previous_phase = $current_phase
+            $current_phase = $next_phase
+            $next_phase = "phase_EX_RUN"
+
+
+$Content = "###
+`$ScriptName = `$MyInvocation.MyCommand.Name
+`$Host.UI.RawUI.WindowTitle = `$ScriptName
+`$Logfile = New-Item -ItemType file `"c:\$Scripts\`$ScriptName.log`"
+New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name '99-$next_phase' -Value '$PSHOME\powershell.exe -Command `". $IN_Guest_CD_Scriptroot\$Dynamic_Scripts_Name\run-$next_phase.ps1`"'
+$IN_Guest_CD_Node_ScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status started
+$IN_Guest_CD_Node_ScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
+$ScenarioScriptdir\install-exchange.ps1 -ex_cu $e15_cu -SourcePath $IN_Guest_UNC_Sourcepath -Scriptdir $IN_Guest_CD_Scriptroot
 "
 Write-Verbose $Content
 Set-Content "$Dynamic_Scripts\run-$Current_phase.ps1" -Value $Content -Force
