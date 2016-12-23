@@ -569,8 +569,8 @@ $Labbuildr_share_User = "_labbuildr_"
 $Labbuildr_share_password = "Password123!"
 $WAIKVER = "WAIK"
 $AAGDB = "AWORKS"
-$major = "6.0"
-$Edition = "Early_Summer"
+$major = "2016"
+$Edition = "XMAS"
 $Default_vmnet = "vmnet2"
 $Default_vlanid = 0
 $Default_BuildDomain = "labbuildr"
@@ -581,8 +581,8 @@ $Default_AddressFamily = "IPv4"
 $latest_ScaleIOVer = '1.32-2451.4'
 $ScaleIO_OS = "Windows"
 $ScaleIO_Path = "ScaleIO_$($ScaleIO_OS)_SW_Download"
-$latest_nmm = 'nmm9007'
-$latest_nw = 'nw9007'
+$latest_nmm = 'nmm91002'
+$latest_nw = 'nw91002'
 $latest_e16_cu = 'cu4'
 $latest_e15_cu = 'cu15'
 $latest_e14_sp = 'sp3'
@@ -2675,7 +2675,7 @@ $Content = "###
 $IN_Guest_CD_Node_ScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status started
 $IN_Guest_CD_Node_ScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
 $ScenarioScriptdir\prepare-disks.ps1
-$ScenarioScriptdir\install-exchangeprereqs.ps1 -SourcePath $IN_Guest_UNC_Sourcepath -Scriptdir $IN_Guest_CD_Scriptroot -Script install-exchangeprereqs.ps1 -NET_VER $NET_VER
+$ScenarioScriptdir\install-exchangeprereqs.ps1 -SourcePath $IN_Guest_UNC_Sourcepath -Scriptdir $IN_Guest_CD_Scriptroot -NET_VER $NET_VER
 New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name '99-$next_phase' -Value '$PSHOME\powershell.exe -Command `". $IN_Guest_CD_Scriptroot\$Dynamic_Scripts_Name\run-$next_phase.ps1`"'
 restart-computer
 "

@@ -13,7 +13,22 @@ $size.height=48
 $Userinterface.WindowSize = $size
 clear-host
 #>
-$labbuildr_home = $env:USERPROFILE
+$Global:labbuildr_home = $env:USERPROFILE
+$Global:labbuildr_user = "_labbuildr_"
+try 
+    {
+    $local_user = Get-LocalUser "$Global:labbuildr_user" -ErrorAction Stop
+    }
+catch [Microsoft.PowerShell.Commands.UserNotFoundException]
+    {
+    Write-Host "User $user not found, trying to create"
+    New-LocalUser -Name _labbuildr_ -Password (ConvertTo-SecureString -AsPlainText -Force "Password123!") -AccountNeverExpires
+    }
+if (!$local_user)
+     {
+     Write-Warning "can not set local user $Global:labbuildr_user "
+     Break 
+     }
 clear-host
 $self  = Get-Location
 import-module (Join-Path $self "labtools") -Force
@@ -53,6 +68,11 @@ if ((Get-LABDefaults).SQLVER -notmatch 'ISO')
 	{
 	Set-LABSQLver -SQLVER SQL2014SP2_ISO
 	}
+
+
+
+
+
 $buildlab = (join-path $self "build-hypervlab.ps1")
 .$buildlab
 $Global:vmxtoolkit_type = "win_x86_64"
