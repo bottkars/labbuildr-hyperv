@@ -3,8 +3,8 @@
 param (
 $vmname)
 $Builddir = $PSScriptRoot
-$vmname  = $vmname -replace ".\"
-$vmname  = $vmname -replace "\"
+$vmname  = $vmname -replace "\."
+$vmname  = $vmname -replace "\\"
 
 try
     {
