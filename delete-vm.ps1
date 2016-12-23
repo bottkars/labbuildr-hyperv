@@ -3,6 +3,9 @@
 param (
 $vmname)
 $Builddir = $PSScriptRoot
+$vmname  = $vmname -replace ".\"
+$vmname  = $vmname -replace "\"
+
 try
     {
     $VM = get-vm $vmname -ErrorAction Stop 

@@ -961,7 +961,7 @@ function check-task
     $task,
     $nodename,
     $sleep)
-        write-host -ForegroundColor Gray " ==> Checking for task $Task finished"
+        write-host -NoNewline -ForegroundColor Gray " ==> Checking for task $Task finished "
         do
 			{
 			$sleep = 1
