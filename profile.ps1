@@ -55,4 +55,4 @@ if ((Get-LABDefaults).SQLVER -notmatch 'ISO')
 	}
 $buildlab = (join-path $self "build-hypervlab.ps1")
 .$buildlab
-
+$Global:vmxtoolkit_type = "win_x86_64"

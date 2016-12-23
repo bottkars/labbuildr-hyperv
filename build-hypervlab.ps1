@@ -583,10 +583,10 @@ $ScaleIO_OS = "Windows"
 $ScaleIO_Path = "ScaleIO_$($ScaleIO_OS)_SW_Download"
 $latest_nmm = 'nmm9007'
 $latest_nw = 'nw9007'
-$latest_e16_cu = 'cu1'
-$latest_e15_cu = 'cu12'
+$latest_e16_cu = 'cu4'
+$latest_e15_cu = 'cu15'
 $latest_e14_sp = 'sp3'
-$latest_e14_ur = 'ur13'
+$latest_e14_ur = 'ur16'
 $latest_sqlver  = 'SQL2016'
 $latest_master = '2012R2FallUpdate'
 $latest_sql_2012 = 'SQL2012SP2'
@@ -963,10 +963,20 @@ function check-task
     $sleep)
         write-host -ForegroundColor Gray " ==> Checking for task $Task finished"
         do
-            {
-            Write-Host -NoNewline "."
-            Sleep $Sleep
-            }
+			{
+			$sleep = 1
+			foreach ($i in (1..$sleep)) 
+				{
+				Write-Host -ForegroundColor Yellow "-`b" -NoNewline
+				sleep 1
+				Write-Host -ForegroundColor Yellow "\`b" -NoNewline
+				sleep 1
+				Write-Host -ForegroundColor Yellow "|`b" -NoNewline
+				sleep 1
+				Write-Host -ForegroundColor Yellow "/`b" -NoNewline
+				sleep 1
+				}
+			}
         until ((get-vmguesttask -Task $task -Node $nodename) -match "finished")
         Write-Host
 
