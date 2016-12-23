@@ -568,7 +568,7 @@ $LogFile = "$Builddir\$(Get-Content env:computername).log"
 $Labbuildr_share_User = "_labbuildr_"
 $Labbuildr_share_password = "Password123!"
 $WAIKVER = "WAIK"
-$domainsuffix = ".local"
+$domainsuffix = "local"
 $AAGDB = "AWORKS"
 $major = "6.0"
 $Edition = "Early_Summer"
@@ -1524,6 +1524,22 @@ if ($defaults.IsPresent)
                 $nw = $true
                 }
             }
+		if ($LabDefaults.custom_domainsuffix)
+			{
+			$custom_domainsuffix = $LabDefaults.custom_domainsuffix
+			}
+		else
+			{
+			$custom_domainsuffix = "local"
+			}
+		if ($LabDefaults.LanguageTag)
+			{
+			$LanguageTag= $LabDefaults.LanguageTag
+			}
+		else
+			{
+			$LanguageTag = "en_US"
+			}
         
     }
 if (Test-Path "$Builddir\Switchdefaults.xml")
@@ -2282,7 +2298,7 @@ $IN_Guest_CD_Node_ScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status sta
 $IN_Guest_CD_Node_ScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
 New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name '99-$next_phase' -Value '$PSHOME\powershell.exe -Command `". $IN_Guest_CD_Scriptroot\$Dynamic_Scripts_Name\run-$next_phase.ps1`"'
 Set-ExecutionPolicy -ExecutionPolicy bypass -Force
-$ScenarioScriptdir\finish-domain.ps1 -domain $BuildDomain -domainsuffix $domainsuffix $CommonParameter
+$ScenarioScriptdir\finish-domain.ps1 -domain $BuildDomain -domainsuffix $custom_domainsuffix $CommonParameter
 "
 Write-Verbose $Content
 Set-Content "$Dynamic_Scripts\run-$Current_phase.ps1" -Value $Content -Force
