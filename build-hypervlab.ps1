@@ -2271,7 +2271,7 @@ if (!(test-dcrunning) -and (!$NoDomainCheck.IsPresent))
 		Write-Verbose $Dynamic_Scripts
 		Write-Verbose "Common Parameter = $CommonParameter"
         Remove-Item -Path "$Dynamic_Scripts" -Force -Recurse -ErrorAction SilentlyContinue | Out-Null
-        New-Item -ItemType Directory "$Dynamic_Scripts" #-Force | Out-Null
+        New-Item -ItemType Directory "$Dynamic_Scripts" -Force | Out-Null
         New-Item -ItemType Directory "$Builddir\$NodePrefix" -Force | Out-Null
         $Current_phase = "start-customize"
         $next_phase = "phase2"
