@@ -1089,7 +1089,7 @@ $IN_Guest_CD_Node_ScriptDir\set-winrm.ps1 -Scriptdir $IN_Guest_CD_Scriptroot
 "
             }
 
-        $Content += "restart-computer
+        $Content += "restart-computer -force
 "
     
         Write-Verbose $Content
@@ -2331,7 +2331,7 @@ $ScenarioScriptdir\dns.ps1 -IPv4subnet $IPv4Subnet -IPv4Prefixlength $IPV4Prefix
 $ScenarioScriptdir\add-serviceuser.ps1
 $ScenarioScriptdir\pwpolicy.ps1 
 #$IN_Guest_CD_Node_ScriptDir\set-winrm.ps1 -Scriptdir $IN_Guest_CD_Scriptroot
-restart-computer
+restart-computer -force
 "
 Write-Verbose $Content
 Set-Content "$Dynamic_Scripts\run-$Current_phase.ps1" -Value $Content -Force
@@ -2351,7 +2351,7 @@ $IN_Guest_CD_Node_ScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status fi
 $IN_Guest_CD_Node_ScriptDir\powerconf.ps1 -Scriptdir $IN_Guest_CD_Scriptroot
 $IN_Guest_CD_Node_ScriptDir\set-uac.ps1 -Scriptdir $IN_Guest_CD_Scriptroot
 $IN_Guest_CD_Node_ScriptDir\set-winrm.ps1 -Scriptdir $IN_Guest_CD_Scriptroot
-restart-computer 
+restart-computer -force 
 "
         Write-Verbose $Content
         Set-Content "$Dynamic_Scripts\run-$Current_phase.ps1" -Value $Content -Force
@@ -2677,7 +2677,7 @@ $IN_Guest_CD_Node_ScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status fi
 $ScenarioScriptdir\prepare-disks.ps1
 $ScenarioScriptdir\install-exchangeprereqs.ps1 -SourcePath $IN_Guest_UNC_Sourcepath -Scriptdir $IN_Guest_CD_Scriptroot -NET_VER $NET_VER
 New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name '99-$next_phase' -Value '$PSHOME\powershell.exe -Command `". $IN_Guest_CD_Scriptroot\$Dynamic_Scripts_Name\run-$next_phase.ps1`"'
-restart-computer
+restart-computer -force
 "
 Write-Verbose $Content
 Set-Content "$Dynamic_Scripts\run-$Current_phase.ps1" -Value $Content -Force
@@ -2866,7 +2866,7 @@ $ScenarioScriptdir\INSTALL-SRM.ps1 -SRM_VER $SRM_VER $CommonParameter -SourcePat
 # $IN_Guest_CD_Node_ScriptDir\set-autologon -user $scenario_admin -SourcePath $IN_Guest_UNC_Sourcepath -Scriptdir $IN_Guest_CD_Scriptroot
 #$IN_Guest_CD_Node_ScriptDir\Add-DomainUserToLocalGroup.ps1 -user $scenario_admin -group 'Remote Desktop Users' -SourcePath $IN_Guest_UNC_Sourcepath -Scriptdir $IN_Guest_CD_Scriptroot
 New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name '99-$next_phase' -Value '$PSHOME\powershell.exe -Command `". $IN_Guest_CD_Scriptroot\$Dynamic_Scripts_Name\run-$next_phase.ps1`"'
-#restart-computer
+#restart-computer -force
 "
 Write-Verbose $Content
 Set-Content "$Dynamic_Scripts\run-$Current_phase.ps1" -Value $Content -Force
@@ -2989,7 +2989,7 @@ $ScenarioScriptdir\INSTALL-vmm.ps1 -SC_Version $SC_Version $CommonParameter -Sou
 #$IN_Guest_CD_Node_ScriptDir\set-autologon -user nwadmin -SourcePath $IN_Guest_UNC_Sourcepath -Scriptdir $IN_Guest_CD_Scriptroot
 #$IN_Guest_CD_Node_ScriptDir\Add-DomainUserToLocalGroup.ps1 -user nwadmin -group 'Remote Desktop Users' -SourcePath $IN_Guest_UNC_Sourcepath -Scriptdir $IN_Guest_CD_Scriptroot
 #New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name '99-$next_phase' -Value '$PSHOME\powershell.exe -Command `". $IN_Guest_CD_Scriptroot\$Dynamic_Scripts_Name\run-$next_phase.ps1`"'
-# restart-computer
+# restart-computer -force
 "
 Write-Verbose $Content
 Set-Content "$Dynamic_Scripts\run-$Current_phase.ps1" -Value $Content -Force
@@ -3112,7 +3112,7 @@ $ScenarioScriptdir\INSTALL-Scom.ps1 -SC_Version $SC_Version $CommonParameter -So
 #$IN_Guest_CD_Node_ScriptDir\set-autologon -user nwadmin -SourcePath $IN_Guest_UNC_Sourcepath -Scriptdir $IN_Guest_CD_Scriptroot
 #$IN_Guest_CD_Node_ScriptDir\Add-DomainUserToLocalGroup.ps1 -user nwadmin -group 'Remote Desktop Users' -SourcePath $IN_Guest_UNC_Sourcepath -Scriptdir $IN_Guest_CD_Scriptroot
 #New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name '99-$next_phase' -Value '$PSHOME\powershell.exe -Command `". $IN_Guest_CD_Scriptroot\$Dynamic_Scripts_Name\run-$next_phase.ps1`"'
-# restart-computer
+# restart-computer -force
 "
 Write-Verbose $Content
 Set-Content "$Dynamic_Scripts\run-$Current_phase.ps1" -Value $Content -Force
@@ -3219,7 +3219,7 @@ $ScenarioScriptdir\nsruserlist.ps1 -SourcePath $IN_Guest_UNC_Sourcepath -Scriptd
 $ScenarioScriptdir\create-nsrdevice.ps1 -AFTD AFTD1 -SourcePath $IN_Guest_UNC_Sourcepath -Scriptdir $IN_Guest_CD_Scriptroot
 #$ScenarioScriptdir\configure-nmc.ps1 -SourcePath $IN_Guest_UNC_Sourcepath -Scriptdir $IN_Guest_CD_Scriptroot
 New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name '99-$next_phase' -Value '!$PSHOME\powershell.exe -Command `". $IN_Guest_CD_Scriptroot\$Dynamic_Scripts_Name\run-$next_phase.ps1`"'
-restart-computer
+restart-computer -force
 "
 Write-Verbose $Content
 Set-Content "$Dynamic_Scripts\run-$Current_phase.ps1" -Value $Content -Force
