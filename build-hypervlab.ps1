@@ -1779,7 +1779,12 @@ if (!$SMBShare_Sources)
     break
     }
 
-
+### setting ACLs
+Write-Host "==> Verifying ACL´s for $Sourcedir"
+    $Acl = Get-Acl $Sourcedir
+	$New_rule = New-Object  system.security.accesscontrol.filesystemaccessrule("$Global:labbuildr_user","FullControl", "ContainerInherit, ObjectInherit", "none", "Allow")
+    $Acl.SetAccessRule($New_rule)
+    Set-Acl $Sourcedir $Acl
 
 if (!$Master)
 
@@ -2674,9 +2679,9 @@ $Content = "###
 `$Logfile = New-Item -ItemType file `"c:\$Scripts\`$ScriptName.log`"
 $IN_Guest_CD_Node_ScriptDir\set-vmguesttask.ps1 -Task $current_phase -Status started
 $IN_Guest_CD_Node_ScriptDir\set-vmguesttask.ps1 -Task $previous_phase -Status finished
+New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name '99-$next_phase' -Value '$PSHOME\powershell.exe -Command `". $IN_Guest_CD_Scriptroot\$Dynamic_Scripts_Name\run-$next_phase.ps1`"'
 $ScenarioScriptdir\prepare-disks.ps1
 $ScenarioScriptdir\install-exchangeprereqs.ps1 -SourcePath $IN_Guest_UNC_Sourcepath -Scriptdir $IN_Guest_CD_Scriptroot -NET_VER $NET_VER
-New-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce -Name '99-$next_phase' -Value '$PSHOME\powershell.exe -Command `". $IN_Guest_CD_Scriptroot\$Dynamic_Scripts_Name\run-$next_phase.ps1`"'
 restart-computer -force
 "
 Write-Verbose $Content
